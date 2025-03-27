@@ -29,8 +29,8 @@ This is an iOS todo-list application that allows users to create, manage, and tr
 
 ### Phase 3: Advanced Features
 - [x] Add basic focus mode implementation
-- [ ] Enhance focus mode with break timers and sound alerts
-- [ ] Implement notifications for task reminders
+- [x] Enhance focus mode with break timers and sound alerts
+- [x] Implement notifications for task reminders
 - [ ] Add statistics and reports
 - [x] Implement data backup and restore
 - [x] Add simple settings screen
@@ -43,7 +43,8 @@ This is an iOS todo-list application that allows users to create, manage, and tr
 - Basic UI components created
 - Local storage using UserDefaults implemented
 - Categories, due dates, priorities, and subtasks implemented
-- Basic focus mode implemented
+- Focus mode implemented with timer, break sessions, and sound alerts
+- Notification system implemented for task reminders and focus events
 - Simple settings screen added
 - Data backup and restore functionality implemented
 - UI animations and transitions implemented
@@ -54,6 +55,6 @@ This is an iOS todo-list application that allows users to create, manage, and tr
   - UI appearance options
 
 ## Next Steps
-- Enhance focus mode with break timers and sound alerts
-- Implement notifications for task reminders
-- Add statistics and reports 
+- Add statistics and reports for task completion analytics
+- Explore syncing options with other devices
+- Implement widgets for quick task creation and viewing 

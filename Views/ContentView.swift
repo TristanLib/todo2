@@ -5,6 +5,7 @@ struct ContentView: View {
     @EnvironmentObject var appSettings: AppSettings
     @State private var selectedTab = 0
     @State private var showAddTask = false
+    @State private var showTaskDetail: Task? = nil
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -55,6 +56,38 @@ struct ContentView: View {
             AddTaskView()
                 .accentColor(appSettings.accentColor.color)
         }
+        .sheet(item: $showTaskDetail) { task in
+            NavigationView {
+                TaskDetailView(task: task)
+                    .navigationBarItems(trailing: Button("完成") {
+                        showTaskDetail = nil
+                    })
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openFocusView)) { _ in
+            selectedTab = 2 // 切换到专注标签
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openTaskDetails)) { notification in
+            if let userInfo = notification.userInfo,
+               let taskId = userInfo["taskId"] as? String,
+               let task = taskStore.getTaskById(taskId) {
+                showTaskDetail = task
+            } else {
+                selectedTab = 1 // 如果找不到特定任务，则跳转到任务列表
+            }
+        }
+    }
+}
+
+// 为Task添加Identifiable支持，用于sheet(item:)
+extension Task: Identifiable {
+    // Task已经实现了id属性，所以这里只需确保有Identifiable协议即可
+}
+
+// TaskStore扩展，添加按ID查找任务的方法
+extension TaskStore {
+    func getTaskById(_ id: String) -> Task? {
+        return tasks.first { $0.id == id }
     }
 }
 
