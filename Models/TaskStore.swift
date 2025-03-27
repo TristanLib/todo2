@@ -90,4 +90,44 @@ class TaskStore: ObservableObject {
             tasks = []
         }
     }
+    
+    // MARK: - Backup and Restore
+    
+    func backupData(completion: @escaping (Result<URL, Error>) -> Void) {
+        DataManager.shared.createBackup(tasks: tasks, completion: completion)
+    }
+    
+    func restoreData(from url: URL, completion: @escaping (Result<Void, Error>) -> Void) {
+        DataManager.shared.restoreFromFile(at: url) { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let restoredTasks):
+                DispatchQueue.main.async {
+                    self.tasks = restoredTasks
+                    self.saveTasks()
+                    completion(.success(()))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
+    }
+    
+    func clearAllData(completion: @escaping () -> Void) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.tasks = []
+            self.saveTasks()
+            completion()
+        }
+    }
+    
+    func getBackupFiles() -> [URL] {
+        return DataManager.shared.getBackupFiles()
+    }
+    
+    func deleteBackupFile(at url: URL) -> Bool {
+        return DataManager.shared.deleteBackupFile(at: url)
+    }
 } 

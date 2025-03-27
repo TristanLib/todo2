@@ -5,24 +5,35 @@ struct TaskListView: View {
     @State private var activeFilter: TaskFilter = .all
     @State private var searchText = ""
     @State private var showSearch = false
+    @State private var isLoaded = false
     
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
                 if showSearch {
                     searchBar
+                        .transition(.move(edge: .top).combined(with: .opacity))
                 }
                 
                 filterTabsBar
+                    .slideIn(isPresented: isLoaded, from: .top)
                 
                 if filteredTasks.isEmpty {
                     emptyStateView
+                        .fadeIn(isPresented: isLoaded)
                 } else {
                     taskList
+                        .fadeIn(isPresented: isLoaded)
                 }
             }
-            .navigationTitle("Tasks")
+            .navigationTitle("任务")
             .navigationBarItems(trailing: searchButton)
+            .animation(AnimationUtils.spring, value: showSearch)
+            .onAppear {
+                withAnimation(AnimationUtils.spring.delay(0.2)) {
+                    isLoaded = true
+                }
+            }
         }
     }
     
@@ -43,7 +54,7 @@ struct TaskListView: View {
     
     private var searchBar: some View {
         HStack {
-            TextField("Search tasks...", text: $searchText)
+            TextField("搜索任务...", text: $searchText)
                 .padding(8)
                 .padding(.horizontal, 8)
                 .background(Color(.systemGray6))
@@ -55,7 +66,7 @@ struct TaskListView: View {
                     showSearch = false
                 }
             }) {
-                Text("Cancel")
+                Text("取消")
                     .foregroundColor(.blue)
             }
         }
@@ -68,11 +79,11 @@ struct TaskListView: View {
             HStack(spacing: 0) {
                 ForEach(TaskFilter.allCases, id: \.self) { filter in
                     Button(action: {
-                        withAnimation {
+                        withAnimation(AnimationUtils.spring) {
                             activeFilter = filter
                         }
                     }) {
-                        Text(filter.title)
+                        Text(filter.localizedTitle)
                             .fontWeight(.medium)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
@@ -108,15 +119,18 @@ struct TaskListView: View {
         List {
             ForEach(filteredTasks) { task in
                 NavigationLink(destination: TaskDetailView(task: task)) {
-                    TaskItemRow(task: task) {
+                    AnimatedTaskItemRow(task: task) {
                         taskStore.toggleTaskCompletion(task)
                     }
                 }
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: 5, leading: 10, bottom: 5, trailing: 10))
+                .buttonStyle(PlainButtonStyle())
             }
             .onDelete { indexSet in
-                taskStore.deleteTask(at: indexSet)
+                withAnimation {
+                    taskStore.deleteTask(at: indexSet)
+                }
             }
         }
         .listStyle(PlainListStyle())
@@ -129,11 +143,11 @@ struct TaskListView: View {
                 .foregroundColor(.gray.opacity(0.7))
                 .padding(.bottom, 10)
             
-            Text("No tasks found")
+            Text("没有找到任务")
                 .font(.title3)
                 .fontWeight(.medium)
             
-            Text("Add a new task using the + button")
+            Text("使用 + 按钮添加新任务")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -168,30 +182,14 @@ struct TaskListView: View {
     }
 }
 
-struct TaskItemRow: View {
+struct AnimatedTaskItemRow: View {
     var task: Task
     var toggleAction: () -> Void
+    @State private var isAppeared = false
     
     var body: some View {
         HStack(alignment: .top, spacing: 15) {
-            Button(action: toggleAction) {
-                ZStack {
-                    Circle()
-                        .strokeBorder(task.isCompleted ? Color.blue : Color.gray, lineWidth: 2)
-                        .frame(width: 24, height: 24)
-                    
-                    if task.isCompleted {
-                        Circle()
-                            .fill(Color.blue)
-                            .frame(width: 20, height: 20)
-                        
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white)
-                    }
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
+            AnimatedCheckbox(isChecked: task.isCompleted, action: toggleAction)
             
             VStack(alignment: .leading, spacing: 5) {
                 Text(task.title)
@@ -225,6 +223,13 @@ struct TaskItemRow: View {
             Spacer()
         }
         .padding(.vertical, 8)
+        .opacity(isAppeared ? 1 : 0)
+        .offset(x: isAppeared ? 0 : -20)
+        .onAppear {
+            withAnimation(AnimationUtils.spring) {
+                isAppeared = true
+            }
+        }
     }
     
     private var dateFormatter: DateFormatter {
@@ -241,6 +246,21 @@ enum TaskFilter: String, CaseIterable {
     case completed
     case incomplete
     case highPriority = "high_priority"
+    
+    var localizedTitle: String {
+        switch self {
+        case .all:
+            return "全部"
+        case .today:
+            return "今日"
+        case .completed:
+            return "已完成"
+        case .incomplete:
+            return "未完成"
+        case .highPriority:
+            return "高优先级"
+        }
+    }
     
     var title: String {
         switch self {

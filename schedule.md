@@ -25,14 +25,14 @@ This is an iOS todo-list application that allows users to create, manage, and tr
 - [x] Add priority levels for tasks
 - [x] Implement progress tracking
 - [x] Add subtasks feature
-- [ ] Improve UI with animations and transitions
+- [x] Improve UI with animations and transitions
 
 ### Phase 3: Advanced Features
 - [x] Add basic focus mode implementation
 - [ ] Enhance focus mode with break timers and sound alerts
 - [ ] Implement notifications for task reminders
 - [ ] Add statistics and reports
-- [ ] Implement data backup and restore
+- [x] Implement data backup and restore
 - [x] Add simple settings screen
 - [ ] Enhance settings and customization options
 
@@ -45,10 +45,11 @@ This is an iOS todo-list application that allows users to create, manage, and tr
 - Categories, due dates, priorities, and subtasks implemented
 - Basic focus mode implemented
 - Simple settings screen added
+- Data backup and restore functionality implemented
+- UI animations and transitions implemented
 
 ## Next Steps
-- Improve UI with animations and transitions
+- Enhance focus mode with break timers and sound alerts
 - Implement notifications for task reminders
 - Add statistics and reports
-- Enhance focus mode with more features
-- Implement data backup and restore functionality 
+- Enhance settings and customization options 

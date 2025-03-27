@@ -7,6 +7,11 @@ struct TaskDetailView: View {
     @State private var task: Task
     @State private var isEditing = false
     @State private var showingDeleteAlert = false
+    @State private var isHeaderLoaded = false
+    @State private var isDescriptionLoaded = false
+    @State private var isSubtasksLoaded = false
+    @State private var isMetadataLoaded = false
+    @State private var isActionsLoaded = false
     
     init(task: Task) {
         _task = State(initialValue: task)
@@ -16,35 +21,43 @@ struct TaskDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 taskHeader
+                    .slideIn(isPresented: isHeaderLoaded, from: .top)
                 
                 if !task.description.isEmpty {
                     descriptionSection
+                        .slideIn(isPresented: isDescriptionLoaded, from: .leading)
                 }
                 
                 if !task.subtasks.isEmpty {
                     subtasksSection
+                        .slideIn(isPresented: isSubtasksLoaded, from: .trailing)
                 }
                 
                 metadataSection
+                    .slideIn(isPresented: isMetadataLoaded, from: .leading)
                 
                 actionButtons
+                    .popIn(isPresented: isActionsLoaded)
             }
             .padding()
         }
-        .navigationTitle("Task Details")
+        .navigationTitle("任务详情")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarItems(trailing: editButton)
         .alert(isPresented: $showingDeleteAlert) {
             Alert(
-                title: Text("Delete Task"),
-                message: Text("Are you sure you want to delete this task? This cannot be undone."),
-                primaryButton: .destructive(Text("Delete"), action: deleteTask),
-                secondaryButton: .cancel()
+                title: Text("删除任务"),
+                message: Text("确定要删除此任务吗？此操作无法撤销。"),
+                primaryButton: .destructive(Text("删除"), action: deleteTask),
+                secondaryButton: .cancel(Text("取消"))
             )
         }
         .sheet(isPresented: $isEditing) {
             EditTaskView(task: $task, isEditing: $isEditing)
                 .environmentObject(taskStore)
+        }
+        .onAppear {
+            animateContent()
         }
     }
     
@@ -52,7 +65,7 @@ struct TaskDetailView: View {
         Button(action: {
             isEditing = true
         }) {
-            Text("Edit")
+            Text("编辑")
                 .foregroundColor(.blue)
         }
     }
@@ -105,7 +118,7 @@ struct TaskDetailView: View {
     
     private var descriptionSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Description")
+            Text("描述")
                 .font(.headline)
             
             Text(task.description)
@@ -118,31 +131,14 @@ struct TaskDetailView: View {
     
     private var subtasksSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Text("Subtasks")
+            Text("子任务")
                 .font(.headline)
             
             ForEach(task.subtasks) { subtask in
                 HStack(spacing: 10) {
-                    Button(action: {
+                    AnimatedCheckbox(isChecked: subtask.isCompleted) {
                         toggleSubtask(subtask)
-                    }) {
-                        ZStack {
-                            Circle()
-                                .strokeBorder(subtask.isCompleted ? Color.blue : Color.gray, lineWidth: 2)
-                                .frame(width: 24, height: 24)
-                            
-                            if subtask.isCompleted {
-                                Circle()
-                                    .fill(Color.blue)
-                                    .frame(width: 20, height: 20)
-                                
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(.white)
-                            }
-                        }
                     }
-                    .buttonStyle(PlainButtonStyle())
                     
                     Text(subtask.title)
                         .strikethrough(subtask.isCompleted)
@@ -159,7 +155,7 @@ struct TaskDetailView: View {
     private var metadataSection: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label {
-                Text("Created on \(creationDateFormatter.string(from: task.createdAt))")
+                Text("创建于 \(creationDateFormatter.string(from: task.createdAt))")
                     .foregroundColor(.secondary)
             } icon: {
                 Image(systemName: "clock")
@@ -168,7 +164,7 @@ struct TaskDetailView: View {
             .font(.footnote)
             
             Label {
-                Text(task.isCompleted ? "Completed" : "Not completed")
+                Text(task.isCompleted ? "已完成" : "未完成")
                     .foregroundColor(.secondary)
             } icon: {
                 Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
@@ -183,45 +179,61 @@ struct TaskDetailView: View {
     
     private var actionButtons: some View {
         HStack {
-            Button(action: toggleCompletion) {
-                HStack {
-                    Image(systemName: task.isCompleted ? "circle" : "checkmark.circle.fill")
-                    Text(task.isCompleted ? "Mark as incomplete" : "Mark as complete")
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(10)
+            AnimatedButton(
+                title: task.isCompleted ? "标记为未完成" : "标记为已完成",
+                systemImage: task.isCompleted ? "circle" : "checkmark.circle.fill",
+                color: .blue
+            ) {
+                toggleCompletion()
             }
             
-            Button(action: {
+            AnimatedButton(
+                title: "删除",
+                systemImage: "trash",
+                color: .red
+            ) {
                 showingDeleteAlert = true
-            }) {
-                HStack {
-                    Image(systemName: "trash")
-                    Text("Delete")
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.red)
-                .foregroundColor(.white)
-                .cornerRadius(10)
             }
         }
     }
     
     // MARK: - Helper Methods
     
+    private func animateContent() {
+        withAnimation(AnimationUtils.spring.delay(0.1)) {
+            isHeaderLoaded = true
+        }
+        
+        withAnimation(AnimationUtils.spring.delay(0.2)) {
+            isDescriptionLoaded = true
+        }
+        
+        withAnimation(AnimationUtils.spring.delay(0.3)) {
+            isSubtasksLoaded = true
+        }
+        
+        withAnimation(AnimationUtils.spring.delay(0.4)) {
+            isMetadataLoaded = true
+        }
+        
+        withAnimation(AnimationUtils.spring.delay(0.5)) {
+            isActionsLoaded = true
+        }
+    }
+    
     private func toggleCompletion() {
-        task.isCompleted.toggle()
-        taskStore.updateTask(task)
+        withAnimation(AnimationUtils.spring) {
+            task.isCompleted.toggle()
+            taskStore.updateTask(task)
+        }
     }
     
     private func toggleSubtask(_ subtask: Subtask) {
         if let index = task.subtasks.firstIndex(where: { $0.id == subtask.id }) {
-            task.subtasks[index].isCompleted.toggle()
-            taskStore.updateTask(task)
+            withAnimation(AnimationUtils.spring) {
+                task.subtasks[index].isCompleted.toggle()
+                taskStore.updateTask(task)
+            }
         }
     }
     
@@ -233,11 +245,11 @@ struct TaskDetailView: View {
     private var priorityText: String {
         switch task.priority {
         case .low:
-            return "Low Priority"
+            return "低优先级"
         case .medium:
-            return "Medium Priority"
+            return "中优先级"
         case .high:
-            return "High Priority"
+            return "高优先级"
         }
     }
     
@@ -257,11 +269,11 @@ struct TaskDetailView: View {
         case .work:
             return .blue
         case .personal:
-            return .green
+            return .purple
         case .health:
-            return .orange
+            return .green
         case .important:
-            return .red
+            return .orange
         }
     }
     
@@ -274,7 +286,7 @@ struct TaskDetailView: View {
     
     private var creationDateFormatter: DateFormatter {
         let formatter = DateFormatter()
-        formatter.dateStyle = .medium
+        formatter.dateStyle = .long
         formatter.timeStyle = .none
         return formatter
     }
@@ -283,18 +295,8 @@ struct TaskDetailView: View {
 struct TaskDetailView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            TaskDetailView(task: Task(
-                title: "Example Task",
-                description: "This is an example task description.",
-                category: .work,
-                dueDate: Date(),
-                priority: .medium,
-                subtasks: [
-                    Subtask(title: "Subtask 1"),
-                    Subtask(title: "Subtask 2", isCompleted: true)
-                ]
-            ))
-            .environmentObject(TaskStore())
+            TaskDetailView(task: Task(title: "示例任务", description: "这是一个示例任务描述"))
+                .environmentObject(TaskStore())
         }
     }
 } 
