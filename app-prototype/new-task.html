@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Task</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* General styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .app-container {
+            max-width: 414px;
+            height: 100vh;
+            margin: 0 auto;
+            background-color: white;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 15px;
+            background-color: #f9f9f9;
+            font-size: 0.8rem;
+            color: #333;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .network i {
+            margin-right: 5px;
+        }
+
+        /* Content area */
+        .content {
+            flex: 1;
+            padding: 20px 15px;
+            overflow-y: auto;
+            padding-bottom: 80px; /* Space for the navigation bar */
+        }
+
+        /* Navigation bar */
+        .nav-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #757575;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .nav-item.active {
+            color: #4F46E5;
+        }
+
+        /* Back button */
+        .back-button {
+            display: flex;
+            align-items: center;
+            color: #4F46E5;
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        /* New task form */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        textarea.form-control {
+            height: 100px;
+            resize: vertical;
+        }
+
+        .form-row {
+            display: flex;
+            margin: 0 -10px;
+        }
+
+        .form-col {
+            flex: 1;
+            padding: 0 10px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background-color: #4F46E5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        /* Priority selection */
+        .priority-options {
+            display: flex;
+            gap: 10px;
+        }
+
+        .priority-option {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .priority-option.selected {
+            background-color: #EBF5FF;
+            border-color: #1E88E5;
+            color: #1E88E5;
+            font-weight: 500;
+        }
+
+        /* Responsive fixes */
+        @media (max-width: 414px) {
+            .app-container {
+                height: 100vh;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 320px) {
+            .content {
+                padding: 15px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="network">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+            </div>
+            <div class="time">9:41</div>
+            <div class="indicators">
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Back button -->
+            <a href="index.html" class="back-button">
+                <i class="fas fa-chevron-left"></i> Back
+            </a>
+
+            <h1 class="text-2xl font-bold mb-6">New Task</h1>
+
+            <!-- New Task Form -->
+            <form id="new-task-form">
+                <div class="form-group">
+                    <label for="taskTitle">Task Title</label>
+                    <input type="text" id="taskTitle" class="form-control" placeholder="What do you need to do?">
+                </div>
+
+                <div class="form-group">
+                    <label for="taskDescription">Description</label>
+                    <textarea id="taskDescription" class="form-control" placeholder="Add details about your task"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="taskCategory">Category</label>
+                            <select id="taskCategory" class="form-control">
+                                <option value="">Select category</option>
+                                <option value="Work">Work</option>
+                                <option value="Personal">Personal</option>
+                                <option value="Health">Health</option>
+                                <option value="Important">Important</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="taskDueDate">Due Date</label>
+                            <input type="date" id="taskDueDate" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="taskTime">Time</label>
+                            <input type="time" id="taskTime" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label>Priority</label>
+                            <div class="priority-options">
+                                <div class="priority-option" data-value="low">Low</div>
+                                <div class="priority-option" data-value="medium">Medium</div>
+                                <div class="priority-option selected" data-value="high">High</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="subtasks">Subtasks</label>
+                    <div id="subtasks-container">
+                        <div class="subtask-input flex items-center mb-2">
+                            <input type="text" class="form-control subtask-field" placeholder="Add subtask">
+                            <button type="button" class="ml-2 text-red-500 remove-subtask" style="display: none;">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="button" id="add-subtask" class="mt-2 text-blue-500 flex items-center">
+                        <i class="fas fa-plus mr-2"></i> Add Another Subtask
+                    </button>
+                </div>
+
+                <button type="submit" class="submit-btn">Create Task</button>
+            </form>
+        </div>
+
+        <!-- Navigation Bar -->
+        <div class="nav-bar">
+            <a href="index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="tasks.html" class="nav-item">
+                <i class="fas fa-tasks"></i>
+                <span>Tasks</span>
+            </a>
+            <a href="new-task.html" class="nav-item active">
+                <i class="fas fa-plus"></i>
+                <span>Add</span>
+            </a>
+            <a href="focus-mode.html" class="nav-item">
+                <i class="fas fa-bullseye"></i>
+                <span>Focus</span>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if we're editing an existing task
+            const urlParams = new URLSearchParams(window.location.search);
+            const taskId = urlParams.get('id');
+            let existingTask = null;
+            
+            // If taskId exists, load the task data
+            if (taskId) {
+                const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+                existingTask = tasks.find(task => task.id == taskId);
+                
+                if (existingTask) {
+                    // Update page title and header
+                    document.title = 'Edit Task';
+                    document.querySelector('h1').textContent = 'Edit Task';
+                    document.querySelector('.submit-btn').textContent = 'Update Task';
+                    
+                    // Populate form fields
+                    document.getElementById('taskTitle').value = existingTask.title || '';
+                    document.getElementById('taskDescription').value = existingTask.description || '';
+                    document.getElementById('taskCategory').value = existingTask.category || '';
+                    document.getElementById('taskDueDate').value = existingTask.dueDate || existingTask.date || '';
+                    document.getElementById('taskTime').value = existingTask.time || '';
+                    
+                    // Set priority
+                    if (existingTask.priority) {
+                        document.querySelectorAll('.priority-option').forEach(option => {
+                            if (option.dataset.value === existingTask.priority) {
+                                option.click();
+                            }
+                        });
+                    }
+                    
+                    // Populate subtasks
+                    const subtasksContainer = document.getElementById('subtasks-container');
+                    subtasksContainer.innerHTML = ''; // Clear default subtask field
+                    
+                    if (existingTask.subtasks && existingTask.subtasks.length > 0) {
+                        existingTask.subtasks.forEach(subtask => {
+                            const subtaskDiv = document.createElement('div');
+                            subtaskDiv.className = 'subtask-input flex items-center mb-2';
+                            
+                            subtaskDiv.innerHTML = `
+                                <input type="text" class="form-control subtask-field" placeholder="Add subtask" value="${subtask.text}">
+                                <button type="button" class="ml-2 text-red-500 remove-subtask">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            `;
+                            
+                            subtasksContainer.appendChild(subtaskDiv);
+                            
+                            // Add event listener to remove button
+                            subtaskDiv.querySelector('.remove-subtask').addEventListener('click', function() {
+                                subtaskDiv.remove();
+                            });
+                        });
+                    } else {
+                        // Add one empty subtask field if none exist
+                        addSubtaskField();
+                    }
+                }
+            }
+
+            // Priority selection
+            const priorityOptions = document.querySelectorAll('.priority-option');
+            priorityOptions.forEach(option => {
+                option.addEventListener('click', function() {
+                    priorityOptions.forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+
+            // Subtask functionality
+            const subtasksContainer = document.getElementById('subtasks-container');
+            const addSubtaskBtn = document.getElementById('add-subtask');
+
+            // Function to add subtask field
+            function addSubtaskField() {
+                const subtaskDiv = document.createElement('div');
+                subtaskDiv.className = 'subtask-input flex items-center mb-2';
+                
+                subtaskDiv.innerHTML = `
+                    <input type="text" class="form-control subtask-field" placeholder="Add subtask">
+                    <button type="button" class="ml-2 text-red-500 remove-subtask">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                subtasksContainer.appendChild(subtaskDiv);
+                
+                // Focus the new input
+                subtaskDiv.querySelector('input').focus();
+                
+                // Add event listener to remove button
+                subtaskDiv.querySelector('.remove-subtask').addEventListener('click', function() {
+                    subtaskDiv.remove();
+                });
+            }
+
+            // Add subtask button event
+            addSubtaskBtn.addEventListener('click', addSubtaskField);
+
+            // Show remove button on first subtask when a new one is added
+            addSubtaskBtn.addEventListener('click', function() {
+                const removeButtons = document.querySelectorAll('.remove-subtask');
+                removeButtons.forEach(btn => btn.style.display = 'block');
+            });
+
+            // Form submission
+            const newTaskForm = document.getElementById('new-task-form');
+            newTaskForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // Get form values
+                const title = document.getElementById('taskTitle').value;
+                const description = document.getElementById('taskDescription').value;
+                const category = document.getElementById('taskCategory').value;
+                const dueDate = document.getElementById('taskDueDate').value;
+                const time = document.getElementById('taskTime').value;
+                const priority = document.querySelector('.priority-option.selected').dataset.value;
+                
+                // Get subtasks
+                const subtasks = [];
+                document.querySelectorAll('.subtask-field').forEach(field => {
+                    if (field.value.trim() !== '') {
+                        subtasks.push({
+                            text: field.value.trim(),
+                            completed: false
+                        });
+                    }
+                });
+                
+                // Load existing tasks
+                const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+                
+                if (existingTask) {
+                    // Update existing task
+                    const taskIndex = tasks.findIndex(t => t.id == taskId);
+                    
+                    if (taskIndex !== -1) {
+                        // Preserve completion status and subtask completion status
+                        const completedStatus = existingTask.completed;
+                        const existingSubtasks = existingTask.subtasks || [];
+                        
+                        // Update subtasks while preserving completion status of existing ones
+                        const updatedSubtasks = subtasks.map((subtask, index) => {
+                            // Check if this subtask text matches an existing one
+                            const matchingSubtask = existingSubtasks.find(
+                                s => s.text.toLowerCase() === subtask.text.toLowerCase()
+                            );
+                            
+                            return {
+                                text: subtask.text,
+                                completed: matchingSubtask ? matchingSubtask.completed : false
+                            };
+                        });
+                        
+                        // Create updated task object
+                        const updatedTask = {
+                            ...existingTask,
+                            title,
+                            description,
+                            category,
+                            date: dueDate, // Use date for consistency with other pages
+                            dueDate,
+                            time,
+                            priority,
+                            subtasks: updatedSubtasks,
+                            completed: completedStatus,
+                            updatedAt: new Date().toISOString()
+                        };
+                        
+                        // Update in array
+                        tasks[taskIndex] = updatedTask;
+                        
+                        // Save to localStorage
+                        localStorage.setItem('tasks', JSON.stringify(tasks));
+                        
+                        alert('Task updated successfully!');
+                    } else {
+                        alert('Error: Task not found!');
+                    }
+                } else {
+                    // Create task object
+                    const task = {
+                        id: Date.now(), // Using timestamp as ID
+                        title,
+                        description,
+                        category,
+                        date: dueDate, // Use date for consistency with other pages
+                        dueDate,
+                        time,
+                        priority,
+                        subtasks,
+                        completed: false,
+                        createdAt: new Date().toISOString()
+                    };
+                    
+                    // Add to array
+                    tasks.push(task);
+                    
+                    // Save to localStorage
+                    localStorage.setItem('tasks', JSON.stringify(tasks));
+                    
+                    alert('Task created successfully!');
+                }
+                
+                // Redirect back
+                window.location.href = 'tasks.html';
+            });
+        });
+    </script>
+</body>
+</html> 

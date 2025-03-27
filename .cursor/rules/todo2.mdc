@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+
+# Your rule content
+
+- 这是一个iOS手机端的todo-list应用
+- app-prototype文件夹下是原型设计
+- 使用local storage存储数据

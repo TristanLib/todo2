@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* General styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            line-height: 1.5;
+        }
+
+        .app-container {
+            max-width: 414px;
+            height: 100vh;
+            margin: 0 auto;
+            background-color: white;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 15px;
+            background-color: #f9f9f9;
+            font-size: 0.8rem;
+            color: #333;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .network i {
+            margin-right: 5px;
+        }
+
+        /* Content area */
+        .content {
+            flex: 1;
+            padding: 20px 15px;
+            overflow-y: auto;
+            padding-bottom: 80px; /* Space for the navigation bar */
+        }
+
+        /* Navigation bar */
+        .nav-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #757575;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+        }
+
+        .nav-item.active {
+            color: #4F46E5;
+        }
+
+        /* Task list styles */
+        .date-header {
+            font-size: 0.9rem;
+            color: #9CA3AF;
+            margin: 15px 0 10px;
+        }
+
+        .task-card {
+            background-color: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+            display: flex;
+            border: 1px solid #F3F4F6;
+        }
+
+        .task-with-checkbox {
+            display: flex;
+            align-items: flex-start;
+            width: 100%;
+        }
+
+        .custom-checkbox {
+            width: 22px;
+            height: 22px;
+            border-radius: 6px;
+            border: 2px solid #E5E7EB;
+            margin-right: 12px;
+            flex-shrink: 0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .task-completed .custom-checkbox {
+            background-color: #4F46E5;
+            border-color: #4F46E5;
+        }
+
+        .task-completed .custom-checkbox:after {
+            content: '';
+            position: absolute;
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            top: 3px;
+            left: 7px;
+            transform: rotate(45deg);
+        }
+
+        .task-content {
+            flex: 1;
+        }
+
+        .task-completed .task-title {
+            text-decoration: line-through;
+            color: #9CA3AF;
+        }
+
+        .task-meta {
+            display: flex;
+            align-items: center;
+            margin-top: 6px;
+        }
+
+        .task-category {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background-color: #F3F4F6;
+            color: #6B7280;
+            margin-right: 8px;
+        }
+
+        .task-time {
+            font-size: 0.7rem;
+            color: #9CA3AF;
+            display: flex;
+            align-items: center;
+        }
+
+        .task-time i {
+            margin-right: 4px;
+            font-size: 0.8rem;
+        }
+
+        /* Progress section */
+        .progress-section {
+            margin-bottom: 25px;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .progress-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .progress-stats {
+            font-size: 0.9rem;
+            color: #6B7280;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background-color: #F3F4F6;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-value {
+            height: 100%;
+            background-color: #4F46E5;
+            border-radius: 4px;
+        }
+
+        /* Category chips */
+        .categories-section {
+            margin-bottom: 25px;
+        }
+
+        .category-scroll {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding-bottom: 10px;
+            scrollbar-width: none; /* Firefox */
+        }
+
+        .category-scroll::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        .category-chip {
+            padding: 10px 20px;
+            background-color: #F9FAFB;
+            border-radius: 30px;
+            color: #374151;
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            border: 1px solid #F3F4F6;
+        }
+
+        .category-chip.active {
+            background-color: #4F46E5;
+            color: white;
+            border-color: #4F46E5;
+        }
+
+        /* Add button (floating action button) */
+        .add-btn {
+            position: fixed;
+            bottom: 80px;
+            right: calc(50% - 207px + 20px); /* Centered with app container */
+            width: 56px;
+            height: 56px;
+            border-radius: 28px;
+            background-color: #4F46E5;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            z-index: 10;
+        }
+
+        /* Search bar */
+        .search-box {
+            display: flex;
+            align-items: center;
+            background-color: #F3F4F6;
+            border-radius: 50px;
+            padding: 8px 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-box i {
+            color: #9CA3AF;
+            margin-right: 10px;
+        }
+
+        .search-input {
+            border: none;
+            background: transparent;
+            outline: none;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+        /* Responsive fixes */
+        @media (max-width: 414px) {
+            .app-container {
+                height: 100vh;
+                width: 100%;
+            }
+
+            .add-btn {
+                right: 20px;
+            }
+        }
+
+        @media (max-width: 320px) {
+            .content {
+                padding: 15px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <div class="network">
+                <i class="fas fa-signal"></i>
+                <i class="fas fa-wifi"></i>
+            </div>
+            <div class="time">9:41</div>
+            <div class="indicators">
+                <i class="fas fa-battery-full"></i>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Greeting -->
+            <h1 class="text-2xl font-bold mb-6">Hello, User!</h1>
+
+            <!-- Search Box -->
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search tasks..." class="search-input">
+            </div>
+
+            <!-- Progress Section -->
+            <div class="progress-section">
+                <div class="progress-header">
+                    <div class="progress-title">Your Progress</div>
+                    <div class="progress-stats">7/10 tasks</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-value" style="width: 70%;"></div>
+                </div>
+            </div>
+
+            <!-- Categories Section -->
+            <div class="categories-section">
+                <h2 class="text-lg font-semibold mb-4">Categories</h2>
+                <div class="category-scroll">
+                    <div class="category-chip active">All</div>
+                    <div class="category-chip">Work</div>
+                    <div class="category-chip">Personal</div>
+                    <div class="category-chip">Health</div>
+                    <div class="category-chip">Important</div>
+                </div>
+            </div>
+
+            <!-- Today's Tasks -->
+            <h2 class="text-lg font-semibold mt-2 mb-4">Today's Tasks</h2>
+            <div class="date-header">Today, Oct 15</div>
+            
+            <div id="today-tasks">
+                <!-- Task items will be dynamically added here -->
+            </div>
+
+            <!-- Upcoming Tasks -->
+            <h2 class="text-lg font-semibold mt-6 mb-4">Upcoming</h2>
+            <div class="date-header">Tomorrow, Oct 16</div>
+            
+            <div id="upcoming-tasks">
+                <!-- Task items will be dynamically added here -->
+            </div>
+
+            <!-- Add Button (Floating Action Button) -->
+            <a href="new-task.html" class="add-btn">
+                <i class="fas fa-plus"></i>
+            </a>
+        </div>
+
+        <!-- Navigation Bar -->
+        <div class="nav-bar">
+            <a href="index.html" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <a href="tasks.html" class="nav-item">
+                <i class="fas fa-tasks"></i>
+                <span>Tasks</span>
+            </a>
+            <a href="new-task.html" class="nav-item">
+                <i class="fas fa-plus"></i>
+                <span>Add</span>
+            </a>
+            <a href="focus-mode.html" class="nav-item">
+                <i class="fas fa-bullseye"></i>
+                <span>Focus</span>
+            </a>
+            <a href="settings.html" class="nav-item">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Sample data - in a real app, this would come from localStorage or a backend
+            const tasks = [
+                {
+                    id: 1,
+                    title: "Design team meeting",
+                    completed: true,
+                    category: "Work",
+                    time: "10:00 AM",
+                    date: "2023-10-15" // Today
+                },
+                {
+                    id: 2,
+                    title: "Complete project proposal",
+                    completed: false,
+                    category: "Work",
+                    time: "12:30 PM",
+                    date: "2023-10-15" // Today
+                },
+                {
+                    id: 3,
+                    title: "Grocery shopping",
+                    completed: false,
+                    category: "Personal",
+                    time: "5:00 PM",
+                    date: "2023-10-15" // Today
+                },
+                {
+                    id: 4,
+                    title: "Workout session",
+                    completed: false,
+                    category: "Health",
+                    time: "7:00 AM",
+                    date: "2023-10-16" // Tomorrow
+                },
+                {
+                    id: 5,
+                    title: "Client presentation",
+                    completed: false,
+                    category: "Work",
+                    time: "3:00 PM",
+                    time: "2023-10-16" // Tomorrow
+                }
+            ];
+
+            // Save sample tasks to localStorage if no tasks exist
+            if (!localStorage.getItem('tasks')) {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+
+            // Load tasks from localStorage
+            const loadedTasks = JSON.parse(localStorage.getItem('tasks')) || tasks;
+
+            // Filter today's tasks
+            const today = new Date().toISOString().split('T')[0];
+            const todayTasks = loadedTasks.filter(task => task.date === today);
+            
+            // Filter upcoming tasks (future dates)
+            const upcomingTasks = loadedTasks.filter(task => task.date > today);
+
+            // Render today's tasks
+            const todayTasksContainer = document.getElementById('today-tasks');
+            renderTasks(todayTasks, todayTasksContainer);
+
+            // Render upcoming tasks
+            const upcomingTasksContainer = document.getElementById('upcoming-tasks');
+            renderTasks(upcomingTasks, upcomingTasksContainer);
+
+            // Function to render tasks in a container
+            function renderTasks(taskList, container) {
+                container.innerHTML = '';
+
+                if (taskList.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 italic">No tasks scheduled</p>';
+                    return;
+                }
+
+                taskList.forEach(task => {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = `task-card ${task.completed ? 'task-completed' : ''}`;
+                    taskElement.dataset.id = task.id;
+                    
+                    taskElement.innerHTML = `
+                        <div class="task-with-checkbox">
+                            <div class="custom-checkbox"></div>
+                            <div class="task-content">
+                                <div class="task-title font-medium">${task.title}</div>
+                                <div class="task-meta">
+                                    <div class="task-category">${task.category}</div>
+                                    <div class="task-time">
+                                        <i class="far fa-clock"></i>
+                                        ${task.time}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    const checkbox = taskElement.querySelector('.custom-checkbox');
+                    checkbox.addEventListener('click', function() {
+                        // Toggle completion status
+                        task.completed = !task.completed;
+                        taskElement.classList.toggle('task-completed');
+                        
+                        // Update in localStorage
+                        const storedTasks = JSON.parse(localStorage.getItem('tasks'));
+                        const updatedTasks = storedTasks.map(t => {
+                            if (t.id === task.id) {
+                                return { ...t, completed: task.completed };
+                            }
+                            return t;
+                        });
+                        localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+                    });
+
+                    // Add event listener for task cards to navigate to details
+                    taskElement.addEventListener('click', function(e) {
+                        // Only navigate if not clicking on the checkbox
+                        if (!e.target.classList.contains('custom-checkbox')) {
+                            window.location.href = `task-details.html?id=${task.id}`;
+                        }
+                    });
+
+                    container.appendChild(taskElement);
+                });
+            }
+
+            // Category filters
+            const categoryChips = document.querySelectorAll('.category-chip');
+            categoryChips.forEach(chip => {
+                chip.addEventListener('click', function() {
+                    categoryChips.forEach(c => c.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    const category = this.textContent;
+                    
+                    // Filter tasks based on category
+                    let filteredTodayTasks, filteredUpcomingTasks;
+                    
+                    if (category === 'All') {
+                        filteredTodayTasks = loadedTasks.filter(task => task.date === today);
+                        filteredUpcomingTasks = loadedTasks.filter(task => task.date > today);
+                    } else {
+                        filteredTodayTasks = loadedTasks.filter(task => 
+                            task.date === today && task.category === category
+                        );
+                        filteredUpcomingTasks = loadedTasks.filter(task => 
+                            task.date > today && task.category === category
+                        );
+                    }
+                    
+                    renderTasks(filteredTodayTasks, todayTasksContainer);
+                    renderTasks(filteredUpcomingTasks, upcomingTasksContainer);
+                });
+            });
+
+            // Search functionality
+            const searchInput = document.querySelector('.search-input');
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase();
+                
+                if (searchTerm.length > 0) {
+                    const filteredTodayTasks = loadedTasks.filter(task => 
+                        task.date === today && task.title.toLowerCase().includes(searchTerm)
+                    );
+                    
+                    const filteredUpcomingTasks = loadedTasks.filter(task => 
+                        task.date > today && task.title.toLowerCase().includes(searchTerm)
+                    );
+                    
+                    renderTasks(filteredTodayTasks, todayTasksContainer);
+                    renderTasks(filteredUpcomingTasks, upcomingTasksContainer);
+                } else {
+                    // Reset to default view
+                    const defaultTodayTasks = loadedTasks.filter(task => task.date === today);
+                    const defaultUpcomingTasks = loadedTasks.filter(task => task.date > today);
+                    
+                    renderTasks(defaultTodayTasks, todayTasksContainer);
+                    renderTasks(defaultUpcomingTasks, upcomingTasksContainer);
+                }
+            });
+        });
+    </script>
+</body>
+</html> 
