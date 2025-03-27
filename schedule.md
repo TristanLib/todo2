@@ -34,7 +34,7 @@ This is an iOS todo-list application that allows users to create, manage, and tr
 - [ ] Add statistics and reports
 - [x] Implement data backup and restore
 - [x] Add simple settings screen
-- [ ] Enhance settings and customization options
+- [x] Enhance settings and customization options
 
 ## Current Progress
 - Project structure created
@@ -47,9 +47,13 @@ This is an iOS todo-list application that allows users to create, manage, and tr
 - Simple settings screen added
 - Data backup and restore functionality implemented
 - UI animations and transitions implemented
+- Enhanced settings and customization options implemented
+  - Theme and accent color customization
+  - Focus mode settings
+  - Notification preferences
+  - UI appearance options
 
 ## Next Steps
 - Enhance focus mode with break timers and sound alerts
 - Implement notifications for task reminders
-- Add statistics and reports
-- Enhance settings and customization options 
+- Add statistics and reports 
