@@ -252,15 +252,28 @@ struct HomeView: View {
                 emptyTasksView
                     .popIn(isPresented: showTasksSection)
             } else {
-                LazyVStack(spacing: 12) {
+                List {
                     ForEach(filteredTasks) { task in
                         NavigationLink(destination: TaskDetailView(task: task)) {
                             EnhancedTaskRow(task: task)
+                                .padding(.vertical, 4)
                         }
-                        .buttonStyle(PlainButtonStyle())
+                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+                        .listRowBackground(Color.clear)
                     }
+                    .onDelete(perform: deleteTask)
                 }
+                .listStyle(PlainListStyle())
+                .background(Color.clear)
+                .frame(minHeight: 300)
             }
+        }
+    }
+    
+    private func deleteTask(at offsets: IndexSet) {
+        for index in offsets {
+            let task = filteredTasks[index]
+            taskStore.deleteTask(task)
         }
     }
     
@@ -359,6 +372,7 @@ struct HomeView: View {
                     .fill(Color(.systemBackground))
                     .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
             )
+            .contentShape(Rectangle())
         }
         
         private func formatTime(_ date: Date) -> String {
