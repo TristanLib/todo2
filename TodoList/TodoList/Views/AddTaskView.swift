@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct AddTaskView: View {
-    @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var taskStore: TaskStore
+    @Binding var selectedTab: Int
     
     @State private var title = ""
     @State private var description = ""
@@ -12,56 +12,57 @@ struct AddTaskView: View {
     @State private var dueDate = Date()
     
     var body: some View {
-        NavigationView {
-            Form {
-                Section(header: Text("任务信息")) {
-                    TextField("标题", text: $title)
-                    
-                    TextField("描述", text: $description)
-                }
+        Form {
+            Section(header: Text("任务信息")) {
+                TextField("标题", text: $title)
                 
-                Section(header: Text("分类")) {
-                    Picker("选择分类", selection: $selectedCategory) {
-                        Text("无分类").tag(nil as TaskCategory?)
-                        ForEach(TaskCategory.allCases, id: \.self) { category in
-                            Text(category.rawValue).tag(category as TaskCategory?)
-                        }
+                TextField("描述", text: $description)
+            }
+            
+            Section(header: Text("分类")) {
+                Picker("选择分类", selection: $selectedCategory) {
+                    Text("无分类").tag(nil as TaskCategory?)
+                    ForEach(TaskCategory.allCases, id: \.self) { category in
+                        Text(category.rawValue).tag(category as TaskCategory?)
                     }
-                    .pickerStyle(MenuPickerStyle())
                 }
-                
-                Section(header: Text("优先级")) {
-                    Picker("选择优先级", selection: $selectedPriority) {
-                        ForEach(TaskPriority.allCases, id: \.self) { priority in
-                            Text(priority.rawValue).tag(priority)
-                        }
+                .pickerStyle(MenuPickerStyle())
+            }
+            
+            Section(header: Text("优先级")) {
+                Picker("选择优先级", selection: $selectedPriority) {
+                    ForEach(TaskPriority.allCases, id: \.self) { priority in
+                        Text(priority.rawValue).tag(priority)
                     }
-                    .pickerStyle(SegmentedPickerStyle())
                 }
+                .pickerStyle(SegmentedPickerStyle())
+            }
+            
+            Section(header: Text("截止日期")) {
+                Toggle("设置截止日期", isOn: $hasDueDate)
                 
-                Section(header: Text("截止日期")) {
-                    Toggle("设置截止日期", isOn: $hasDueDate)
-                    
-                    if hasDueDate {
-                        DatePicker(
-                            "截止日期",
-                            selection: $dueDate,
-                            displayedComponents: [.date, .hourAndMinute]
-                        )
-                    }
+                if hasDueDate {
+                    DatePicker(
+                        "截止日期",
+                        selection: $dueDate,
+                        displayedComponents: [.date, .hourAndMinute]
+                    )
                 }
             }
-            .navigationTitle("添加任务")
-            .navigationBarItems(
-                leading: Button("取消") {
-                    presentationMode.wrappedValue.dismiss()
-                },
-                trailing: Button("保存") {
-                    saveTask()
+            
+            Section {
+                Button(action: saveTask) {
+                    Text("保存")
+                        .frame(maxWidth: .infinity)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(title.isEmpty ? Color.gray : Color.blue)
+                        .cornerRadius(10)
                 }
                 .disabled(title.isEmpty)
-            )
+            }
         }
+        .navigationTitle("添加任务")
     }
     
     private func saveTask() {
@@ -74,6 +75,16 @@ struct AddTaskView: View {
         )
         
         taskStore.addTask(newTask)
-        presentationMode.wrappedValue.dismiss()
+        
+        // 重置表单
+        title = ""
+        description = ""
+        selectedCategory = nil
+        selectedPriority = .medium
+        hasDueDate = false
+        dueDate = Date()
+        
+        // 切换到首页
+        selectedTab = 0
     }
 } 

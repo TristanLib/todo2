@@ -108,19 +108,6 @@ struct TaskListView: View {
                 .foregroundColor(.gray)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
-            
-            Button(action: {
-                // 这里可以导航到添加任务页面
-            }) {
-                Text("添加新任务")
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 10)
-                    .background(appSettings.accentColor.color)
-                    .cornerRadius(8)
-            }
-            .padding(.top, 10)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(.systemGroupedBackground))

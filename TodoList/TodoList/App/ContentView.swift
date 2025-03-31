@@ -20,51 +20,43 @@ struct ContentView: View {
         TabView(selection: $selectedTab) {
             HomeView()
                 .tabItem {
-                    Label("Home", systemImage: "house.fill")
+                    Image(systemName: "house.fill")
+                    Text("主页")
                 }
                 .tag(0)
             
             TaskListView()
                 .tabItem {
-                    Label("Tasks", systemImage: "checklist")
+                    Image(systemName: "list.bullet")
+                    Text("任务")
                 }
                 .tag(1)
             
+            NavigationView {
+                AddTaskView(selectedTab: $selectedTab)
+            }
+            .tabItem {
+                Image(systemName: "plus.circle.fill")
+                    .environment(\.symbolVariants, .fill)
+                Text("新建")
+            }
+            .tag(4)
+            
             FocusView()
                 .tabItem {
-                    Label("Focus", systemImage: "timer")
+                    Image(systemName: "timer")
+                    Text("专注")
                 }
                 .tag(2)
             
             SettingsView()
                 .tabItem {
-                    Label("Settings", systemImage: "gear")
+                    Image(systemName: "gear")
+                    Text("设置")
                 }
                 .tag(3)
         }
         .accentColor(appSettings.accentColor.color)
-        .overlay(
-            Button(action: {
-                showAddTask = true
-            }) {
-                Image(systemName: "plus")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(width: 56, height: 56)
-                    .background(appSettings.accentColor.color)
-                    .clipShape(Circle())
-                    .shadow(color: appSettings.accentColor.color.opacity(0.3), radius: 5, x: 0, y: 3)
-            }
-            .opacity(selectedTab == 0 || selectedTab == 1 ? 1 : 0)
-            .animation(.easeInOut(duration: 0.2), value: selectedTab)
-            .padding(.bottom, 70)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom),
-            alignment: .bottom
-        )
-        .sheet(isPresented: $showAddTask) {
-            AddTaskView()
-                .accentColor(appSettings.accentColor.color)
-        }
         .sheet(item: $showTaskDetail) { task in
             NavigationView {
                 TaskDetailView(task: task)
