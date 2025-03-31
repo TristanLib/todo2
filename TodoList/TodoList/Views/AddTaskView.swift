@@ -51,15 +51,26 @@ struct AddTaskView: View {
             }
             
             Section {
-                Button(action: saveTask) {
-                    Text("保存")
-                        .frame(maxWidth: .infinity)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(title.isEmpty ? Color.gray : Color.blue)
-                        .cornerRadius(10)
+                HStack {
+                    Button(action: cancel) {
+                        Text("取消")
+                            .frame(maxWidth: .infinity)
+                            .foregroundColor(.red)
+                            .padding()
+                            .background(Color(.systemGray6))
+                            .cornerRadius(10)
+                    }
+                    
+                    Button(action: saveTask) {
+                        Text("保存")
+                            .frame(maxWidth: .infinity)
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(title.isEmpty ? Color.gray : Color.blue)
+                            .cornerRadius(10)
+                    }
+                    .disabled(title.isEmpty)
                 }
-                .disabled(title.isEmpty)
             }
         }
         .navigationTitle("添加任务")
@@ -84,6 +95,11 @@ struct AddTaskView: View {
         hasDueDate = false
         dueDate = Date()
         
+        // 切换到首页
+        selectedTab = 0
+    }
+    
+    private func cancel() {
         // 切换到首页
         selectedTab = 0
     }
