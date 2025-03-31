@@ -2,6 +2,7 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject var taskStore: TaskStore
+    @EnvironmentObject var appSettings: AppSettings
     @State private var selectedCategory: TaskCategory? = nil
     @State private var isLoadingComplete = false
     @State private var showCategorySection = false
@@ -10,127 +11,374 @@ struct HomeView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 24) {
+                    // 欢迎卡片
+                    welcomeCard
+                        .fadeIn(isPresented: isLoadingComplete)
+                    
+                    // 今日概览
                     progressSection
                         .fadeIn(isPresented: isLoadingComplete)
                     
+                    // 分类过滤
                     categorySection
                         .fadeIn(isPresented: showCategorySection)
                     
+                    // 今日任务
                     todayTasksSection
                         .fadeIn(isPresented: showTasksSection)
                 }
-                .padding()
+                .padding(.horizontal)
+                .padding(.bottom, 24)
             }
+            .background(Color(.systemGroupedBackground).edgesIgnoringSafeArea(.all))
             .navigationTitle("主页")
-            .navigationBarItems(trailing: Button(action: {}) {
-                Image(systemName: "magnifyingglass")
-                    .font(.system(size: 18))
-                    .foregroundColor(.primary)
-                    .frame(width: 40, height: 40)
-                    .background(Color(.systemGray6))
-                    .clipShape(Circle())
-            })
+            .navigationBarItems(trailing: 
+                Menu {
+                    Button(action: {}) {
+                        Label("搜索", systemImage: "magnifyingglass")
+                    }
+                    Button(action: {}) {
+                        Label("排序", systemImage: "arrow.up.arrow.down")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.system(size: 20))
+                        .foregroundColor(appSettings.accentColor.color)
+                }
+            )
             .onAppear {
                 animateContentOnAppear()
             }
         }
     }
     
+    private var welcomeCard: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(greeting)
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                
+                Text(timeDescription)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            Image(systemName: currentTimeIcon)
+                .font(.system(size: 38))
+                .foregroundColor(appSettings.accentColor.color)
+                .frame(width: 70, height: 70)
+                .background(appSettings.accentColor.color.opacity(0.1))
+                .clipShape(Circle())
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 5)
+        )
+    }
+    
     private var progressSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("今日进度")
+                Text("今日概览")
                     .font(.title3)
                     .fontWeight(.bold)
                 
                 Spacer()
                 
                 Text("\(completedTodayTasks.count)/\(todayTasks.count) 任务")
-                    .font(.subheadline)
+                    .font(.headline)
                     .foregroundColor(.secondary)
             }
             
-            AnimatedProgressBar(value: progressValue)
-                .frame(height: 8)
+            HStack(spacing: 12) {
+                progressCard(
+                    title: "进行中",
+                    count: todayTasks.filter { !$0.isCompleted }.count,
+                    icon: "hourglass",
+                    color: .blue
+                )
+                
+                progressCard(
+                    title: "已完成",
+                    count: completedTodayTasks.count,
+                    icon: "checkmark.circle",
+                    color: .green
+                )
+            }
+            
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text("总体进度")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    Spacer()
+                    
+                    Text("\(Int(progressValue * 100))%")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(appSettings.accentColor.color)
+                }
+                
+                AnimatedProgressBar(value: progressValue)
+                    .frame(height: 10)
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+            )
         }
     }
     
+    private func progressCard(title: String, count: Int, icon: String, color: Color) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                
+                Text("\(count)")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primary)
+            }
+            
+            Spacer()
+            
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(color)
+        }
+        .padding()
+        .frame(maxWidth: .infinity)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+        )
+    }
+    
     private var categorySection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             Text("分类")
                 .font(.title3)
                 .fontWeight(.bold)
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
-                    AnimatedCategoryChip(
+                HStack(spacing: 12) {
+                    categoryChip(
                         title: "全部",
-                        isSelected: selectedCategory == nil
+                        isSelected: selectedCategory == nil,
+                        color: appSettings.accentColor.color
                     ) {
-                        withAnimation(AnimationUtils.spring) {
+                        withAnimation(.spring(response: 0.3)) {
                             selectedCategory = nil
                         }
                     }
                     
                     ForEach(TaskCategory.allCases, id: \.self) { category in
-                        AnimatedCategoryChip(
+                        categoryChip(
                             title: category.rawValue,
-                            isSelected: selectedCategory == category
+                            isSelected: selectedCategory == category,
+                            color: categoryColor(for: category)
                         ) {
-                            withAnimation(AnimationUtils.spring) {
+                            withAnimation(.spring(response: 0.3)) {
                                 selectedCategory = category
                             }
                         }
+                    }
+                }
+                .padding(.bottom, 8)
+            }
+        }
+    }
+    
+    private func categoryChip(title: String, isSelected: Bool, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.system(size: 15, weight: isSelected ? .semibold : .medium))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
+                .background(
+                    RoundedRectangle(cornerRadius: 25)
+                        .fill(isSelected ? color : Color(.systemGray6))
+                )
+                .foregroundColor(isSelected ? .white : .primary)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .scaleEffect(isSelected ? 1.05 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+    }
+    
+    private func categoryColor(for category: TaskCategory) -> Color {
+        switch category {
+        case .work:
+            return .blue
+        case .personal:
+            return .purple
+        case .health:
+            return .green
+        case .important:
+            return .red
+        }
+    }
+    
+    private var todayTasksSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("今日任务")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                
+                Spacer()
+                
+                NavigationLink(destination: TaskListView()) {
+                    Text("查看全部")
+                        .font(.subheadline)
+                        .foregroundColor(appSettings.accentColor.color)
+                }
+            }
+            
+            if filteredTasks.isEmpty {
+                emptyTasksView
+                    .popIn(isPresented: showTasksSection)
+            } else {
+                LazyVStack(spacing: 12) {
+                    ForEach(filteredTasks) { task in
+                        NavigationLink(destination: TaskDetailView(task: task)) {
+                            EnhancedTaskRow(task: task)
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
             }
         }
     }
     
-    private var todayTasksSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("今日任务")
-                .font(.title3)
-                .fontWeight(.bold)
-            
-            if filteredTasks.isEmpty {
-                emptyTasksView
-                    .popIn(isPresented: showTasksSection)
-            } else {
-                tasksContent
-            }
-        }
-    }
-    
-    private var tasksContent: some View {
-        VStack(spacing: 12) {
-            ForEach(Array(filteredTasks.enumerated()), id: \.element.id) { index, task in
-                AnimatedTaskRow(task: task) {
-                    taskStore.toggleTaskCompletion(task)
-                }
-                .transition(.opacity)
-                .id(task.id)
-            }
-        }
-    }
-    
     private var emptyTasksView: some View {
-        VStack(spacing: 10) {
-            Image(systemName: "checklist")
-                .font(.largeTitle)
-                .foregroundColor(.secondary)
+        VStack(spacing: 16) {
+            Image(systemName: "calendar.badge.clock")
+                .font(.system(size: 50))
+                .foregroundColor(.gray.opacity(0.6))
+                .padding(.top, 20)
             
             Text("今日无任务")
                 .font(.headline)
-                .foregroundColor(.secondary)
+                .foregroundColor(.gray)
             
-            Text("点击 + 按钮添加新任务")
+            Text("你的今日安排目前是空闲的")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 30)
+        .padding(.vertical, 40)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+        )
+    }
+    
+    // MARK: - 任务行组件
+    struct EnhancedTaskRow: View {
+        var task: Task
+        @EnvironmentObject var taskStore: TaskStore
+        
+        var body: some View {
+            HStack(alignment: .top, spacing: 12) {
+                Button(action: {
+                    withAnimation {
+                        taskStore.toggleTaskCompletion(task)
+                    }
+                }) {
+                    Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 22))
+                        .foregroundColor(task.isCompleted ? .green : .gray)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .padding(.top, 2)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(task.title)
+                        .font(.headline)
+                        .foregroundColor(task.isCompleted ? .gray : .primary)
+                        .strikethrough(task.isCompleted)
+                    
+                    if !task.description.isEmpty {
+                        Text(task.description)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .lineLimit(2)
+                    }
+                    
+                    HStack(spacing: 8) {
+                        if let dueDate = task.dueDate {
+                            Label(
+                                formatTime(dueDate),
+                                systemImage: "clock"
+                            )
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        }
+                        
+                        if let category = task.category {
+                            Text(category.rawValue)
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(categoryColor(for: category).opacity(0.15))
+                                )
+                                .foregroundColor(categoryColor(for: category))
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                if task.priority == .high {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.red)
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+            )
+        }
+        
+        private func formatTime(_ date: Date) -> String {
+            let formatter = DateFormatter()
+            formatter.timeStyle = .short
+            return formatter.string(from: date)
+        }
+        
+        private func categoryColor(for category: TaskCategory) -> Color {
+            switch category {
+            case .work:
+                return .blue
+            case .personal:
+                return .purple
+            case .health:
+                return .green
+            case .important:
+                return .red
+            }
+        }
     }
     
     // MARK: - 动画方法
@@ -155,6 +403,39 @@ struct HomeView: View {
     }
     
     // MARK: - Helper Properties
+    
+    private var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        
+        if hour < 12 {
+            return "早上好"
+        } else if hour < 18 {
+            return "下午好"
+        } else {
+            return "晚上好"
+        }
+    }
+    
+    private var timeDescription: String {
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy年MM月dd日 EEEE"
+        dateFormatter.locale = Locale(identifier: "zh_CN")
+        return dateFormatter.string(from: Date())
+    }
+    
+    private var currentTimeIcon: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        
+        if hour < 6 {
+            return "moon.stars.fill"
+        } else if hour < 12 {
+            return "sun.max.fill"
+        } else if hour < 18 {
+            return "sun.min.fill"
+        } else {
+            return "moon.fill"
+        }
+    }
     
     private var todayTasks: [Task] {
         taskStore.getTasksDueToday()
@@ -182,6 +463,7 @@ struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         HomeView()
             .environmentObject(TaskStore())
+            .environmentObject(AppSettings())
     }
 }
 
@@ -251,90 +533,5 @@ struct AnimatedProgressBar: View {
                 animatedValue = newValue
             }
         }
-    }
-}
-
-// MARK: - 分类选择芯片组件
-struct AnimatedCategoryChip: View {
-    var title: String
-    var isSelected: Bool
-    var action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(size: 14, weight: .medium))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(isSelected ? Color.blue : Color(.systemGray6))
-                .foregroundColor(isSelected ? .white : .primary)
-                .cornerRadius(20)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .scaleEffect(isSelected ? 1.05 : 1.0)
-        .animation(Animation.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
-    }
-}
-
-// MARK: - 任务行组件
-struct AnimatedTaskRow: View {
-    var task: Task
-    var toggleAction: () -> Void
-    
-    var body: some View {
-        HStack {
-            Button(action: toggleAction) {
-                Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 22))
-                    .foregroundColor(task.isCompleted ? .green : .gray)
-            }
-            .buttonStyle(PlainButtonStyle())
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(task.title)
-                    .font(.headline)
-                    .foregroundColor(task.isCompleted ? .gray : .primary)
-                    .strikethrough(task.isCompleted)
-                
-                if !task.description.isEmpty {
-                    Text(task.description)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                }
-                
-                if let dueDate = task.dueDate {
-                    HStack {
-                        Image(systemName: "clock")
-                            .font(.system(size: 12))
-                        
-                        Text(formatTime(dueDate))
-                            .font(.system(size: 12))
-                    }
-                    .foregroundColor(.secondary)
-                }
-            }
-            
-            Spacer()
-            
-            if let category = task.category {
-                Text(category.rawValue)
-                    .font(.system(size: 12, weight: .medium))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color(.systemGray6))
-                    .foregroundColor(.primary)
-                    .cornerRadius(6)
-            }
-        }
-        .padding()
-        .background(Color(.systemGray6).opacity(0.5))
-        .cornerRadius(12)
-    }
-    
-    private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
     }
 } 

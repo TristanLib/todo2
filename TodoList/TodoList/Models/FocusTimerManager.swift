@@ -71,15 +71,43 @@ class FocusTimerManager: ObservableObject {
     
     // 开始计时器
     func startTimer(state: FocusTimerState? = nil) {
-        let newState = state ?? (currentState == .paused ? currentState : .focusing)
-        
         // 如果是从暂停状态恢复
-        if currentState == .paused && newState != .idle {
-            currentState = newState
-            timeRemaining = pausedTimeRemaining
+        if currentState == .paused {
+            // 如果指定了新状态，使用新状态，否则恢复到暂停前的状态
+            if let newState = state, newState != .paused {
+                currentState = newState
+                
+                // 根据新状态设置时间
+                switch newState {
+                case .focusing:
+                    timeRemaining = focusDuration
+                    soundManager.playSound(.startFocus)
+                    notificationManager.scheduleNotification(for: .focusStart)
+                case .shortBreak:
+                    timeRemaining = shortBreakDuration
+                    soundManager.playSound(.startBreak)
+                    notificationManager.scheduleNotification(for: .breakStart)
+                case .longBreak:
+                    timeRemaining = longBreakDuration
+                    soundManager.playSound(.startBreak)
+                    notificationManager.scheduleNotification(for: .breakStart)
+                default:
+                    timeRemaining = focusDuration
+                }
+            } else if let previousState = previousStateBeforePause {
+                // 恢复到暂停前的状态
+                currentState = previousState
+                timeRemaining = pausedTimeRemaining
+            } else {
+                // 默认恢复到专注状态
+                currentState = .focusing
+                timeRemaining = pausedTimeRemaining
+            }
         } else {
             // 设置新状态的时间
+            let newState = state ?? .focusing
             currentState = newState
+            
             switch newState {
             case .focusing:
                 timeRemaining = focusDuration
@@ -103,7 +131,8 @@ class FocusTimerManager: ObservableObject {
         endTime = startTime?.addingTimeInterval(TimeInterval(timeRemaining))
         
         // 停止现有计时器
-        stopTimer()
+        timer?.invalidate()
+        timer = nil
         
         // 开始新计时器
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in

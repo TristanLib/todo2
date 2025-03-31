@@ -55,7 +55,7 @@ struct ContentView: View {
                     .clipShape(Circle())
                     .shadow(color: appSettings.accentColor.color.opacity(0.3), radius: 5, x: 0, y: 3)
             }
-            .opacity(selectedTab != 3 ? 1 : 0)
+            .opacity(selectedTab == 0 || selectedTab == 1 ? 1 : 0)
             .animation(.easeInOut(duration: 0.2), value: selectedTab)
             .padding(.bottom, 70)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom),
