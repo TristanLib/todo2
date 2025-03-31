@@ -96,8 +96,11 @@ class TaskStore: ObservableObject {
     }
     
     func loadTasks() {
+        print("TaskStore: 开始加载任务")
         let cdTasks = coreDataManager.getAllTasks()
+        print("TaskStore: 从 Core Data 获取到 \(cdTasks.count) 个任务")
         tasks = cdTasks.map { coreDataManager.convertToTaskModel($0) }
+        print("TaskStore: 任务加载完成，当前任务数量: \(tasks.count)")
     }
     
     // MARK: - Backup and Restore
