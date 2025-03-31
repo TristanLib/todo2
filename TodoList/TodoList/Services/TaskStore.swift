@@ -17,22 +17,35 @@ class TaskStore: ObservableObject {
     // MARK: - Task Management
     
     func addTask(_ task: Task) {
-        coreDataManager.saveTask(task)
+        _ = coreDataManager.addTask(task: task)
         loadTasks()
     }
     
     func updateTask(_ task: Task) {
-        coreDataManager.updateTask(task)
-        loadTasks()
+        if let cdTask = coreDataManager.getTask(byID: task.id) {
+            coreDataManager.updateTask(cdTask, with: task)
+            loadTasks()
+        }
     }
     
     func deleteTask(_ task: Task) {
-        coreDataManager.deleteTask(task)
-        loadTasks()
+        print("开始删除任务: \(task.id)")
+        if let cdTask = coreDataManager.getTask(byID: task.id) {
+            print("找到对应的 Core Data 任务")
+            coreDataManager.deleteTask(cdTask)
+            print("Core Data 任务已删除")
+            loadTasks()
+            print("任务列表已重新加载，当前任务数量: \(tasks.count)")
+        } else {
+            print("未找到对应的 Core Data 任务: \(task.id)")
+        }
     }
     
     func deleteAllTasks() {
-        coreDataManager.deleteAllTasks()
+        let allTasks = coreDataManager.getAllTasks()
+        for task in allTasks {
+            coreDataManager.deleteTask(task)
+        }
         loadTasks()
     }
     
@@ -83,7 +96,8 @@ class TaskStore: ObservableObject {
     }
     
     func loadTasks() {
-        tasks = coreDataManager.fetchTasks()
+        let cdTasks = coreDataManager.getAllTasks()
+        tasks = cdTasks.map { coreDataManager.convertToTaskModel($0) }
     }
     
     // MARK: - Backup and Restore

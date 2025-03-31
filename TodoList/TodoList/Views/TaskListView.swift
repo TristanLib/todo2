@@ -175,7 +175,14 @@ struct TaskListView: View {
     }
     
     private func deleteTask(at offsets: IndexSet) {
-        taskStore.deleteTask(at: offsets)
+        print("TaskListView: 开始删除任务，索引: \(offsets)")
+        DispatchQueue.main.async {
+            for index in offsets {
+                let task = self.filteredTasks[index]
+                print("TaskListView: 删除任务 - ID: \(task.id), 标题: \(task.title)")
+                self.taskStore.deleteTask(task)
+            }
+        }
     }
 }
 

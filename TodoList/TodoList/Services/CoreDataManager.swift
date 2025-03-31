@@ -54,8 +54,11 @@ class CoreDataManager {
     }
     
     func deleteTask(_ task: CDTask) {
+        print("CoreDataManager: 开始删除任务")
         viewContext.delete(task)
+        print("CoreDataManager: 任务已从上下文中删除")
         saveContext()
+        print("CoreDataManager: 上下文已保存")
     }
     
     func getAllTasks() -> [CDTask] {
@@ -111,11 +114,16 @@ class CoreDataManager {
     
     func saveContext() {
         if viewContext.hasChanges {
+            print("CoreDataManager: 检测到上下文有更改，准备保存")
             do {
                 try viewContext.save()
+                print("CoreDataManager: 上下文保存成功")
             } catch {
-                print("保存上下文失败: \(error)")
+                print("CoreDataManager: 保存上下文失败: \(error)")
+                print("CoreDataManager: 错误详情: \(error.localizedDescription)")
             }
+        } else {
+            print("CoreDataManager: 上下文没有更改，无需保存")
         }
     }
     
