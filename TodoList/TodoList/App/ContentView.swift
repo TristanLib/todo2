@@ -20,25 +20,25 @@ struct ContentView: View {
         TabView(selection: $selectedTab) {
             HomeView()
                 .tabItem {
-                    Label("主页", systemImage: "house.fill")
+                    Label("Home", systemImage: "house.fill")
                 }
                 .tag(0)
             
             TaskListView()
                 .tabItem {
-                    Label("任务", systemImage: "list.bullet")
+                    Label("Tasks", systemImage: "checklist")
                 }
                 .tag(1)
             
             FocusView()
                 .tabItem {
-                    Label("专注", systemImage: "timer")
+                    Label("Focus", systemImage: "timer")
                 }
                 .tag(2)
             
             SettingsView()
                 .tabItem {
-                    Label("设置", systemImage: "gear")
+                    Label("Settings", systemImage: "gear")
                 }
                 .tag(3)
         }

@@ -25,11 +25,7 @@ struct TodoListApp: App {
         
         // 如果启用了通知，请求权限
         if appSettings.notificationSettings.enableNotifications {
-            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
-                if let error = error {
-                    print("通知权限请求失败: \(error.localizedDescription)")
-                }
-            }
+            requestNotificationPermission()
         }
         
         // 初始化所有管理器
@@ -68,6 +64,16 @@ struct TodoListApp: App {
             return .dark
         case .system:
             return nil
+        }
+    }
+    
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
+            if success {
+                print("Notification permission granted")
+            } else if let error = error {
+                print("Error requesting notification permission: \(error.localizedDescription)")
+            }
         }
     }
 }

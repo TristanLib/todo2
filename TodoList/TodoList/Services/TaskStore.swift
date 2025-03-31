@@ -17,51 +17,23 @@ class TaskStore: ObservableObject {
     // MARK: - Task Management
     
     func addTask(_ task: Task) {
-        // 保存到Core Data
-        _ = coreDataManager.addTask(task: task)
-        
-        // 更新内存中的任务列表
-        tasks.append(task)
+        coreDataManager.saveTask(task)
+        loadTasks()
     }
     
     func updateTask(_ task: Task) {
-        // 查找Core Data中对应的任务
-        if let cdTask = coreDataManager.getTask(byID: task.id) {
-            // 更新Core Data中的任务
-            coreDataManager.updateTask(cdTask, with: task)
-            
-            // 更新内存中的任务
-            if let index = tasks.firstIndex(where: { $0.id == task.id }) {
-                tasks[index] = task
-            }
-        }
+        coreDataManager.updateTask(task)
+        loadTasks()
     }
     
-    func deleteTask(at indexSet: IndexSet) {
-        // 从indexSet中获取任务ID
-        for index in indexSet {
-            let taskID = tasks[index].id
-            
-            // 从Core Data中删除
-            if let cdTask = coreDataManager.getTask(byID: taskID) {
-                coreDataManager.deleteTask(cdTask)
-            }
-        }
-        
-        // 从内存中的数组中删除
-        tasks.remove(atOffsets: indexSet)
+    func deleteTask(_ task: Task) {
+        coreDataManager.deleteTask(task)
+        loadTasks()
     }
     
-    func deleteTask(id: UUID) {
-        // 从Core Data中删除
-        if let cdTask = coreDataManager.getTask(byID: id) {
-            coreDataManager.deleteTask(cdTask)
-        }
-        
-        // 从内存中删除
-        if let index = tasks.firstIndex(where: { $0.id == id }) {
-            tasks.remove(at: index)
-        }
+    func deleteAllTasks() {
+        coreDataManager.deleteAllTasks()
+        loadTasks()
     }
     
     func toggleTaskCompletion(_ task: Task) {
@@ -94,9 +66,10 @@ class TaskStore: ObservableObject {
     
     func getTasksDueToday() -> [Task] {
         let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
         return tasks.filter { task in
             if let dueDate = task.dueDate {
-                return calendar.isDateInToday(dueDate)
+                return calendar.isDate(calendar.startOfDay(for: dueDate), inSameDayAs: today)
             }
             return false
         }
@@ -110,11 +83,7 @@ class TaskStore: ObservableObject {
     }
     
     func loadTasks() {
-        // 从Core Data加载所有任务
-        let cdTasks = coreDataManager.getAllTasks()
-        
-        // 转换为Task模型
-        tasks = cdTasks.map { coreDataManager.convertToTaskModel($0) }
+        tasks = coreDataManager.fetchTasks()
     }
     
     // MARK: - Backup and Restore
