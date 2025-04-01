@@ -42,225 +42,327 @@ struct AddTaskView: View {
                 Button(action: {
                     presentationMode.wrappedValue.dismiss()
                 }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                        Text("返回")
-                    }
-                    .foregroundColor(appSettings.accentColor.color)
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(appSettings.accentColor.color, lineWidth: 1)
-                    )
+                    Image(systemName: "xmark")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.primary)
                 }
                 
                 Spacer()
                 
                 Text("新建任务")
-                    .font(.title2)
-                    .fontWeight(.bold)
+                    .font(.headline)
+                    .foregroundColor(.primary)
                 
                 Spacer()
                 
-                // 平衡布局的空视图
-                Color.clear
-                    .frame(width: 70, height: 10)
+                Button(action: saveTask) {
+                    Text("保存")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.blue)
+                        )
+                }
+                .disabled(title.isEmpty)
+                .opacity(title.isEmpty ? 0.5 : 1)
             }
-            .padding()
+            .padding(.horizontal)
+            .padding(.vertical, 12)
             .background(Color(.systemBackground))
             
             ScrollView {
-                VStack(spacing: 24) {
-                    // 任务标题和描述区域
-                    VStack(alignment: .leading, spacing: 20) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("任务标题")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            TextField("你需要做什么？", text: $title)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-                        }
+                VStack(spacing: 20) {
+                    // 任务标题
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("任务名称")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
                         
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("描述")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            ZStack(alignment: .topLeading) {
-                                if description.isEmpty {
-                                    Text("添加任务详情")
-                                        .foregroundColor(.gray)
-                                        .padding(.top, 16)
-                                        .padding(.leading, 16)
-                                }
-                                
-                                TextEditor(text: $description)
-                                    .padding(8)
-                                    .frame(minHeight: 120)
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(10)
-                            }
-                        }
-                    }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(.systemBackground))
-                            .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
-                    )
-                    
-                    // 分类和截止日期
-                    HStack(spacing: 16) {
-                        // 分类选择器
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("分类")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            Picker("选择分类", selection: $selectedCategory) {
-                                Text("选择分类").tag(nil as TaskCategory?)
-                                ForEach(TaskCategory.allCases, id: \.self) { category in
-                                    Text(category.rawValue).tag(category as TaskCategory?)
-                                }
-                            }
-                            .pickerStyle(MenuPickerStyle())
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
-                        }
-                        
-                        // 截止日期选择器
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("截止日期")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            HStack {
-                                DatePicker("", selection: $dueDate, displayedComponents: [.date])
-                                    .labelsHidden()
-                                    .onChange(of: dueDate) { _, _ in
-                                        hasDueDate = true
-                                    }
-                                
-                                Spacer()
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
-                        }
-                    }
-                    
-                    // 时间和优先级
-                    HStack(spacing: 16) {
-                        // 时间选择器
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("时间")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            DatePicker("", selection: $dueDate, displayedComponents: [.hourAndMinute])
-                                .labelsHidden()
-                                .onChange(of: dueDate) { _, _ in
-                                    hasDueDate = true
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-                        }
-                        
-                        // 优先级选择器
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("优先级")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            HStack(spacing: 8) {
-                                ForEach(TaskPriority.allCases, id: \.self) { priority in
-                                    Button(action: {
-                                        selectedPriority = priority
-                                    }) {
-                                        Text(priorityLabel(for: priority))
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 8)
-                                            .foregroundColor(selectedPriority == priority ? .white : priorityColor(for: priority))
-                                            .background(
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .fill(selectedPriority == priority ? priorityColor(for: priority) : priorityColor(for: priority).opacity(0.1))
-                                            )
-                                    }
-                                    .buttonStyle(PlainButtonStyle())
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(8)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
-                        }
-                    }
-                    
-                    // 子任务
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("子任务")
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        ForEach(0..<subtasks.count, id: \.self) { index in
-                            HStack {
-                                TextField("添加子任务", text: $subtasks[index])
-                                    .padding()
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(10)
-                                
-                                if subtasks.count > 1 {
-                                    Button(action: {
-                                        subtasks.remove(at: index)
-                                    }) {
-                                        Image(systemName: "minus.circle.fill")
-                                            .foregroundColor(.red)
-                                    }
-                                }
-                            }
-                        }
-                        
-                        Button(action: {
-                            subtasks.append("")
-                        }) {
-                            HStack {
-                                Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(appSettings.accentColor.color)
-                                
-                                Text("添加另一个子任务")
-                                    .foregroundColor(appSettings.accentColor.color)
-                            }
-                        }
-                        .padding(.top, 8)
-                    }
-                    
-                    // 创建任务按钮
-                    Button(action: saveTask) {
-                        Text("创建任务")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
+                        TextField("项目会议准备", text: $title)
+                            .font(.system(size: 16))
+                            .padding(.vertical, 10)
                             .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(title.isEmpty ? Color.gray : appSettings.accentColor.color)
+                                Rectangle()
+                                    .fill(Color.clear)
+                                    .frame(height: 40)
+                            )
+                            .overlay(
+                                Rectangle()
+                                    .frame(height: 1)
+                                    .foregroundColor(Color(.systemGray4))
+                                    .offset(y: 20),
+                                alignment: .bottom
                             )
                     }
-                    .disabled(title.isEmpty)
-                    .padding(.vertical, 8)
                     .padding(.horizontal)
+                    .padding(.top, 10)
+                    
+                    // 任务详情
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("任务详情（可选）")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        ZStack(alignment: .topLeading) {
+                            if description.isEmpty {
+                                Text("准备明天的项目演示幻灯片，整理演示流程")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(Color(.systemGray))
+                                    .padding(.top, 8)
+                            }
+                            
+                            TextEditor(text: $description)
+                                .font(.system(size: 16))
+                                .frame(minHeight: 80)
+                                .padding(.vertical, 8)
+                                .background(Color.clear)
+                        }
+                        .overlay(
+                            Rectangle()
+                                .frame(height: 1)
+                                .foregroundColor(Color(.systemGray4)),
+                            alignment: .bottom
+                        )
+                    }
+                    .padding(.horizontal)
+                    
+                    // 日期和时间
+                    HStack {
+                        Text("日期")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        DatePicker("", selection: $dueDate, displayedComponents: [.date])
+                            .labelsHidden()
+                            .onChange(of: dueDate) { _, _ in
+                                hasDueDate = true
+                            }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 6)
+                    
+                    HStack {
+                        Text("时间")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        DatePicker("", selection: $dueDate, displayedComponents: [.hourAndMinute])
+                            .labelsHidden()
+                            .onChange(of: dueDate) { _, _ in
+                                hasDueDate = true
+                            }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 6)
+                    
+                    // 优先级
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("优先级")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        HStack(spacing: 12) {
+                            // 低优先级按钮
+                            Button(action: {
+                                selectedPriority = .low
+                            }) {
+                                VStack {
+                                    Image(systemName: "arrow.down")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.green)
+                                    Text("低")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.primary)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(selectedPriority == .low ? Color.green : Color(.systemGray4), lineWidth: 2)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .fill(selectedPriority == .low ? Color.green.opacity(0.1) : Color.clear)
+                                        )
+                                )
+                            }
+                            
+                            // 中优先级按钮
+                            Button(action: {
+                                selectedPriority = .medium
+                            }) {
+                                VStack {
+                                    Image(systemName: "equal")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.orange)
+                                    Text("中")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.primary)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(selectedPriority == .medium ? Color.orange : Color(.systemGray4), lineWidth: 2)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .fill(selectedPriority == .medium ? Color.orange.opacity(0.1) : Color.clear)
+                                        )
+                                )
+                            }
+                            
+                            // 高优先级按钮
+                            Button(action: {
+                                selectedPriority = .high
+                            }) {
+                                VStack {
+                                    Image(systemName: "arrow.up")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.red)
+                                    Text("高")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.primary)
+                                }
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(selectedPriority == .high ? Color.red : Color(.systemGray4), lineWidth: 2)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 8)
+                                                .fill(selectedPriority == .high ? Color.red.opacity(0.1) : Color.clear)
+                                        )
+                                )
+                            }
+                        }
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 6)
+                    
+                    // 标签
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("标签")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                Button(action: {
+                                    selectedCategory = .work
+                                }) {
+                                    Text("工作")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(selectedCategory == .work ? .white : .blue)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .fill(selectedCategory == .work ? Color.blue : Color.blue.opacity(0.1))
+                                        )
+                                }
+                                
+                                Button(action: {
+                                    selectedCategory = .personal
+                                }) {
+                                    Text("个人")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(selectedCategory == .personal ? .white : .yellow)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .fill(selectedCategory == .personal ? Color.yellow : Color.yellow.opacity(0.1))
+                                        )
+                                }
+                                
+                                Button(action: {
+                                    selectedCategory = .health
+                                }) {
+                                    Text("健康")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(selectedCategory == .health ? .white : .green)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .fill(selectedCategory == .health ? Color.green : Color.green.opacity(0.1))
+                                        )
+                                }
+                                
+                                Button(action: {
+                                    selectedCategory = .important
+                                }) {
+                                    Text("购物")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.purple)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .fill(Color.purple.opacity(0.1))
+                                        )
+                                }
+                                
+                                Button(action: {
+                                    // 添加新标签
+                                }) {
+                                    Text("学习")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.indigo)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .fill(Color.indigo.opacity(0.1))
+                                        )
+                                }
+                                
+                                Button(action: {
+                                    // 添加新标签
+                                }) {
+                                    Text("+ 新标签")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.secondary)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .stroke(Color(.systemGray4), lineWidth: 1)
+                                        )
+                                }
+                            }
+                            .padding(.vertical, 6)
+                        }
+                    }
+                    .padding(.horizontal)
+                    
+                    // 估计时间
+                    HStack {
+                        Text("估计时间")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        // 这里可以添加估计时间的选择器，暂时只做UI展示
+                        Text("选择时长")
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                            .padding(.trailing, 4)
+                    }
+                    .padding(.horizontal)
+                    .padding(.vertical, 15)
+                    
+                    Spacer()
                 }
-                .padding()
             }
+            .background(Color(.systemGroupedBackground))
         }
         .background(Color(.systemGroupedBackground).edgesIgnoringSafeArea(.all))
         .navigationBarHidden(true)
