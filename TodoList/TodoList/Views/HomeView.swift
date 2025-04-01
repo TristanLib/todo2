@@ -20,6 +20,12 @@ struct HomeView: View {
                     progressSection
                         .fadeIn(isPresented: isLoadingComplete)
                     
+                    // 待处理任务
+                    if !overdueIncompleteTasks.isEmpty {
+                        pendingTasksSection
+                            .fadeIn(isPresented: isLoadingComplete)
+                    }
+                    
                     // 分类过滤
                     categorySection
                         .fadeIn(isPresented: showCategorySection)
@@ -85,23 +91,39 @@ struct HomeView: View {
     private var progressSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("今日概览")
+                Text("任务概览")
                     .font(.title3)
                     .fontWeight(.bold)
                 
                 Spacer()
                 
-                Text("\(completedTodayTasks.count)/\(todayTasks.count) 任务")
+                Text("\(completedTodayTasks.count)/\(todayTasks.count) 今日任务")
                     .font(.headline)
                     .foregroundColor(.secondary)
             }
             
             HStack(spacing: 12) {
                 progressCard(
-                    title: "进行中",
+                    title: "今日进行中",
                     count: todayTasks.filter { !$0.isCompleted }.count,
                     icon: "hourglass",
                     color: .blue
+                )
+                
+                progressCard(
+                    title: "全部未完成",
+                    count: allIncompleteTasks.count,
+                    icon: "exclamationmark.circle",
+                    color: .orange
+                )
+            }
+            
+            HStack(spacing: 12) {
+                progressCard(
+                    title: "已逾期",
+                    count: overdueIncompleteTasks.count,
+                    icon: "calendar.badge.exclamationmark",
+                    color: .red
                 )
                 
                 progressCard(
@@ -114,7 +136,7 @@ struct HomeView: View {
             
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("总体进度")
+                    Text("今日进度")
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
@@ -235,7 +257,7 @@ struct HomeView: View {
     private var todayTasksSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("今日任务")
+                Text("今日待办")
                     .font(.title3)
                     .fontWeight(.bold)
                 
@@ -455,6 +477,23 @@ struct HomeView: View {
         taskStore.getTasksDueToday()
     }
     
+    private var allIncompleteTasks: [Task] {
+        taskStore.getIncompleteTasks()
+    }
+    
+    private var overdueIncompleteTasks: [Task] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        
+        return taskStore.getIncompleteTasks().filter { task in
+            if let dueDate = task.dueDate {
+                let dueDay = calendar.startOfDay(for: dueDate)
+                return dueDay < today
+            }
+            return false
+        }
+    }
+    
     private var completedTodayTasks: [Task] {
         todayTasks.filter { $0.isCompleted }
     }
@@ -469,6 +508,106 @@ struct HomeView: View {
             return todayTasks.filter { $0.category == category }
         } else {
             return todayTasks
+        }
+    }
+    
+    // 添加待处理任务部分
+    private var pendingTasksSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text("已逾期任务")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                
+                Spacer()
+                
+                if !overdueIncompleteTasks.isEmpty {
+                    Text("\(overdueIncompleteTasks.count)个未完成")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(8)
+                }
+            }
+            
+            if overdueIncompleteTasks.isEmpty {
+                Text("没有逾期未完成的任务")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 16)
+                            .fill(Color(.systemBackground))
+                            .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+                    )
+            } else {
+                ForEach(overdueIncompleteTasks.prefix(3)) { task in
+                    NavigationLink(destination: TaskDetailView(task: task)) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text(task.title)
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                    .lineLimit(1)
+                                
+                                Spacer()
+                                
+                                if task.priority == .high {
+                                    Image(systemName: "exclamationmark.triangle.fill")
+                                        .foregroundColor(.red)
+                                }
+                            }
+                            
+                            HStack {
+                                if let dueDate = task.dueDate {
+                                    HStack {
+                                        Image(systemName: "calendar.badge.exclamationmark")
+                                            .foregroundColor(.red)
+                                        
+                                        Text(formatDate(dueDate))
+                                            .font(.caption)
+                                            .foregroundColor(.red)
+                                    }
+                                }
+                                
+                                Spacer()
+                                
+                                if let category = task.category {
+                                    Text(category.rawValue)
+                                        .font(.caption)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 3)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 4)
+                                                .fill(categoryColor(for: category).opacity(0.15))
+                                        )
+                                        .foregroundColor(categoryColor(for: category))
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(.systemBackground))
+                                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                
+                if overdueIncompleteTasks.count > 3 {
+                    NavigationLink(destination: TaskListView(initialFilter: .active)) {
+                        Text("查看全部\(overdueIncompleteTasks.count)个逾期任务")
+                            .font(.subheadline)
+                            .foregroundColor(appSettings.accentColor.color)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 8)
+                }
+            }
         }
     }
 }
@@ -548,4 +687,11 @@ struct AnimatedProgressBar: View {
             }
         }
     }
+}
+
+// 添加日期格式化辅助函数
+private func formatDate(_ date: Date) -> String {
+    let dateFormatter = DateFormatter()
+    dateFormatter.dateFormat = "MM月dd日"
+    return dateFormatter.string(from: date)
 } 

@@ -3,11 +3,15 @@ import SwiftUI
 struct TaskListView: View {
     @EnvironmentObject var taskStore: TaskStore
     @EnvironmentObject var appSettings: AppSettings
-    @State private var selectedFilter: TaskFilter = .all
+    @State private var selectedFilter: TaskFilter
     @State private var searchText = ""
     
     enum TaskFilter {
         case all, active, completed
+    }
+    
+    init(initialFilter: TaskFilter = .all) {
+        _selectedFilter = State(initialValue: initialFilter)
     }
     
     var body: some View {
