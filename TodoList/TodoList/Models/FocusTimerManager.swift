@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import UIKit
 
 // 计时器状态
 enum FocusTimerState: String {
@@ -32,11 +33,122 @@ class FocusTimerManager: ObservableObject {
     private var startTime: Date?
     private var endTime: Date?
     private var pausedTimeRemaining: Int = 0
+    private var backgroundTime: Date? // 进入后台的时间
     
     private var notificationManager = NotificationManager.shared
     private var soundManager = SoundManager.shared
     
-    private init() {}
+    private init() {
+        // 添加应用生命周期的观察者
+        setupAppLifecycleObservers()
+    }
+    
+    // 设置应用生命周期观察者
+    private func setupAppLifecycleObservers() {
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillResignActive),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
+        
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+    }
+    
+    // 应用将要进入非活跃状态（如锁屏、切换到其他应用）
+    @objc private func appWillResignActive() {
+        // 记录当前时间
+        backgroundTime = Date()
+    }
+    
+    // 应用进入后台
+    @objc private func appDidEnterBackground() {
+        if currentState != .idle && currentState != .paused {
+            // 暂停Timer，但不改变计时器状态
+            timer?.invalidate()
+            timer = nil
+            
+            // 记录剩余时间，但不改变currentState
+            if backgroundTime == nil {
+                backgroundTime = Date()
+            }
+        }
+    }
+    
+    // 应用将要进入前台
+    @objc private func appWillEnterForeground() {
+        if currentState != .idle && currentState != .paused && backgroundTime != nil {
+            handleBackgroundToForeground()
+        }
+    }
+    
+    // 应用成为活跃状态
+    @objc private func appDidBecomeActive() {
+        if currentState != .idle && currentState != .paused && backgroundTime != nil {
+            handleBackgroundToForeground()
+        }
+    }
+    
+    // 处理应用从后台回到前台的逻辑
+    private func handleBackgroundToForeground() {
+        guard let backgroundTime = backgroundTime, let endTime = endTime else { return }
+        
+        // 计算在后台经过的时间
+        let now = Date()
+        let elapsedBackgroundTime = Int(now.timeIntervalSince(backgroundTime))
+        
+        // 更新剩余时间
+        let newRemainingTime = max(0, Int(endTime.timeIntervalSince(now)))
+        
+        // 如果计时器结束
+        if newRemainingTime <= 0 {
+            // 计时器已结束，处理完成
+            timeRemaining = 0
+            handleTimerCompletion()
+        } else {
+            // 更新剩余时间
+            timeRemaining = newRemainingTime
+            
+            // 重新启动计时器
+            startTimerWithoutReset()
+        }
+        
+        // 重置后台时间
+        self.backgroundTime = nil
+    }
+    
+    // 重新启动计时器但不重置时间
+    private func startTimerWithoutReset() {
+        // 停止现有计时器
+        timer?.invalidate()
+        timer = nil
+        
+        // 开始新计时器
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            self?.updateTimer()
+        }
+        
+        updateProgress()
+    }
     
     // 更新设置
     func updateSettings(from settings: FocusSettings) {
@@ -159,16 +271,28 @@ class FocusTimerManager: ObservableObject {
         currentState = .idle
         timeRemaining = focusDuration
         progress = 0
+        backgroundTime = nil
     }
     
     // 更新计时器
     private func updateTimer() {
-        guard timeRemaining > 0 else {
+        guard let endTime = endTime else {
             handleTimerCompletion()
             return
         }
         
-        timeRemaining -= 1
+        // 计算剩余时间
+        let now = Date()
+        let newTimeRemaining = max(0, Int(endTime.timeIntervalSince(now)))
+        
+        // 如果计时完成
+        if newTimeRemaining <= 0 {
+            handleTimerCompletion()
+            return
+        }
+        
+        // 更新剩余时间
+        timeRemaining = newTimeRemaining
         
         // 更新进度
         updateProgress()
