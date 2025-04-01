@@ -32,31 +32,47 @@ struct ContentView: View {
                 }
                 .tag(1)
             
-            NavigationView {
-                AddTaskView(selectedTab: $selectedTab)
-            }
-            .tabItem {
-                Image(systemName: "plus.circle.fill")
-                    .environment(\.symbolVariants, .fill)
-                Text("新建")
-            }
-            .tag(4)
+            Color.clear
+                .tabItem {
+                    Image(systemName: "plus.circle.fill")
+                        .environment(\.symbolVariants, .fill)
+                    Text("新建")
+                }
+                .tag(2)
+                .onChange(of: selectedTab) { oldValue, newValue in
+                    if newValue == 2 {
+                        showAddTask = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            selectedTab = oldValue
+                        }
+                    }
+                }
             
             FocusView()
                 .tabItem {
                     Image(systemName: "timer")
                     Text("专注")
                 }
-                .tag(2)
+                .tag(3)
             
             SettingsView()
                 .tabItem {
                     Image(systemName: "gear")
                     Text("设置")
                 }
-                .tag(3)
+                .tag(4)
         }
         .accentColor(appSettings.accentColor.color)
+        .sheet(isPresented: $showAddTask) {
+            NavigationView {
+                AddTaskView(selectedTab: $selectedTab)
+                    .onDisappear {
+                        if selectedTab == 2 {
+                            selectedTab = 0
+                        }
+                    }
+            }
+        }
         .sheet(item: $showTaskDetail) { task in
             NavigationView {
                 TaskDetailView(task: task)
@@ -66,7 +82,7 @@ struct ContentView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .openFocusView)) { _ in
-            selectedTab = 2 // 切换到专注标签
+            selectedTab = 3 // 切换到专注标签
         }
         .onReceive(NotificationCenter.default.publisher(for: .openTaskDetails)) { notification in
             if let userInfo = notification.userInfo,
