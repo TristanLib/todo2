@@ -14,6 +14,7 @@ struct TodoListApp: App {
     
     @StateObject private var taskStore = TaskStore()
     @StateObject private var appSettings = AppSettings()
+    @StateObject private var categoryManager = CategoryManager()
     
     // 系统管理器
     private let notificationManager = NotificationManager.shared
@@ -42,6 +43,7 @@ struct TodoListApp: App {
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
                 .environmentObject(taskStore)
                 .environmentObject(appSettings)
+                .environmentObject(categoryManager)
                 .preferredColorScheme(colorScheme)
                 .accentColor(appSettings.accentColor.color)
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in

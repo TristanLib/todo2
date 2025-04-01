@@ -3,16 +3,22 @@ import SwiftUI
 struct AddTaskView: View {
     @EnvironmentObject var taskStore: TaskStore
     @EnvironmentObject var appSettings: AppSettings
+    @EnvironmentObject var categoryManager: CategoryManager
     @Binding var selectedTab: Int
     @Environment(\.presentationMode) var presentationMode
     
     @State private var title = ""
     @State private var description = ""
-    @State private var selectedCategory: TaskCategory? = nil
+    @State private var selectedCategory: CustomCategory? = nil
     @State private var selectedPriority: TaskPriority = .medium
     @State private var hasDueDate = false
     @State private var dueDate = defaultDueDate()
     @State private var subtasks: [String] = [""]
+    
+    // 新分类相关状态
+    @State private var showingAddCategorySheet = false
+    @State private var newCategoryName = ""
+    @State private var newCategoryColor = "blue"
     
     // 设置默认截止日期为当天晚上10点
     private static func defaultDueDate() -> Date {
@@ -218,59 +224,38 @@ struct AddTaskView: View {
                     
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            Button(action: {
-                                selectedCategory = .work
-                            }) {
-                                Text("工作")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(selectedCategory == .work ? .white : .blue)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 6)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .fill(selectedCategory == .work ? Color.blue : Color.blue.opacity(0.1))
-                                    )
+                            // 显示所有可用分类
+                            ForEach(categoryManager.categories) { category in
+                                Button(action: {
+                                    selectedCategory = category
+                                }) {
+                                    Text(category.name)
+                                        .font(.system(size: 14))
+                                        .foregroundColor(selectedCategory?.id == category.id ? .white : CategoryManager.color(for: category.colorName))
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 20)
+                                                .fill(selectedCategory?.id == category.id ? 
+                                                      CategoryManager.color(for: category.colorName) : 
+                                                      CategoryManager.color(for: category.colorName).opacity(0.1))
+                                        )
+                                }
                             }
                             
+                            // 添加新标签按钮
                             Button(action: {
-                                selectedCategory = .personal
+                                // 显示添加新标签表单
+                                showingAddCategorySheet = true
                             }) {
-                                Text("个人")
+                                Text("+ 新标签")
                                     .font(.system(size: 14))
-                                    .foregroundColor(selectedCategory == .personal ? .white : .purple)
+                                    .foregroundColor(.secondary)
                                     .padding(.horizontal, 16)
                                     .padding(.vertical, 6)
                                     .background(
                                         RoundedRectangle(cornerRadius: 20)
-                                            .fill(selectedCategory == .personal ? Color.purple : Color.purple.opacity(0.1))
-                                    )
-                            }
-                            
-                            Button(action: {
-                                selectedCategory = .health
-                            }) {
-                                Text("健康")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(selectedCategory == .health ? .white : .green)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 6)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .fill(selectedCategory == .health ? Color.green : Color.green.opacity(0.1))
-                                    )
-                            }
-                            
-                            Button(action: {
-                                selectedCategory = .important
-                            }) {
-                                Text("重要")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(selectedCategory == .important ? .white : .red)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 6)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 20)
-                                            .fill(selectedCategory == .important ? Color.red : Color.red.opacity(0.1))
+                                            .stroke(Color(.systemGray4), lineWidth: 1)
                                     )
                             }
                         }
@@ -312,6 +297,36 @@ struct AddTaskView: View {
             .disabled(title.isEmpty)
             .opacity(title.isEmpty ? 0.5 : 1)
         )
+        .sheet(isPresented: $showingAddCategorySheet) {
+            NavigationView {
+                AddCategoryView(
+                    newCategoryName: $newCategoryName,
+                    newCategoryColor: $newCategoryColor,
+                    onSave: { name, color in
+                        // 添加新分类
+                        categoryManager.addCategory(name: name, colorName: color)
+                        
+                        // 自动选择新添加的分类
+                        if let newCategory = categoryManager.categories.last {
+                            selectedCategory = newCategory
+                        }
+                        
+                        // 重置表单
+                        newCategoryName = ""
+                        newCategoryColor = "blue"
+                        
+                        // 关闭表单
+                        showingAddCategorySheet = false
+                    }
+                )
+                .navigationTitle("添加新标签")
+                .navigationBarItems(
+                    leading: Button("取消") {
+                        showingAddCategorySheet = false
+                    }
+                )
+            }
+        }
     }
     
     private func saveTask() {
@@ -322,7 +337,8 @@ struct AddTaskView: View {
         let newTask = Task(
             title: title,
             description: description,
-            category: selectedCategory,
+            category: nil, // 不再使用旧的枚举类型
+            customCategory: selectedCategory, // 使用新的自定义类型
             dueDate: hasDueDate ? dueDate : nil,
             priority: selectedPriority,
             subtasks: validSubtasks
@@ -357,6 +373,70 @@ struct AddTaskView: View {
     }
 }
 
+// 添加分类视图
+struct AddCategoryView: View {
+    @Binding var newCategoryName: String
+    @Binding var newCategoryColor: String
+    var onSave: (String, String) -> Void
+    
+    let availableColors = Array(CategoryManager.availableColors.keys).sorted()
+    
+    var body: some View {
+        Form {
+            Section(header: Text("标签信息")) {
+                TextField("标签名称", text: $newCategoryName)
+                    .padding(.vertical, 8)
+            }
+            
+            Section(header: Text("选择颜色")) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 12) {
+                        ForEach(availableColors, id: \.self) { colorName in
+                            Button(action: {
+                                newCategoryColor = colorName
+                            }) {
+                                Circle()
+                                    .fill(CategoryManager.color(for: colorName))
+                                    .frame(width: 40, height: 40)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(newCategoryColor == colorName ? Color.white : Color.clear, lineWidth: 2)
+                                    )
+                                    .overlay(
+                                        Circle()
+                                            .stroke(newCategoryColor == colorName ? Color.black : Color.clear, lineWidth: 1)
+                                    )
+                                    .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                            }
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+                .padding(.horizontal, -16)
+            }
+            
+            Section {
+                Button(action: {
+                    // 只有当名称不为空时才保存
+                    if !newCategoryName.isEmpty {
+                        onSave(newCategoryName, newCategoryColor)
+                    }
+                }) {
+                    Text("保存标签")
+                        .frame(maxWidth: .infinity)
+                        .foregroundColor(.white)
+                        .padding(.vertical, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(newCategoryName.isEmpty ? Color.gray : CategoryManager.color(for: newCategoryColor))
+                        )
+                }
+                .disabled(newCategoryName.isEmpty)
+            }
+        }
+    }
+}
+
 struct AddTaskView_Previews: PreviewProvider {
     @State static var selectedTab = 0
     
@@ -364,5 +444,6 @@ struct AddTaskView_Previews: PreviewProvider {
         AddTaskView(selectedTab: $selectedTab)
             .environmentObject(TaskStore())
             .environmentObject(AppSettings())
+            .environmentObject(CategoryManager())
     }
 } 
