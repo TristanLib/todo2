@@ -13,7 +13,7 @@ struct HomeView: View {
     var body: some View {
         NavigationView {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 30) {
                     // 欢迎卡片
                     welcomeCard
                         .fadeIn(isPresented: isLoadingComplete)
@@ -76,9 +76,9 @@ struct HomeView: View {
             Spacer()
             
             Image(systemName: currentTimeIcon)
-                .font(.system(size: 38))
+                .font(.system(size: 44))
                 .foregroundColor(appSettings.accentColor.color)
-                .frame(width: 70, height: 70)
+                .frame(width: 75, height: 75)
                 .background(appSettings.accentColor.color.opacity(0.1))
                 .clipShape(Circle())
         }
@@ -92,30 +92,31 @@ struct HomeView: View {
     
     private var progressSection: some View {
         VStack(alignment: .leading, spacing: 16) {
-            HStack {
+            HStack(spacing: 8) {
                 Text("任务概览")
                     .font(.title3)
                     .fontWeight(.bold)
                 
-                Spacer()
-                
-                Text("\(completedTodayTasks.count)/\(todayTasks.count) 今日任务")
-                    .font(.headline)
+                Text("(\(completedTodayTasks.count)/\(todayTasks.count))")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
                     .foregroundColor(.secondary)
+                
+                Spacer()
             }
             
             HStack(spacing: 12) {
                 progressCard(
                     title: "今日进行中",
                     count: todayTasks.filter { !$0.isCompleted }.count,
-                    icon: "hourglass",
+                    icon: "hourglass.circle.fill",
                     color: .blue
                 )
                 
                 progressCard(
                     title: "全部未完成",
                     count: allIncompleteTasks.count,
-                    icon: "exclamationmark.circle",
+                    icon: "exclamationmark.circle.fill",
                     color: .orange
                 )
             }
@@ -131,7 +132,7 @@ struct HomeView: View {
                 progressCard(
                     title: "已完成",
                     count: completedTodayTasks.count,
-                    icon: "checkmark.circle",
+                    icon: "checkmark.circle.fill",
                     color: .green
                 )
             }
@@ -151,7 +152,7 @@ struct HomeView: View {
                 }
                 
                 AnimatedProgressBar(value: progressValue)
-                    .frame(height: 10)
+                    .frame(height: 12)
             }
             .padding()
             .background(
@@ -163,7 +164,7 @@ struct HomeView: View {
     }
     
     private func progressCard(title: String, count: Int, icon: String, color: Color) -> some View {
-        HStack {
+        HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.subheadline)
@@ -179,7 +180,7 @@ struct HomeView: View {
             Spacer()
             
             Image(systemName: icon)
-                .font(.title2)
+                .font(.system(size: 28))
                 .foregroundColor(color)
         }
         .padding()
@@ -198,9 +199,10 @@ struct HomeView: View {
                 .fontWeight(.bold)
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
+                HStack(spacing: 14) {
                     // 全部分类选项
                     categoryChip(
+                        iconName: "list.bullet",
                         title: "全部",
                         isSelected: selectedCategory == nil && selectedCustomCategory == nil,
                         color: appSettings.accentColor.color
@@ -214,6 +216,7 @@ struct HomeView: View {
                     // 预设分类
                     ForEach(TaskCategory.allCases, id: \.self) { category in
                         categoryChip(
+                            iconName: categoryIcon(for: category),
                             title: category.localizedName,
                             isSelected: selectedCategory == category && selectedCustomCategory == nil,
                             color: categoryColor(for: category)
@@ -230,6 +233,7 @@ struct HomeView: View {
                         // 排除与预设分类名称重复的自定义分类（避免重复显示）
                         if !isDefaultCategory(customCategory) {
                             categoryChip(
+                                iconName: "tag.fill",
                                 title: customCategory.name,
                                 isSelected: selectedCustomCategory?.id == customCategory.id && selectedCategory == nil,
                                 color: CategoryManager.color(for: customCategory.colorName)
@@ -247,17 +251,23 @@ struct HomeView: View {
         }
     }
     
-    private func categoryChip(title: String, isSelected: Bool, color: Color, action: @escaping () -> Void) -> some View {
+    private func categoryChip(iconName: String?, title: String, isSelected: Bool, color: Color, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title)
-                .font(.system(size: 15, weight: isSelected ? .semibold : .medium))
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
-                .background(
-                    RoundedRectangle(cornerRadius: 25)
-                        .fill(isSelected ? color : Color(.systemGray6))
-                )
-                .foregroundColor(isSelected ? .white : .primary)
+            HStack(spacing: 6) {
+                if let iconName = iconName {
+                    Image(systemName: iconName)
+                        .font(.system(size: 13, weight: .medium))
+                }
+                Text(title)
+                    .font(.system(size: 15, weight: isSelected ? .semibold : .medium))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 25)
+                    .fill(isSelected ? color : Color(.systemGray6))
+            )
+            .foregroundColor(isSelected ? .white : .primary)
         }
         .buttonStyle(PlainButtonStyle())
         .scaleEffect(isSelected ? 1.05 : 1.0)
@@ -274,6 +284,20 @@ struct HomeView: View {
             return .green
         case .important:
             return .red
+        }
+    }
+    
+    // Helper function to get icon name for category
+    private func categoryIcon(for category: TaskCategory) -> String {
+        switch category {
+        case .work:
+            return "briefcase.fill"
+        case .personal:
+            return "person.fill"
+        case .health:
+            return "heart.fill"
+        case .important:
+            return "exclamationmark.triangle.fill"
         }
     }
     

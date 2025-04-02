@@ -44,12 +44,14 @@ struct TaskListView: View {
     }
     
     private var filterTabBar: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: 10) {
             filterTab(title: "全部", filter: .all)
             filterTab(title: "进行中", filter: .active)
             filterTab(title: "已完成", filter: .completed)
         }
-        .background(Color(.systemBackground))
+        .padding(.horizontal)
+        .padding(.top, 10)
+        .background(Color(.systemGroupedBackground))
     }
     
     private func filterTab(title: String, filter: TaskFilter) -> some View {
@@ -60,21 +62,18 @@ struct TaskListView: View {
                 selectedFilter = filter
             }
         }) {
-            VStack(spacing: 8) {
-                Text(title)
-                    .font(.system(size: 16, weight: isSelected ? .semibold : .medium))
-                    .foregroundColor(isSelected ? appSettings.accentColor.color : .gray)
-                
-                // 活动指示器
-                Rectangle()
-                    .fill(isSelected ? appSettings.accentColor.color : Color.clear)
-                    .frame(height: 3)
-                    .cornerRadius(1.5)
-            }
+            Text(title)
+                .font(.system(size: 15, weight: isSelected ? .semibold : .medium))
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity)
+                .background(
+                    isSelected ? appSettings.accentColor.color : Color(.systemGray6)
+                )
+                .foregroundColor(isSelected ? .white : .primary)
+                .clipShape(Capsule())
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 10)
-        .background(Color(.systemBackground))
+        .buttonStyle(PlainButtonStyle())
     }
     
     private var searchBar: some View {
@@ -134,13 +133,14 @@ struct TaskListView: View {
             ForEach(filteredTasks) { task in
                 NavigationLink(destination: TaskDetailView(task: task)) {
                     EnhancedTaskRow(task: task)
-                        .padding(.vertical, 8)
                 }
-                .listRowBackground(Color(.systemBackground))
+                .listRowSeparator(.hidden)
             }
             .onDelete(perform: deleteTask)
         }
-        .listStyle(InsetGroupedListStyle())
+        .listStyle(PlainListStyle())
+        .padding(.horizontal)
+        .background(Color(.systemGroupedBackground))
     }
     
     private var filteredTasks: [Task] {
