@@ -116,6 +116,35 @@ struct FocusView: View {
                 
                 Spacer()
                 
+                // ---- START: Added Completed Sessions Display ----
+                Divider()
+                    .padding(.vertical)
+                
+                VStack(alignment: .leading) {
+                    Text("已完成的专注：")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                    
+                    if focusTimer.completedFocusSessions > 0 {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 2) {
+                                ForEach(0..<focusTimer.completedFocusSessions, id: \.self) { _ in
+                                    Text("🌸")
+                                        .font(.title)
+                                }
+                            }
+                            .padding(.vertical, 5)
+                        }
+                        .frame(height: 50) // Limit height to prevent large vertical space
+                    } else {
+                        Text("今天还没有完成专注。")
+                            .foregroundColor(.secondary)
+                            .padding(.vertical, 5)
+                    }
+                }
+                .padding(.horizontal)
+                // ---- END: Added Completed Sessions Display ----
+
                 // 设置按钮
                 NavigationLink(destination: FocusSettingsView()) {
                     HStack {

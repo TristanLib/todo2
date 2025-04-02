@@ -73,7 +73,7 @@ class NotificationManager {
                 
             case .focusEnd:
                 content.title = "专注结束"
-                content.body = "专注时间已结束，可以休息一下了"
+                content.body = "🌸 专注时间已结束，可以休息一下了"
                 content.sound = .default
                 content.userInfo["type"] = "focusEnd"
                 

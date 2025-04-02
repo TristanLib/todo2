@@ -185,7 +185,8 @@ class AppSettings: ObservableObject {
                 autoArchiveCompletedTasks: autoArchiveCompletedTasks,
                 daysBeforeAutoArchive: daysBeforeAutoArchive,
                 notificationSettings: notificationSettings,
-                focusSettings: focusSettings
+                focusSettings: focusSettings,
+                completedFocusSessions: FocusTimerManager.shared.completedFocusSessions
             )
             
             let data = try encoder.encode(settings)
@@ -220,6 +221,9 @@ class AppSettings: ObservableObject {
             
             // 专注模式设置
             self.focusSettings = settings.focusSettings
+            
+            // 加载专注次数
+            FocusTimerManager.shared.completedFocusSessions = settings.completedFocusSessions ?? 0
         } catch {
             print("加载设置失败: \(error.localizedDescription)")
         }
@@ -244,6 +248,9 @@ class AppSettings: ObservableObject {
         // 专注模式设置
         self.focusSettings = FocusSettings()
         
+        // 重置专注次数
+        FocusTimerManager.shared.completedFocusSessions = 0
+        
         saveSettings()
     }
 }
@@ -266,4 +273,7 @@ private struct SettingsData: Codable {
     
     // 专注模式设置
     let focusSettings: FocusSettings
+    
+    // 专注次数
+    let completedFocusSessions: Int?
 } 
