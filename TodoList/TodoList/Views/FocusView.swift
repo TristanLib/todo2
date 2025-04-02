@@ -3,6 +3,7 @@ import SwiftUI
 struct FocusView: View {
     @EnvironmentObject var appSettings: AppSettings
     @ObservedObject private var focusTimer = FocusTimerManager.shared
+    @State private var showStopConfirmation = false
     
     var body: some View {
         NavigationView {
@@ -45,6 +46,7 @@ struct FocusView: View {
                 // 控制按钮
                 HStack(spacing: 40) {
                     Button(action: {
+                        // 重置会话按钮
                         focusTimer.resetSessions()
                     }) {
                         Image(systemName: "arrow.counterclockwise")
@@ -54,6 +56,8 @@ struct FocusView: View {
                             .background(Color(.systemGray6))
                             .clipShape(Circle())
                     }
+                    .disabled(focusTimer.completedFocusSessions == 0)
+                    .opacity(focusTimer.completedFocusSessions == 0 ? 0.5 : 1)
                     
                     if focusTimer.currentState == .idle {
                         Button(action: {
@@ -94,7 +98,10 @@ struct FocusView: View {
                     }
                     
                     Button(action: {
-                        focusTimer.stopTimer()
+                        // 仅在非空闲状态下显示确认对话框
+                        if focusTimer.currentState != .idle {
+                            showStopConfirmation = true
+                        }
                     }) {
                         Image(systemName: "stop.fill")
                             .font(.title)
@@ -103,6 +110,8 @@ struct FocusView: View {
                             .background(Color(.systemGray6))
                             .clipShape(Circle())
                     }
+                    .disabled(focusTimer.currentState == .idle)
+                    .opacity(focusTimer.currentState == .idle ? 0.5 : 1)
                 }
                 
                 Spacer()
@@ -122,6 +131,17 @@ struct FocusView: View {
             .padding()
             .navigationTitle("专注")
             .navigationBarTitleDisplayMode(.inline)
+            .alert("终止专注", isPresented: $showStopConfirmation) {
+                Button("取消", role: .cancel) { }
+                Button("终止", role: .destructive) {
+                    focusTimer.stopTimer()
+                }
+            } message: {
+                let message = focusTimer.currentState == .focusing ? 
+                    "提前终止专注将不会计入统计。确定要终止当前专注吗？" : 
+                    "确定要终止当前休息吗？"
+                Text(message)
+            }
         }
     }
 }
