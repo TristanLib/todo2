@@ -1,9 +1,11 @@
 import Foundation
 
-enum TaskPriority: String, Codable, CaseIterable {
+enum TaskPriority: String, Codable, CaseIterable, Identifiable {
     case low = "Low"
     case medium = "Medium"
     case high = "High"
+    
+    var id: String { self.rawValue }
     
     var color: String {
         switch self {

@@ -7,6 +7,31 @@ class TaskStore: ObservableObject {
     private let coreDataManager = CoreDataManager.shared
     
     init() {
+        // 仅在 Core Data 准备好时加载任务
+        if PersistenceController.shared.isLoaded {
+            initializeStore()
+        } else {
+            // 监听 Core Data 加载完成通知
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(handlePersistentStoreDidLoad),
+                name: .persistentStoreDidLoad,
+                object: nil
+            )
+        }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func handlePersistentStoreDidLoad() {
+        DispatchQueue.main.async { [weak self] in
+            self?.initializeStore()
+        }
+    }
+    
+    private func initializeStore() {
         // 首次运行时进行数据迁移
         coreDataManager.migrateFromUserDefaults()
         

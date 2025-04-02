@@ -71,7 +71,7 @@ struct AddTaskView: View {
                 
                 Section(header: Text("优先级")) {
                     Picker("优先级", selection: $selectedPriority) {
-                        ForEach(TaskPriority.allCases, id: \\.self) { priority in
+                        ForEach(TaskPriority.allCases, id: \.self) { priority in
                             Text(priorityLabel(for: priority)).tag(priority)
                         }
                     }
@@ -109,7 +109,7 @@ struct AddTaskView: View {
                 
                 // Subtasks Section (assuming simple string array for now)
                 Section(header: Text("子任务")) {
-                    ForEach($subtasks.indices, id: \\.self) { index in
+                    ForEach($subtasks.indices, id: \.self) { index in
                          HStack {
                             TextField("子任务 \\(index + 1)", text: $subtasks[index])
                             // Button to remove subtask? Maybe add later.

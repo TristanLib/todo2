@@ -247,14 +247,16 @@ struct FocusSettingsView: View {
         }
         .navigationTitle("专注设置")
         .onAppear {
-            // 初始化设置
-            let settings = appSettings.focusSettings
-            focusDuration = settings.focusDuration
-            shortBreakDuration = settings.shortBreakDuration
-            longBreakDuration = settings.longBreakDuration
-            pomoBeforeBreak = settings.pomoBeforeBreak
-            enableSound = settings.enableSound
-            enableNotification = settings.enableNotification
+            DispatchQueue.main.async {
+                // 初始化设置
+                let settings = appSettings.focusSettings
+                focusDuration = settings.focusDuration
+                shortBreakDuration = settings.shortBreakDuration
+                longBreakDuration = settings.longBreakDuration
+                pomoBeforeBreak = settings.pomoBeforeBreak
+                enableSound = settings.enableSound
+                enableNotification = settings.enableNotification
+            }
         }
     }
     

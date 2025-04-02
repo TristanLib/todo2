@@ -56,7 +56,9 @@ struct HomeView: View {
                 }
             )
             .onAppear {
-                animateContentOnAppear()
+                DispatchQueue.main.async {
+                    animateContentOnAppear()
+                }
             }
         }
     }
@@ -476,19 +478,21 @@ struct HomeView: View {
     
     private func animateContentOnAppear() {
         // 设置延迟时间来创建连续的动画效果
-        withAnimation(AnimationUtils.spring.delay(0.1)) {
-            isLoadingComplete = true
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(AnimationUtils.spring) {
-                showCategorySection = true
+        DispatchQueue.main.async {
+            withAnimation(AnimationUtils.spring.delay(0.1)) {
+                isLoadingComplete = true
             }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            withAnimation(AnimationUtils.spring) {
-                showTasksSection = true
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(AnimationUtils.spring) {
+                    showCategorySection = true
+                }
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation(AnimationUtils.spring) {
+                    showTasksSection = true
+                }
             }
         }
     }
@@ -740,13 +744,17 @@ struct AnimatedProgressBar: View {
             }
         }
         .onAppear {
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.2)) {
-                animatedValue = value
+            DispatchQueue.main.async {
+                withAnimation(.spring(response: 0.8, dampingFraction: 0.7).delay(0.2)) {
+                    animatedValue = value
+                }
             }
         }
         .onChange(of: value) { oldValue, newValue in
-            withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
-                animatedValue = newValue
+            DispatchQueue.main.async {
+                withAnimation(.spring(response: 0.8, dampingFraction: 0.7)) {
+                    animatedValue = newValue
+                }
             }
         }
     }

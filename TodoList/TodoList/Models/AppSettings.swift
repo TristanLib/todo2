@@ -130,46 +130,62 @@ class AppSettings: ObservableObject {
     
     // UI 设置
     @Published var theme: AppTheme = .system {
-        didSet { saveSettings() }
+        didSet { queueSaveSettings() }
     }
     
     @Published var accentColor: AppAccentColor = .blue {
-        didSet { saveSettings() }
+        didSet { queueSaveSettings() }
     }
     
     @Published var enableAnimations: Bool = true {
-        didSet { saveSettings() }
+        didSet { queueSaveSettings() }
     }
     
     @Published var showCompletedTasks: Bool = true {
-        didSet { saveSettings() }
+        didSet { queueSaveSettings() }
     }
     
     // 任务设置
     @Published var defaultTaskSortOption: TaskSortOption = .dueDate {
-        didSet { saveSettings() }
+        didSet { queueSaveSettings() }
     }
     
     @Published var autoArchiveCompletedTasks: Bool = false {
-        didSet { saveSettings() }
+        didSet { queueSaveSettings() }
     }
     
     @Published var daysBeforeAutoArchive: Int = 7 {
-        didSet { saveSettings() }
+        didSet { queueSaveSettings() }
     }
     
     // 通知设置
     @Published var notificationSettings: NotificationSettings = NotificationSettings() {
-        didSet { saveSettings() }
+        didSet { queueSaveSettings() }
     }
     
     // 专注模式设置
     @Published var focusSettings: FocusSettings = FocusSettings() {
-        didSet { saveSettings() }
+        didSet { queueSaveSettings() }
     }
     
+    // 防抖动计时器，避免频繁保存
+    private var saveWorkItem: DispatchWorkItem?
+    
     init() {
+        // 直接加载设置
         loadSettings()
+    }
+    
+    // 使用防抖动延迟保存设置
+    private func queueSaveSettings() {
+        saveWorkItem?.cancel()
+        
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.saveSettings()
+        }
+        
+        saveWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
     }
     
     func saveSettings() {
@@ -222,8 +238,10 @@ class AppSettings: ObservableObject {
             // 专注模式设置
             self.focusSettings = settings.focusSettings
             
-            // 加载专注次数
-            FocusTimerManager.shared.completedFocusSessions = settings.completedFocusSessions ?? 0
+            // 异步加载专注次数，避免在初始化期间直接修改另一个 ObservableObject
+            DispatchQueue.main.async {
+                FocusTimerManager.shared.completedFocusSessions = settings.completedFocusSessions ?? 0
+            }
         } catch {
             print("加载设置失败: \(error.localizedDescription)")
         }
