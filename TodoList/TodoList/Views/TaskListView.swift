@@ -3,6 +3,7 @@ import SwiftUI
 struct TaskListView: View {
     @EnvironmentObject var taskStore: TaskStore
     @EnvironmentObject var appSettings: AppSettings
+    @EnvironmentObject var categoryManager: CategoryManager
     @State private var selectedFilter: TaskFilter
     @State private var searchText = ""
     
@@ -180,6 +181,7 @@ struct TaskListView: View {
 struct EnhancedTaskRow: View {
     var task: Task
     @EnvironmentObject var taskStore: TaskStore
+    @EnvironmentObject var categoryManager: CategoryManager
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -229,6 +231,8 @@ struct EnhancedTaskRow: View {
                 
                 if let category = task.category {
                     categoryTag(for: category)
+                } else if let customCategory = task.customCategory {
+                    categoryTag(customCategory: customCategory)
                 }
                 
                 if !task.subtasks.isEmpty {
@@ -265,7 +269,7 @@ struct EnhancedTaskRow: View {
     }
     
     private func categoryTag(for category: TaskCategory) -> some View {
-        Text(category.rawValue)
+        Text(category.localizedName)
             .font(.caption)
             .fontWeight(.medium)
             .foregroundColor(.primary)
@@ -273,6 +277,20 @@ struct EnhancedTaskRow: View {
             .padding(.vertical, 3)
             .background(Color(.systemGray6))
             .cornerRadius(4)
+    }
+    
+    private func categoryTag(customCategory: CustomCategory) -> some View {
+        Text(customCategory.name)
+            .font(.caption)
+            .fontWeight(.medium)
+            .foregroundColor(.primary)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(CategoryManager.color(for: customCategory.colorName).opacity(0.15))
+            )
+            .foregroundColor(CategoryManager.color(for: customCategory.colorName))
     }
     
     private func completedSubtasks(_ task: Task) -> Int {
@@ -296,5 +314,6 @@ struct TaskListView_Previews: PreviewProvider {
         TaskListView()
             .environmentObject(TaskStore())
             .environmentObject(AppSettings())
+            .environmentObject(CategoryManager())
     }
 } 

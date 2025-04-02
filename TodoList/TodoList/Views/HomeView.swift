@@ -3,7 +3,9 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var taskStore: TaskStore
     @EnvironmentObject var appSettings: AppSettings
+    @EnvironmentObject var categoryManager: CategoryManager
     @State private var selectedCategory: TaskCategory? = nil
+    @State private var selectedCustomCategory: CustomCategory? = nil
     @State private var isLoadingComplete = false
     @State private var showCategorySection = false
     @State private var showTasksSection = false
@@ -197,24 +199,45 @@ struct HomeView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
+                    // 全部分类选项
                     categoryChip(
                         title: "全部",
-                        isSelected: selectedCategory == nil,
+                        isSelected: selectedCategory == nil && selectedCustomCategory == nil,
                         color: appSettings.accentColor.color
                     ) {
                         withAnimation(.spring(response: 0.3)) {
                             selectedCategory = nil
+                            selectedCustomCategory = nil
                         }
                     }
                     
+                    // 预设分类
                     ForEach(TaskCategory.allCases, id: \.self) { category in
                         categoryChip(
-                            title: category.rawValue,
-                            isSelected: selectedCategory == category,
+                            title: category.localizedName,
+                            isSelected: selectedCategory == category && selectedCustomCategory == nil,
                             color: categoryColor(for: category)
                         ) {
                             withAnimation(.spring(response: 0.3)) {
                                 selectedCategory = category
+                                selectedCustomCategory = nil
+                            }
+                        }
+                    }
+                    
+                    // 自定义分类
+                    ForEach(categoryManager.categories) { customCategory in
+                        // 排除与预设分类名称重复的自定义分类（避免重复显示）
+                        if !isDefaultCategory(customCategory) {
+                            categoryChip(
+                                title: customCategory.name,
+                                isSelected: selectedCustomCategory?.id == customCategory.id && selectedCategory == nil,
+                                color: CategoryManager.color(for: customCategory.colorName)
+                            ) {
+                                withAnimation(.spring(response: 0.3)) {
+                                    selectedCustomCategory = customCategory
+                                    selectedCategory = nil
+                                }
                             }
                         }
                     }
@@ -252,6 +275,14 @@ struct HomeView: View {
         case .important:
             return .red
         }
+    }
+    
+    // 检查自定义分类是否与预设分类重复
+    private func isDefaultCategory(_ customCategory: CustomCategory) -> Bool {
+        return customCategory.name == "工作" || 
+               customCategory.name == "个人" || 
+               customCategory.name == "健康" || 
+               customCategory.name == "重要"
     }
     
     private var todayTasksSection: some View {
@@ -506,6 +537,13 @@ struct HomeView: View {
     private var filteredTasks: [Task] {
         if let category = selectedCategory {
             return todayTasks.filter { $0.category == category }
+        } else if let customCategory = selectedCustomCategory {
+            return todayTasks.filter { task in
+                if let taskCustomCategory = task.customCategory {
+                    return taskCustomCategory.id == customCategory.id
+                }
+                return false
+            }
         } else {
             return todayTasks
         }
@@ -617,6 +655,7 @@ struct HomeView_Previews: PreviewProvider {
         HomeView()
             .environmentObject(TaskStore())
             .environmentObject(AppSettings())
+            .environmentObject(CategoryManager())
     }
 }
 

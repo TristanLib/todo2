@@ -218,7 +218,7 @@ struct AddTaskView: View {
                 
                 // 标签
                 VStack(alignment: .leading, spacing: 10) {
-                    Text("标签")
+                    Text("分类")
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     
@@ -248,7 +248,7 @@ struct AddTaskView: View {
                                 // 显示添加新标签表单
                                 showingAddCategorySheet = true
                             }) {
-                                Text("+ 新标签")
+                                Text("+ 新分类")
                                     .font(.system(size: 14))
                                     .foregroundColor(.secondary)
                                     .padding(.horizontal, 16)
@@ -319,7 +319,7 @@ struct AddTaskView: View {
                         showingAddCategorySheet = false
                     }
                 )
-                .navigationTitle("添加新标签")
+                .navigationTitle("添加新分类")
                 .navigationBarItems(
                     leading: Button("取消") {
                         showingAddCategorySheet = false
@@ -334,11 +334,29 @@ struct AddTaskView: View {
         let validSubtasks = subtasks.filter { !$0.isEmpty }
             .map { Subtask(title: $0) }
         
+        // 根据自定义分类名匹配对应的 TaskCategory
+        var category: TaskCategory? = nil
+        if let selectedCategory = selectedCategory {
+            // 将中文分类名映射到英文 TaskCategory
+            switch selectedCategory.name {
+            case "工作":
+                category = .work
+            case "个人": 
+                category = .personal
+            case "健康":
+                category = .health
+            case "重要":
+                category = .important
+            default:
+                category = nil
+            }
+        }
+        
         let newTask = Task(
             title: title,
             description: description,
-            category: nil, // 不再使用旧的枚举类型
-            customCategory: selectedCategory, // 使用新的自定义类型
+            category: category, // 设置对应的 TaskCategory
+            customCategory: selectedCategory, // 保留自定义分类
             dueDate: hasDueDate ? dueDate : nil,
             priority: selectedPriority,
             subtasks: validSubtasks
@@ -383,8 +401,8 @@ struct AddCategoryView: View {
     
     var body: some View {
         Form {
-            Section(header: Text("标签信息")) {
-                TextField("标签名称", text: $newCategoryName)
+            Section(header: Text("分类信息")) {
+                TextField("分类名称", text: $newCategoryName)
                     .padding(.vertical, 8)
             }
             
@@ -422,7 +440,7 @@ struct AddCategoryView: View {
                         onSave(newCategoryName, newCategoryColor)
                     }
                 }) {
-                    Text("保存标签")
+                    Text("保存分类")
                         .frame(maxWidth: .infinity)
                         .foregroundColor(.white)
                         .padding(.vertical, 12)

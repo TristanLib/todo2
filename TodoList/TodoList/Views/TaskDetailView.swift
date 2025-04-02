@@ -4,6 +4,7 @@ struct TaskDetailView: View {
     var task: Task
     @EnvironmentObject var taskStore: TaskStore
     @EnvironmentObject var appSettings: AppSettings
+    @EnvironmentObject var categoryManager: CategoryManager
     @State private var isEditing = false
     
     var body: some View {
@@ -175,12 +176,14 @@ struct EditTaskView: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var taskStore: TaskStore
     @EnvironmentObject var appSettings: AppSettings
+    @EnvironmentObject var categoryManager: CategoryManager
     
     var task: Task
     
     @State private var title: String
     @State private var description: String
     @State private var selectedCategory: TaskCategory?
+    @State private var selectedCustomCategory: CustomCategory?
     @State private var selectedPriority: TaskPriority
     @State private var hasDueDate: Bool
     @State private var dueDate: Date
@@ -213,6 +216,7 @@ struct EditTaskView: View {
         _title = State(initialValue: task.title)
         _description = State(initialValue: task.description)
         _selectedCategory = State(initialValue: task.category)
+        _selectedCustomCategory = State(initialValue: task.customCategory)
         _selectedPriority = State(initialValue: task.priority)
         _hasDueDate = State(initialValue: task.dueDate != nil)
         _dueDate = State(initialValue: task.dueDate ?? EditTaskView.defaultDueDate())
@@ -305,17 +309,68 @@ struct EditTaskView: View {
                                 .font(.headline)
                                 .foregroundColor(.primary)
                             
-                            Picker("选择分类", selection: $selectedCategory) {
-                                Text("选择分类").tag(nil as TaskCategory?)
-                                ForEach(TaskCategory.allCases, id: \.self) { category in
-                                    Text(category.rawValue).tag(category as TaskCategory?)
+                            Menu {
+                                // 无分类选项
+                                Button(action: {
+                                    selectedCategory = nil
+                                    selectedCustomCategory = nil
+                                }) {
+                                    Text("无分类")
                                 }
+                                
+                                Divider()
+                                
+                                // 预设分类
+                                ForEach(TaskCategory.allCases, id: \.self) { category in
+                                    Button(action: {
+                                        selectedCategory = category
+                                        selectedCustomCategory = nil
+                                    }) {
+                                        HStack {
+                                            Text(category.localizedName)
+                                            
+                                            if selectedCategory == category {
+                                                Image(systemName: "checkmark")
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                if !categoryManager.categories.isEmpty {
+                                    Divider()
+                                    
+                                    // 自定义分类
+                                    ForEach(categoryManager.categories) { category in
+                                        // 排除与预设分类重复的自定义分类
+                                        if !isDefaultCategory(category) {
+                                            Button(action: {
+                                                selectedCustomCategory = category
+                                                selectedCategory = nil
+                                            }) {
+                                                HStack {
+                                                    Text(category.name)
+                                                    
+                                                    if selectedCustomCategory?.id == category.id {
+                                                        Image(systemName: "checkmark")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } label: {
+                                HStack {
+                                    Text(getCategoryName())
+                                    Spacer()
+                                    Image(systemName: "chevron.down")
+                                        .font(.caption)
+                                }
+                                .foregroundColor(.primary)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color(.systemGray6))
+                                .cornerRadius(10)
                             }
-                            .pickerStyle(MenuPickerStyle())
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
                         }
                         
                         // 截止日期选择器
@@ -465,13 +520,18 @@ struct EditTaskView: View {
     }
     
     private func saveTask() {
-        var updatedTask = task
-        updatedTask.title = title
-        updatedTask.description = description
-        updatedTask.category = selectedCategory
-        updatedTask.priority = selectedPriority
-        updatedTask.dueDate = hasDueDate ? dueDate : nil
-        updatedTask.subtasks = subtasks
+        let updatedTask = Task(
+            id: task.id,
+            title: title,
+            description: description,
+            category: selectedCategory,
+            customCategory: selectedCustomCategory,
+            dueDate: hasDueDate ? dueDate : nil,
+            priority: selectedPriority,
+            isCompleted: task.isCompleted,
+            subtasks: subtasks,
+            createdAt: task.createdAt
+        )
         
         taskStore.updateTask(updatedTask)
         presentationMode.wrappedValue.dismiss()
@@ -497,5 +557,33 @@ struct EditTaskView: View {
         case .high:
             return .red
         }
+    }
+    
+    // 获取当前选中的分类名称
+    private func getCategoryName() -> String {
+        if let category = selectedCategory {
+            return category.localizedName
+        } else if let customCategory = selectedCustomCategory {
+            return customCategory.name
+        } else {
+            return "选择分类"
+        }
+    }
+    
+    // 检查自定义分类是否与预设分类重复
+    private func isDefaultCategory(_ customCategory: CustomCategory) -> Bool {
+        return customCategory.name == "工作" || 
+               customCategory.name == "个人" || 
+               customCategory.name == "健康" || 
+               customCategory.name == "重要"
+    }
+}
+
+struct TaskDetailView_Previews: PreviewProvider {
+    static var previews: some View {
+        TaskDetailView(task: Task(title: "示例任务", description: "这是一个示例任务的描述"))
+            .environmentObject(TaskStore())
+            .environmentObject(AppSettings())
+            .environmentObject(CategoryManager())
     }
 } 
