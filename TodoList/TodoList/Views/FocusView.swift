@@ -7,44 +7,55 @@ struct FocusView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 30) {
+            VStack(spacing: 20) {
                 // 标题和状态
-                VStack(spacing: 10) {
+                VStack(spacing: 8) {
                     Text(focusTimer.currentStateDisplayName())
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .animation(.none)
+                        .minimumScaleFactor(0.8)
+                        .lineLimit(1)
                     
                     Text("已完成 \(focusTimer.completedFocusSessions) 个专注")
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
                 
-                // 计时器显示
-                ZStack {
-                    Circle()
-                        .stroke(Color(.systemGray5), lineWidth: 20)
-                        .frame(width: 280, height: 280)
+                // 计时器显示 - 使用 GeometryReader 使其自适应
+                GeometryReader { geometry in
+                    let timerSize = min(geometry.size.width * 0.7, geometry.size.height * 0.4)
+                    let lineWidth: CGFloat = max(timerSize * 0.07, 15)
                     
-                    Circle()
-                        .trim(from: 0, to: CGFloat(focusTimer.progress))
-                        .stroke(
-                            LinearGradient(
-                                gradient: Gradient(colors: [.blue, .purple]),
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            style: StrokeStyle(lineWidth: 20, lineCap: .round)
-                        )
-                        .frame(width: 280, height: 280)
-                        .rotationEffect(.degrees(-90))
-                        .animation(.linear(duration: 0.25), value: focusTimer.progress)
-                    
-                    Text(focusTimer.formattedTimeRemaining())
-                        .font(.system(size: 70, weight: .medium, design: .rounded))
+                    ZStack {
+                        Circle()
+                            .stroke(Color(.systemGray5), lineWidth: lineWidth)
+                        
+                        Circle()
+                            .trim(from: 0, to: CGFloat(focusTimer.progress))
+                            .stroke(
+                                LinearGradient(
+                                    gradient: Gradient(colors: [appSettings.accentColor.color, appSettings.accentColor.color.opacity(0.6)]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                            )
+                            .rotationEffect(.degrees(-90))
+                            .animation(.linear(duration: 0.25), value: focusTimer.progress)
+                        
+                        Text(focusTimer.formattedTimeRemaining())
+                            .font(.system(size: timerSize * 0.25, weight: .medium, design: .rounded))
+                            .minimumScaleFactor(0.5)
+                            .lineLimit(1)
+                    }
+                    .frame(width: timerSize, height: timerSize)
+                    .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
                 }
-                
+                .frame(maxHeight: 350)
+
                 // 控制按钮
-                HStack(spacing: 40) {
+                HStack(spacing: 30) {
                     Button(action: {
                         // 重置会话按钮
                         focusTimer.resetSessions()
@@ -113,13 +124,9 @@ struct FocusView: View {
                     .disabled(focusTimer.currentState == .idle)
                     .opacity(focusTimer.currentState == .idle ? 0.5 : 1)
                 }
+                .padding(.horizontal)
                 
-                Spacer()
-                
-                // ---- START: Added Completed Sessions Display ----
-                Divider()
-                    .padding(.vertical)
-                
+                // 已完成的专注部分
                 VStack(alignment: .leading) {
                     Text("已完成的专注：")
                         .font(.headline)
@@ -135,7 +142,7 @@ struct FocusView: View {
                             }
                             .padding(.vertical, 5)
                         }
-                        .frame(height: 50) // Limit height to prevent large vertical space
+                        .frame(height: 50)
                     } else {
                         Text("今天还没有完成专注。")
                             .foregroundColor(.secondary)
@@ -143,7 +150,7 @@ struct FocusView: View {
                     }
                 }
                 .padding(.horizontal)
-                // ---- END: Added Completed Sessions Display ----
+                .frame(maxHeight: 80)
 
                 // 设置按钮
                 NavigationLink(destination: FocusSettingsView()) {
@@ -156,8 +163,9 @@ struct FocusView: View {
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
                 }
+                .padding(.bottom)
             }
-            .padding()
+            .padding(.vertical)
             .navigationTitle("专注")
             .navigationBarTitleDisplayMode(.inline)
             .alert("终止专注", isPresented: $showStopConfirmation) {
