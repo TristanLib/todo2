@@ -10,6 +10,22 @@ struct HomeView: View {
     @State private var showCategorySection = false
     @State private var showTasksSection = false
     
+    // Helper for localized date formatting
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none // Don't show time for the main date string
+        formatter.doesRelativeDateFormatting = true // Use relative terms like "Today", "Yesterday"
+        return formatter
+    }
+    
+    // Helper for localized weekday formatting
+    private var weekdayFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE" // Full weekday name
+        return formatter
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -40,14 +56,14 @@ struct HomeView: View {
                 .padding(.bottom, 24)
             }
             .background(Color(.systemGroupedBackground).edgesIgnoringSafeArea(.all))
-            .navigationTitle("主页")
+            .navigationTitle(NSLocalizedString("主页", comment: "Home navigation title"))
             .navigationBarItems(trailing: 
                 Menu {
                     Button(action: {}) {
-                        Label("搜索", systemImage: "magnifyingglass")
+                        Label(NSLocalizedString("搜索", comment: "Search menu item"), systemImage: "magnifyingglass")
                     }
                     Button(action: {}) {
-                        Label("排序", systemImage: "arrow.up.arrow.down")
+                        Label(NSLocalizedString("排序", comment: "Sort menu item"), systemImage: "arrow.up.arrow.down")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -70,7 +86,7 @@ struct HomeView: View {
                     .font(.title2)
                     .fontWeight(.semibold)
                 
-                Text(timeDescription)
+                Text("\(dateFormatter.string(from: Date())), \(weekdayFormatter.string(from: Date()))")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
@@ -95,7 +111,7 @@ struct HomeView: View {
     private var progressSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
-                Text("任务概览")
+                Text(NSLocalizedString("任务概览", comment: "Task overview title"))
                     .font(.title3)
                     .fontWeight(.bold)
                 
@@ -109,14 +125,14 @@ struct HomeView: View {
             
             HStack(spacing: 12) {
                 progressCard(
-                    title: "今日进行中",
+                    title: NSLocalizedString("今日进行中", comment: "Today in progress card"),
                     count: todayTasks.filter { !$0.isCompleted }.count,
                     icon: "hourglass.circle.fill",
                     color: .blue
                 )
                 
                 progressCard(
-                    title: "全部未完成",
+                    title: NSLocalizedString("全部未完成", comment: "All incomplete card"),
                     count: allIncompleteTasks.count,
                     icon: "exclamationmark.circle.fill",
                     color: .orange
@@ -125,14 +141,14 @@ struct HomeView: View {
             
             HStack(spacing: 12) {
                 progressCard(
-                    title: "已逾期",
+                    title: NSLocalizedString("已逾期", comment: "Overdue card"),
                     count: overdueIncompleteTasks.count,
                     icon: "calendar.badge.exclamationmark",
                     color: .red
                 )
                 
                 progressCard(
-                    title: "已完成",
+                    title: NSLocalizedString("已完成", comment: "Completed card"),
                     count: completedTodayTasks.count,
                     icon: "checkmark.circle.fill",
                     color: .green
@@ -141,7 +157,7 @@ struct HomeView: View {
             
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("今日进度")
+                    Text(NSLocalizedString("今日进度", comment: "Today's progress"))
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
@@ -196,16 +212,16 @@ struct HomeView: View {
     
     private var categorySection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("分类")
+            Text(NSLocalizedString("分类", comment: "Categories title"))
                 .font(.title3)
                 .fontWeight(.bold)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 14) {
-                    // 全部分类选项
+                    // 全部分类选项 - Use NSLocalizedString
                     categoryChip(
                         iconName: "list.bullet",
-                        title: "全部",
+                        title: NSLocalizedString("全部", comment: "All categories filter chip"), // Localized
                         isSelected: selectedCategory == nil && selectedCustomCategory == nil,
                         color: appSettings.accentColor.color
                     ) {
@@ -219,7 +235,7 @@ struct HomeView: View {
                     ForEach(TaskCategory.allCases, id: \.self) { category in
                         categoryChip(
                             iconName: categoryIcon(for: category),
-                            title: category.localizedName,
+                            title: category.localizedString,
                             isSelected: selectedCategory == category && selectedCustomCategory == nil,
                             color: categoryColor(for: category)
                         ) {
@@ -303,25 +319,23 @@ struct HomeView: View {
         }
     }
     
-    // 检查自定义分类是否与预设分类重复
+    // 检查自定义分类是否与预设分类重复 - Use localizedString comparison
     private func isDefaultCategory(_ customCategory: CustomCategory) -> Bool {
-        return customCategory.name == "工作" || 
-               customCategory.name == "个人" || 
-               customCategory.name == "健康" || 
-               customCategory.name == "重要"
+        // Compare custom category name against the localized names of presets
+        return TaskCategory.allCases.contains { $0.localizedString == customCategory.name }
     }
     
     private var todayTasksSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("今日待办")
+                Text(NSLocalizedString("今日待办", comment: "Today's Todos section title"))
                     .font(.title3)
                     .fontWeight(.bold)
                 
                 Spacer()
                 
                 NavigationLink(destination: TaskListView()) {
-                    Text("查看全部")
+                    Text(NSLocalizedString("查看全部", comment: "View All button"))
                         .font(.subheadline)
                         .foregroundColor(appSettings.accentColor.color)
                 }
@@ -363,11 +377,11 @@ struct HomeView: View {
                 .foregroundColor(.gray.opacity(0.6))
                 .padding(.top, 20)
             
-            Text("今日无任务")
+            Text(NSLocalizedString("今日无任务", comment: "No tasks today title"))
                 .font(.headline)
                 .foregroundColor(.gray)
             
-            Text("你的今日安排目前是空闲的")
+            Text(NSLocalizedString("你的今日安排目前是空闲的", comment: "Empty schedule message"))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -425,7 +439,7 @@ struct HomeView: View {
                         }
                         
                         if let category = task.category {
-                            Text(category.rawValue)
+                            Text(category.localizedString)
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
@@ -503,19 +517,12 @@ struct HomeView: View {
         let hour = Calendar.current.component(.hour, from: Date())
         
         if hour < 12 {
-            return "早上好"
+            return NSLocalizedString("早上好", comment: "Good morning greeting")
         } else if hour < 18 {
-            return "下午好"
+            return NSLocalizedString("下午好", comment: "Good afternoon greeting")
         } else {
-            return "晚上好"
+            return NSLocalizedString("晚上好", comment: "Good evening greeting")
         }
-    }
-    
-    private var timeDescription: String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "yyyy年MM月dd日 EEEE"
-        dateFormatter.locale = Locale(identifier: "zh_CN")
-        return dateFormatter.string(from: Date())
     }
     
     private var currentTimeIcon: String {
@@ -577,18 +584,95 @@ struct HomeView: View {
         }
     }
     
-    // 添加待处理任务部分
+    // MARK: - Helper Views for HomeView
+
+    // Extracted View for a single overdue task row
+    private struct OverdueTaskRowView: View {
+        let task: Task
+        @EnvironmentObject var appSettings: AppSettings // Needed for accent color possibly
+        // Function to get color for preset category (copied or passed down)
+        let categoryColor: (TaskCategory) -> Color
+        // Function to format date (copied or passed down)
+        let formatDate: (Date) -> String
+        
+        var body: some View {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(task.title)
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    if task.priority == .high {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .foregroundColor(.red)
+                    }
+                }
+                
+                HStack {
+                    if let dueDate = task.dueDate {
+                        HStack {
+                            Image(systemName: "calendar.badge.exclamationmark")
+                                .foregroundColor(.red)
+                            
+                            Text(formatDate(dueDate))
+                                .font(.caption)
+                                .foregroundColor(.red)
+                        }
+                    }
+                    
+                    Spacer()
+                    
+                    // Corrected Category Display Logic
+                    if let category = task.category {
+                        Text(category.localizedString)
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(categoryColor(category).opacity(0.15))
+                            )
+                            .foregroundColor(categoryColor(category))
+                    } else if let customCategory = task.customCategory {
+                        Text(customCategory.localizedName)
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 3)
+                            .background(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(CategoryManager.color(for: customCategory.colorName).opacity(0.15))
+                            )
+                            .foregroundColor(CategoryManager.color(for: customCategory.colorName))
+                    }
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.systemBackground))
+                    .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
+            )
+        }
+    }
+
+    // 添加待处理任务部分 (Refactored)
     private var pendingTasksSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("已逾期任务")
+                Text(NSLocalizedString("已逾期任务", comment: "Overdue tasks section title"))
                     .font(.title3)
                     .fontWeight(.bold)
                 
                 Spacer()
                 
                 if !overdueIncompleteTasks.isEmpty {
-                    Text("\(overdueIncompleteTasks.count)个未完成")
+                    Text(String.localizedStringWithFormat(
+                        NSLocalizedString("%d个未完成", comment: "Number of incomplete tasks badge"),
+                        overdueIncompleteTasks.count
+                    ))
                         .font(.subheadline)
                         .foregroundColor(.red)
                         .padding(.horizontal, 8)
@@ -599,7 +683,7 @@ struct HomeView: View {
             }
             
             if overdueIncompleteTasks.isEmpty {
-                Text("没有逾期未完成的任务")
+                Text(NSLocalizedString("没有逾期未完成的任务", comment: "No overdue tasks message"))
                     .font(.subheadline)
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, alignment: .center)
@@ -610,63 +694,21 @@ struct HomeView: View {
                             .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
                     )
             } else {
+                // Use the extracted view within ForEach
                 ForEach(overdueIncompleteTasks.prefix(3)) { task in
                     NavigationLink(destination: TaskDetailView(task: task)) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text(task.title)
-                                    .font(.headline)
-                                    .foregroundColor(.primary)
-                                    .lineLimit(1)
-                                
-                                Spacer()
-                                
-                                if task.priority == .high {
-                                    Image(systemName: "exclamationmark.triangle.fill")
-                                        .foregroundColor(.red)
-                                }
-                            }
-                            
-                            HStack {
-                                if let dueDate = task.dueDate {
-                                    HStack {
-                                        Image(systemName: "calendar.badge.exclamationmark")
-                                            .foregroundColor(.red)
-                                        
-                                        Text(formatDate(dueDate))
-                                            .font(.caption)
-                                            .foregroundColor(.red)
-                                    }
-                                }
-                                
-                                Spacer()
-                                
-                                if let category = task.category {
-                                    Text(category.rawValue)
-                                        .font(.caption)
-                                        .padding(.horizontal, 8)
-                                        .padding(.vertical, 3)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 4)
-                                                .fill(categoryColor(for: category).opacity(0.15))
-                                        )
-                                        .foregroundColor(categoryColor(for: category))
-                                }
-                            }
-                        }
-                        .padding()
-                        .background(
-                            RoundedRectangle(cornerRadius: 16)
-                                .fill(Color(.systemBackground))
-                                .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
-                        )
+                        // Pass helper functions needed by the subview
+                        OverdueTaskRowView(task: task, categoryColor: self.categoryColor, formatDate: self.formatDate)
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
                 
                 if overdueIncompleteTasks.count > 3 {
                     NavigationLink(destination: TaskListView(initialFilter: .active)) {
-                        Text("查看全部\(overdueIncompleteTasks.count)个逾期任务")
+                        Text(String.localizedStringWithFormat(
+                            NSLocalizedString("查看全部%d个逾期任务", comment: "View all overdue tasks button"), 
+                            overdueIncompleteTasks.count
+                        ))
                             .font(.subheadline)
                             .foregroundColor(appSettings.accentColor.color)
                     }
@@ -676,6 +718,14 @@ struct HomeView: View {
             }
         }
     }
+
+    // Helper to format date for overdue tasks (kept for passing to subview)
+    private func formatDate(_ date: Date) -> String {
+         let formatter = DateFormatter()
+         formatter.dateStyle = .short
+         formatter.timeStyle = .none
+         return formatter.string(from: date)
+     }
 }
 
 struct HomeView_Previews: PreviewProvider {
@@ -758,11 +808,4 @@ struct AnimatedProgressBar: View {
             }
         }
     }
-}
-
-// 添加日期格式化辅助函数
-private func formatDate(_ date: Date) -> String {
-    let dateFormatter = DateFormatter()
-    dateFormatter.dateFormat = "MM月dd日"
-    return dateFormatter.string(from: date)
 } 

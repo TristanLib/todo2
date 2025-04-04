@@ -1,0 +1,18 @@
+/* 
+  Localizable.strings
+  TodoList
+
+  Created by TristanLee on 2025/4/4.
+  
+*/
+
+// Task Priorities
+"Low" = "低";
+"Medium" = "中";
+"High" = "高";
+
+// Default Task Categories
+"Work" = "工作";
+"Personal" = "个人";
+"Health" = "健康";
+"Important" = "重要";

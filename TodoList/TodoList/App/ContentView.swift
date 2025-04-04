@@ -21,14 +21,14 @@ struct ContentView: View {
             HomeView()
                 .tabItem {
                     Image(systemName: "house.fill")
-                    Text("主页")
+                    Text(NSLocalizedString("主页", comment: "Home tab title"))
                 }
                 .tag(0)
             
             TaskListView()
                 .tabItem {
                     Image(systemName: "list.bullet")
-                    Text("任务")
+                    Text(NSLocalizedString("任务", comment: "Tasks tab title"))
                 }
                 .tag(1)
             
@@ -36,7 +36,7 @@ struct ContentView: View {
                 .tabItem {
                     Image(systemName: "plus.circle.fill")
                         .environment(\.symbolVariants, .fill)
-                    Text("新建")
+                    Text(NSLocalizedString("新建", comment: "New task tab title"))
                 }
                 .tag(2)
                 .onChange(of: selectedTab) { oldValue, newValue in
@@ -51,14 +51,14 @@ struct ContentView: View {
             FocusView()
                 .tabItem {
                     Image(systemName: "timer")
-                    Text("专注")
+                    Text(NSLocalizedString("专注", comment: "Focus tab title"))
                 }
                 .tag(3)
             
             SettingsView()
                 .tabItem {
                     Image(systemName: "gear")
-                    Text("设置")
+                    Text(NSLocalizedString("设置", comment: "Settings tab title"))
                 }
                 .tag(4)
         }

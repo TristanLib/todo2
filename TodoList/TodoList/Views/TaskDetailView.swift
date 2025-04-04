@@ -12,7 +12,7 @@ struct TaskDetailView: View {
             VStack(alignment: .leading, spacing: 20) {
                 HStack {
                     if let category = task.category {
-                        Text(category.rawValue)
+                        Text(category.localizedString)
                             .font(.system(size: 14, weight: .medium))
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
@@ -21,11 +21,21 @@ struct TaskDetailView: View {
                                     .fill(categoryColor(for: category).opacity(0.15))
                             )
                             .foregroundColor(categoryColor(for: category))
+                    } else if let customCategory = task.customCategory {
+                        Text(customCategory.localizedName)
+                            .font(.system(size: 14, weight: .medium))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(CategoryManager.color(for: customCategory.colorName).opacity(0.15))
+                            )
+                            .foregroundColor(CategoryManager.color(for: customCategory.colorName))
                     }
                     
                     Spacer()
                     
-                    Text(task.priority.rawValue)
+                    Text(task.priority.localizedString)
                         .font(.system(size: 14, weight: .medium))
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
@@ -50,7 +60,7 @@ struct TaskDetailView: View {
                     HStack {
                         Image(systemName: "calendar")
                             .foregroundColor(appSettings.accentColor.color)
-                        Text("截止日期: \(formattedDate(dueDate))")
+                        Text(NSLocalizedString("截止日期: ", comment: "Due date label") + formattedDate(dueDate))
                             .foregroundColor(.secondary)
                     }
                 }
@@ -66,7 +76,9 @@ struct TaskDetailView: View {
                         HStack {
                             Image(systemName: task.isCompleted ? "checkmark.circle.fill" : "circle")
                                 .foregroundColor(task.isCompleted ? .green : appSettings.accentColor.color)
-                            Text(task.isCompleted ? "已完成" : "标记为完成")
+                            Text(task.isCompleted ? 
+                                NSLocalizedString("已完成", comment: "Completed status") : 
+                                NSLocalizedString("标记为完成", comment: "Mark as complete"))
                                 .fontWeight(.medium)
                         }
                         .frame(maxWidth: .infinity)
@@ -84,7 +96,7 @@ struct TaskDetailView: View {
                         HStack {
                             Image(systemName: "pencil")
                                 .foregroundColor(appSettings.accentColor.color)
-                            Text("编辑")
+                            Text(NSLocalizedString("编辑", comment: "Edit button"))
                                 .fontWeight(.medium)
                         }
                         .frame(maxWidth: .infinity)
@@ -99,7 +111,7 @@ struct TaskDetailView: View {
                 
                 if !task.subtasks.isEmpty {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("子任务")
+                        Text(NSLocalizedString("子任务", comment: "Subtasks section"))
                             .font(.headline)
                             .fontWeight(.bold)
                         
@@ -182,13 +194,19 @@ struct EditTaskView: View {
     
     @State private var title: String
     @State private var description: String
-    @State private var selectedCategory: TaskCategory?
-    @State private var selectedCustomCategory: CustomCategory?
+    @State private var selectedCategoryTag: CategorySelectionTag?
     @State private var selectedPriority: TaskPriority
     @State private var hasDueDate: Bool
     @State private var dueDate: Date
     @State private var subtasks: [Subtask] = []
     @State private var newSubtaskTitle: String = ""
+    
+    // Helper enum/struct to represent selection state unambiguously
+    enum CategorySelectionTag: Hashable {
+        case none
+        case preset(TaskCategory)
+        case custom(UUID)
+    }
     
     // 设置默认截止日期为当天晚上10点
     private static func defaultDueDate() -> Date {
@@ -215,8 +233,14 @@ struct EditTaskView: View {
         self.task = task
         _title = State(initialValue: task.title)
         _description = State(initialValue: task.description)
-        _selectedCategory = State(initialValue: task.category)
-        _selectedCustomCategory = State(initialValue: task.customCategory)
+        // Initialize the single state variable based on task's category
+        if let customCategory = task.customCategory {
+            _selectedCategoryTag = State(initialValue: .custom(customCategory.id))
+        } else if let presetCategory = task.category {
+            _selectedCategoryTag = State(initialValue: .preset(presetCategory))
+        } else {
+            _selectedCategoryTag = State(initialValue: .none)
+        }
         _selectedPriority = State(initialValue: task.priority)
         _hasDueDate = State(initialValue: task.dueDate != nil)
         _dueDate = State(initialValue: task.dueDate ?? EditTaskView.defaultDueDate())
@@ -312,10 +336,14 @@ struct EditTaskView: View {
                             Menu {
                                 // 无分类选项
                                 Button(action: {
-                                    selectedCategory = nil
-                                    selectedCustomCategory = nil
+                                    selectedCategoryTag = .none
                                 }) {
-                                    Text("无分类")
+                                    HStack {
+                                        Text("无分类")
+                                        if selectedCategoryTag == .none {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
                                 }
                                 
                                 Divider()
@@ -323,13 +351,11 @@ struct EditTaskView: View {
                                 // 预设分类
                                 ForEach(TaskCategory.allCases, id: \.self) { category in
                                     Button(action: {
-                                        selectedCategory = category
-                                        selectedCustomCategory = nil
+                                        selectedCategoryTag = .preset(category)
                                     }) {
                                         HStack {
-                                            Text(category.localizedName)
-                                            
-                                            if selectedCategory == category {
+                                            Text(category.localizedString)
+                                            if selectedCategoryTag == .preset(category) {
                                                 Image(systemName: "checkmark")
                                             }
                                         }
@@ -344,13 +370,11 @@ struct EditTaskView: View {
                                         // 排除与预设分类重复的自定义分类
                                         if !isDefaultCategory(category) {
                                             Button(action: {
-                                                selectedCustomCategory = category
-                                                selectedCategory = nil
+                                                selectedCategoryTag = .custom(category.id)
                                             }) {
                                                 HStack {
                                                     Text(category.name)
-                                                    
-                                                    if selectedCustomCategory?.id == category.id {
+                                                    if selectedCategoryTag == .custom(category.id) {
                                                         Image(systemName: "checkmark")
                                                     }
                                                 }
@@ -520,12 +544,32 @@ struct EditTaskView: View {
     }
     
     private func saveTask() {
+        var finalPresetCategory: TaskCategory? = nil
+        var finalCustomCategory: CustomCategory? = nil
+
+        switch selectedCategoryTag {
+        case nil: // Explicitly handle the nil case for the Optional
+            break // No category selected
+        case .some(.none): // Handle the .none case inside the Optional
+            break // No category selected
+        case .some(.preset(let category)):
+            finalPresetCategory = category
+            // Optionally find the corresponding CustomCategory object if needed for consistency
+            finalCustomCategory = categoryManager.categories.first { isPresetEquivalent($0, preset: category) }
+        case .some(.custom(let id)):
+            finalCustomCategory = categoryManager.categories.first { $0.id == id }
+            // Check if this custom category corresponds to a preset one
+            if let custom = finalCustomCategory, let preset = mapCustomToPreset(custom) {
+                 finalPresetCategory = preset
+             }
+        }
+
         let updatedTask = Task(
             id: task.id,
             title: title,
             description: description,
-            category: selectedCategory,
-            customCategory: selectedCustomCategory,
+            category: finalPresetCategory, // Use determined preset category
+            customCategory: finalCustomCategory, // Use determined custom category
             dueDate: hasDueDate ? dueDate : nil,
             priority: selectedPriority,
             isCompleted: task.isCompleted,
@@ -561,21 +605,34 @@ struct EditTaskView: View {
     
     // 获取当前选中的分类名称
     private func getCategoryName() -> String {
-        if let category = selectedCategory {
-            return category.localizedName
-        } else if let customCategory = selectedCustomCategory {
-            return customCategory.name
-        } else {
-            return "选择分类"
+        switch selectedCategoryTag {
+        case nil: // Explicitly handle the nil case
+            return NSLocalizedString("选择分类", comment: "Select category placeholder")
+        case .some(.none): // Handle the .none case inside the Optional
+            return NSLocalizedString("选择分类", comment: "Select category placeholder")
+        case .some(.preset(let category)):
+            return category.localizedString
+        case .some(.custom(let id)):
+            // Find the custom category name by ID
+            return categoryManager.categories.first { $0.id == id }?.name ?? NSLocalizedString("选择分类", comment: "Select category placeholder")
         }
     }
     
-    // 检查自定义分类是否与预设分类重复
+    // 检查自定义分类是否与预设分类名称对应（用于排除重复显示）
     private func isDefaultCategory(_ customCategory: CustomCategory) -> Bool {
-        return customCategory.name == "工作" || 
-               customCategory.name == "个人" || 
-               customCategory.name == "健康" || 
-               customCategory.name == "重要"
+        // Compare against the localized names of the presets
+        return TaskCategory.allCases.contains { $0.localizedString == customCategory.name }
+    }
+
+    // Helper to map a custom category back to a preset if its name matches
+    private func mapCustomToPreset(_ customCategory: CustomCategory) -> TaskCategory? {
+         return TaskCategory.allCases.first { $0.localizedString == customCategory.name }
+     }
+    
+    // Helper to check if a custom category is equivalent to a preset one
+    // (Might be needed if you store both separately but want them linked)
+    private func isPresetEquivalent(_ customCategory: CustomCategory, preset: TaskCategory) -> Bool {
+        return customCategory.name == preset.localizedString // Adjust logic if names don't guarantee equivalence
     }
 }
 

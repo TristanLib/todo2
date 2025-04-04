@@ -33,7 +33,7 @@ struct TaskListView: View {
                 }
             }
             .background(Color(.systemGroupedBackground))
-            .navigationTitle("任务列表")
+            .navigationTitle(NSLocalizedString("任务列表", comment: "Navigation title for task list"))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
@@ -45,9 +45,9 @@ struct TaskListView: View {
     
     private var filterTabBar: some View {
         HStack(spacing: 10) {
-            filterTab(title: "全部", filter: .all)
-            filterTab(title: "进行中", filter: .active)
-            filterTab(title: "已完成", filter: .completed)
+            filterTab(title: NSLocalizedString("全部", comment: "All tasks filter"), filter: .all)
+            filterTab(title: NSLocalizedString("进行中", comment: "Active tasks filter"), filter: .active)
+            filterTab(title: NSLocalizedString("已完成", comment: "Completed tasks filter"), filter: .completed)
         }
         .padding(.horizontal)
         .padding(.top, 10)
@@ -81,7 +81,7 @@ struct TaskListView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.gray)
             
-            TextField("搜索任务...", text: $searchText)
+            TextField(NSLocalizedString("搜索任务...", comment: "Search tasks placeholder"), text: $searchText)
                 .foregroundColor(.primary)
             
             if !searchText.isEmpty {
@@ -120,11 +120,13 @@ struct TaskListView: View {
     private var emptyStateMessage: String {
         switch selectedFilter {
         case .all:
-            return searchText.isEmpty ? "你的任务列表是空的" : "没有找到匹配的任务"
+            return searchText.isEmpty ? 
+                NSLocalizedString("你的任务列表是空的", comment: "Empty task list message") : 
+                NSLocalizedString("没有找到匹配的任务", comment: "No matching tasks message")
         case .active:
-            return "没有进行中的任务"
+            return NSLocalizedString("没有进行中的任务", comment: "No active tasks message")
         case .completed:
-            return "没有完成的任务"
+            return NSLocalizedString("没有完成的任务", comment: "No completed tasks message")
         }
     }
     
@@ -269,7 +271,7 @@ struct EnhancedTaskRow: View {
     }
     
     private func categoryTag(for category: TaskCategory) -> some View {
-        Text(category.localizedName)
+        Text(category.localizedString)
             .font(.caption)
             .fontWeight(.medium)
             .foregroundColor(.primary)

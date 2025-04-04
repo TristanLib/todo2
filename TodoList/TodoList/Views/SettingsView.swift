@@ -15,21 +15,21 @@ struct SettingsView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     // 标题
-                    Text("设置")
+                    Text(NSLocalizedString("设置", comment: "Settings title"))
                         .font(.largeTitle)
                         .fontWeight(.bold)
                         .padding(.horizontal)
                         .padding(.top, 8)
                     
                     // 外观设置
-                    settingsSection(title: "外观") {
+                    settingsSection(title: NSLocalizedString("外观", comment: "Appearance section title")) {
                         // 深色模式切换
                         settingsRow(
                             icon: "moon.fill",
                             iconBackground: Color.purple.opacity(0.2),
                             iconColor: .purple,
-                            title: "深色模式",
-                            subtitle: "启用深色主题",
+                            title: NSLocalizedString("深色模式", comment: "Dark mode setting"),
+                            subtitle: NSLocalizedString("启用深色主题", comment: "Enable dark theme"),
                             trailingView: {
                                 Toggle("", isOn: Binding(
                                     get: { appSettings.theme == .dark },
@@ -47,8 +47,8 @@ struct SettingsView: View {
                                 icon: "paintbrush.fill",
                                 iconBackground: Color.blue.opacity(0.2),
                                 iconColor: .blue,
-                                title: "应用颜色",
-                                subtitle: "自定义应用强调色",
+                                title: NSLocalizedString("应用颜色", comment: "App color setting"),
+                                subtitle: NSLocalizedString("自定义应用强调色", comment: "Customize app accent color"),
                                 trailingView: {
                                     HStack {
                                         Circle()
@@ -65,14 +65,14 @@ struct SettingsView: View {
                     }
                     
                     // 通知设置
-                    settingsSection(title: "通知") {
+                    settingsSection(title: NSLocalizedString("通知", comment: "Notifications section title")) {
                         // 任务提醒
                         settingsRow(
                             icon: "bell.fill",
                             iconBackground: Color.red.opacity(0.2),
                             iconColor: .red,
-                            title: "任务提醒",
-                            subtitle: "启用任务通知",
+                            title: NSLocalizedString("任务提醒", comment: "Task reminders setting"),
+                            subtitle: NSLocalizedString("启用任务通知", comment: "Enable task notifications"),
                             trailingView: {
                                 Toggle("", isOn: $appSettings.notificationSettings.enableNotifications)
                                     .labelsHidden()
@@ -85,11 +85,11 @@ struct SettingsView: View {
                                 icon: "clock.fill",
                                 iconBackground: Color.orange.opacity(0.2),
                                 iconColor: .orange,
-                                title: "提醒时间",
-                                subtitle: "设置默认提醒时间",
+                                title: NSLocalizedString("提醒时间", comment: "Reminder time setting"),
+                                subtitle: NSLocalizedString("设置默认提醒时间", comment: "Set default reminder time"),
                                 trailingView: {
                                     HStack {
-                                        Text("\(appSettings.notificationSettings.notifyHoursBeforeDueDate)小时前")
+                                        Text(String(format: NSLocalizedString("%d小时前", comment: "Hours before format"), appSettings.notificationSettings.notifyHoursBeforeDueDate))
                                             .font(.subheadline)
                                             .foregroundColor(.gray)
                                         Image(systemName: "chevron.right")
@@ -103,14 +103,14 @@ struct SettingsView: View {
                     }
                     
                     // 账户设置
-                    settingsSection(title: "账户") {
+                    settingsSection(title: NSLocalizedString("账户", comment: "Account section title")) {
                         // 个人资料
                         Button(action: { showProfileView = true }) {
                             settingsRow(
                                 icon: "person.fill",
                                 iconBackground: Color.green.opacity(0.2),
                                 iconColor: .green,
-                                title: "个人资料",
+                                title: NSLocalizedString("个人资料", comment: "Profile setting"),
                                 subtitle: "张三 • user@example.com",
                                 trailingView: {
                                     Image(systemName: "chevron.right")
@@ -127,8 +127,8 @@ struct SettingsView: View {
                                 icon: "gearshape.fill",
                                 iconBackground: Color.gray.opacity(0.2),
                                 iconColor: .gray,
-                                title: "偏好设置",
-                                subtitle: "应用语言、时间格式",
+                                title: NSLocalizedString("偏好设置", comment: "Preferences setting"),
+                                subtitle: NSLocalizedString("应用语言、时间格式", comment: "App language, time format"),
                                 trailingView: {
                                     Image(systemName: "chevron.right")
                                         .font(.system(size: 14, weight: .semibold))
@@ -140,15 +140,15 @@ struct SettingsView: View {
                     }
                     
                     // 数据管理
-                    settingsSection(title: "数据管理") {
+                    settingsSection(title: NSLocalizedString("数据管理", comment: "Data management section title")) {
                         // 备份与恢复
                         NavigationLink(destination: BackupListView()) {
                             settingsRow(
                                 icon: "arrow.clockwise.icloud",
                                 iconBackground: Color.blue.opacity(0.2),
                                 iconColor: .blue,
-                                title: "备份与恢复",
-                                subtitle: "管理您的数据备份",
+                                title: NSLocalizedString("备份与恢复", comment: "Backup and restore"),
+                                subtitle: NSLocalizedString("管理您的数据备份", comment: "Manage your data backups"),
                                 trailingView: {
                                     Image(systemName: "chevron.right")
                                         .font(.system(size: 14, weight: .semibold))
@@ -164,8 +164,8 @@ struct SettingsView: View {
                                 icon: "trash.fill",
                                 iconBackground: Color.red.opacity(0.2),
                                 iconColor: .red,
-                                title: "清除所有任务",
-                                subtitle: "删除所有待办事项数据",
+                                title: NSLocalizedString("清除所有任务", comment: "Clear all tasks"),
+                                subtitle: NSLocalizedString("删除所有待办事项数据", comment: "Delete all todo data"),
                                 trailingView: {
                                     Image(systemName: "chevron.right")
                                         .font(.system(size: 14, weight: .semibold))
@@ -182,7 +182,7 @@ struct SettingsView: View {
                             Spacer()
                             HStack {
                                 Image(systemName: "rectangle.portrait.and.arrow.right")
-                                Text("退出登录")
+                                Text(NSLocalizedString("退出登录", comment: "Log out button"))
                             }
                             .foregroundColor(.red)
                             .padding()
@@ -200,7 +200,7 @@ struct SettingsView: View {
                     // 版本信息
                     HStack {
                         Spacer()
-                        Text("版本 1.0.0")
+                        Text(String(format: NSLocalizedString("版本 %@", comment: "Version format"), "1.0.0"))
                             .font(.caption)
                             .foregroundColor(.gray)
                         Spacer()
@@ -213,12 +213,12 @@ struct SettingsView: View {
             .background(Color(.systemGroupedBackground))
             .alert(isPresented: $showClearConfirmation) {
                 Alert(
-                    title: Text("确认清除"),
-                    message: Text("这将删除所有任务数据，此操作无法撤销。"),
-                    primaryButton: .destructive(Text("删除")) {
+                    title: Text(NSLocalizedString("确认清除", comment: "Confirm clear alert title")),
+                    message: Text(NSLocalizedString("这将删除所有任务数据，此操作无法撤销。", comment: "Clear data warning message")),
+                    primaryButton: .destructive(Text(NSLocalizedString("删除", comment: "Delete button"))) {
                         taskStore.clearAllData {}
                     },
-                    secondaryButton: .cancel(Text("取消"))
+                    secondaryButton: .cancel(Text(NSLocalizedString("取消", comment: "Cancel button")))
                 )
             }
             .sheet(isPresented: $showAppColorPicker) {

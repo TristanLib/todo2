@@ -410,27 +410,27 @@ class FocusTimerManager: ObservableObject {
     func currentStateDisplayName() -> String {
         switch currentState {
         case .idle:
-            return "准备开始"
+            return NSLocalizedString("准备开始", comment: "Focus timer idle state")
         case .focusing:
-            return "专注中"
+            return NSLocalizedString("专注中", comment: "Focusing state")
         case .shortBreak:
-            return "短休息"
+            return NSLocalizedString("短休息", comment: "Short break state")
         case .longBreak:
-            return "长休息"
+            return NSLocalizedString("长休息", comment: "Long break state")
         case .paused:
             if let previousState = previousStateBeforePause {
                 switch previousState {
                 case .focusing:
-                    return "专注已暂停"
+                    return NSLocalizedString("专注已暂停", comment: "Focus paused state")
                 case .shortBreak:
-                    return "短休息已暂停"
+                    return NSLocalizedString("短休息已暂停", comment: "Short break paused state")
                 case .longBreak:
-                    return "长休息已暂停"
+                    return NSLocalizedString("长休息已暂停", comment: "Long break paused state")
                 default:
-                    return "已暂停"
+                    return NSLocalizedString("已暂停", comment: "Generic paused state")
                 }
             } else {
-                return "已暂停"
+                return NSLocalizedString("已暂停", comment: "Generic paused state")
             }
         }
     }

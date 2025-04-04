@@ -59,8 +59,8 @@ class NotificationManager {
             
             switch type {
             case .focusStart:
-                content.title = "专注开始"
-                content.body = "专注时间已开始，请集中注意力完成任务"
+                content.title = NSLocalizedString("专注开始", comment: "Focus start notification title")
+                content.body = NSLocalizedString("专注时间已开始，请集中注意力完成任务", comment: "Focus start notification body")
                 content.sound = .default
                 content.userInfo["type"] = "focusStart"
                 
@@ -72,8 +72,8 @@ class NotificationManager {
                 )
                 
             case .focusEnd:
-                content.title = "专注结束"
-                content.body = "🌸 专注时间已结束，可以休息一下了"
+                content.title = NSLocalizedString("专注结束", comment: "Focus end notification title")
+                content.body = NSLocalizedString("🌸 专注时间已结束，可以休息一下了", comment: "Focus end notification body")
                 content.sound = .default
                 content.userInfo["type"] = "focusEnd"
                 
@@ -85,8 +85,8 @@ class NotificationManager {
                 )
                 
             case .breakStart:
-                content.title = "休息开始"
-                content.body = "休息时间已开始，请放松一下"
+                content.title = NSLocalizedString("休息开始", comment: "Break start notification title")
+                content.body = NSLocalizedString("休息时间已开始，请放松一下", comment: "Break start notification body")
                 content.sound = .default
                 content.userInfo["type"] = "breakStart"
                 
@@ -98,8 +98,8 @@ class NotificationManager {
                 )
                 
             case .breakEnd:
-                content.title = "休息结束"
-                content.body = "休息时间已结束，准备开始下一轮专注"
+                content.title = NSLocalizedString("休息结束", comment: "Break end notification title")
+                content.body = NSLocalizedString("休息时间已结束，准备开始下一轮专注", comment: "Break end notification body")
                 content.sound = .default
                 content.userInfo["type"] = "breakEnd"
                 
@@ -111,8 +111,8 @@ class NotificationManager {
                 )
                 
             case .taskReminder(let taskId, let taskTitle):
-                content.title = "任务提醒"
-                content.body = "任务「\(taskTitle)」即将到期，请尽快完成"
+                content.title = NSLocalizedString("任务提醒", comment: "Task reminder notification title")
+                content.body = NSLocalizedString("任务「\(taskTitle)」即将到期，请尽快完成", comment: "Task reminder notification body")
                 content.sound = .default
                 content.userInfo["type"] = "taskReminder"
                 content.userInfo["taskId"] = taskId.uuidString

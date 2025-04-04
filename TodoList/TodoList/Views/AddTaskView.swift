@@ -44,13 +44,13 @@ struct AddTaskView: View {
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text("基本信息")) {
-                    TextField("任务名称", text: $title)
+                Section(header: Text(NSLocalizedString("基本信息", comment: "Basic info section header"))) {
+                    TextField(NSLocalizedString("任务名称", comment: "Task name field"), text: $title)
                     
                     // Use TextEditor directly for multi-line description
                     ZStack(alignment: .topLeading) {
                          if description.isEmpty {
-                             Text("任务详情（可选）")
+                             Text(NSLocalizedString("任务详情（可选）", comment: "Task description placeholder"))
                                  .foregroundColor(Color(.placeholderText))
                                  .padding(.top, 8)
                                  .padding(.leading, 5) // Adjust padding slightly
@@ -61,24 +61,24 @@ struct AddTaskView: View {
                 }
 
                 Section {
-                    Toggle("设置截止日期", isOn: $hasDueDate.animation())
+                    Toggle(NSLocalizedString("设置截止日期", comment: "Set due date toggle"), isOn: $hasDueDate.animation())
                     
                     if hasDueDate {
-                        DatePicker("日期", selection: $dueDate, displayedComponents: [.date])
-                        DatePicker("时间", selection: $dueDate, displayedComponents: [.hourAndMinute])
+                        DatePicker(NSLocalizedString("日期", comment: "Date picker label"), selection: $dueDate, displayedComponents: [.date])
+                        DatePicker(NSLocalizedString("时间", comment: "Time picker label"), selection: $dueDate, displayedComponents: [.hourAndMinute])
                     }
                 }
                 
-                Section(header: Text("优先级")) {
-                    Picker("优先级", selection: $selectedPriority) {
+                Section(header: Text(NSLocalizedString("优先级", comment: "Priority section header"))) {
+                    Picker(NSLocalizedString("优先级", comment: "Priority picker"), selection: $selectedPriority) {
                         ForEach(TaskPriority.allCases, id: \.self) { priority in
-                            Text(priorityLabel(for: priority)).tag(priority)
+                            Text(priority.localizedString).tag(priority)
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
                 }
 
-                Section(header: Text("分类")) {
+                Section(header: Text(NSLocalizedString("分类", comment: "Category section header"))) {
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             // Uncategorized option? Maybe add later if needed.
@@ -92,7 +92,7 @@ struct AddTaskView: View {
                             Button {
                                 showingAddCategorySheet = true
                             } label: {
-                                Label("新分类", systemImage: "plus.circle.fill")
+                                Label(NSLocalizedString("新分类", comment: "New category button"), systemImage: "plus.circle.fill")
                                     .font(.system(size: 14))
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
@@ -108,10 +108,10 @@ struct AddTaskView: View {
                 }
                 
                 // Subtasks Section (assuming simple string array for now)
-                Section(header: Text("子任务")) {
+                Section(header: Text(NSLocalizedString("子任务", comment: "Subtasks section header"))) {
                     ForEach($subtasks.indices, id: \.self) { index in
                          HStack {
-                            TextField("子任务 \\(index + 1)", text: $subtasks[index])
+                            TextField(NSLocalizedString("子任务", comment: "Subtask placeholder") + " \(index + 1)", text: $subtasks[index])
                             // Button to remove subtask? Maybe add later.
                          }
                     }
@@ -119,26 +119,26 @@ struct AddTaskView: View {
                     Button {
                          subtasks.append("") // Add a new empty subtask field
                     } label: {
-                         Label("添加子任务", systemImage: "plus")
+                         Label(NSLocalizedString("添加子任务", comment: "Add subtask button"), systemImage: "plus")
                     }
                     .foregroundColor(appSettings.accentColor.color)
                 }
 
                 // Estimate Time Section (Placeholder)
-                Section(header: Text("估计时间")) {
-                     Text("暂未开放")
+                Section(header: Text(NSLocalizedString("估计时间", comment: "Estimated time section header"))) {
+                     Text(NSLocalizedString("暂未开放", comment: "Feature not available yet"))
                          .foregroundColor(.secondary)
                 }
             }
-            .navigationTitle("新建任务")
+            .navigationTitle(NSLocalizedString("新建任务", comment: "New task navigation title"))
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarItems(
-                leading: Button("取消") {
+                leading: Button(NSLocalizedString("取消", comment: "Cancel button")) {
                     presentationMode.wrappedValue.dismiss()
                 }
                 .foregroundColor(appSettings.accentColor.color), // Apply accent color
                 
-                trailing: Button("保存") {
+                trailing: Button(NSLocalizedString("保存", comment: "Save button")) {
                     saveTask()
                 }
                 .disabled(title.isEmpty)
@@ -160,8 +160,8 @@ struct AddTaskView: View {
                             showingAddCategorySheet = false
                         }
                     )
-                    .navigationTitle("添加新分类")
-                    .navigationBarItems(leading: Button("取消") { showingAddCategorySheet = false }
+                    .navigationTitle(NSLocalizedString("添加新分类", comment: "Add new category title"))
+                    .navigationBarItems(leading: Button(NSLocalizedString("取消", comment: "Cancel button")) { showingAddCategorySheet = false }
                     .foregroundColor(appSettings.accentColor.color)) // Apply accent color
                  }
             }
@@ -180,7 +180,7 @@ struct AddTaskView: View {
              let isSelected = selectedCategory?.id == category.id
              let chipColor = CategoryManager.color(for: category.colorName)
              
-             Text(category.name)
+             Text(category.localizedName)
                  .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
                  .padding(.horizontal, 16)
                  .padding(.vertical, 6)
@@ -202,10 +202,10 @@ struct AddTaskView: View {
         var presetCategory: TaskCategory? = nil
         if let custom = selectedCategory {
             switch custom.name {
-                case TaskCategory.work.localizedName: presetCategory = .work
-                case TaskCategory.personal.localizedName: presetCategory = .personal
-                case TaskCategory.health.localizedName: presetCategory = .health
-                case TaskCategory.important.localizedName: presetCategory = .important
+                case TaskCategory.work.localizedString: presetCategory = .work
+                case TaskCategory.personal.localizedString: presetCategory = .personal
+                case TaskCategory.health.localizedString: presetCategory = .health
+                case TaskCategory.important.localizedString: presetCategory = .important
                 default: break
             }
         }
@@ -224,13 +224,9 @@ struct AddTaskView: View {
         presentationMode.wrappedValue.dismiss()
     }
     
-    // Helper to get priority label (ensure TaskPriority is CaseIterable)
+    // Helper to get priority label
     private func priorityLabel(for priority: TaskPriority) -> String {
-        switch priority {
-        case .low: return "低"
-        case .medium: return "中"
-        case .high: return "高"
-        }
+        return priority.localizedString
     }
 }
 

@@ -17,7 +17,10 @@ struct FocusView: View {
                         .minimumScaleFactor(0.8)
                         .lineLimit(1)
                     
-                    Text("已完成 \(focusTimer.completedFocusSessions) 个专注")
+                    Text(String.localizedStringWithFormat(
+                        NSLocalizedString("已完成 %d 个专注", comment: "Number of completed focus sessions"), 
+                        focusTimer.completedFocusSessions
+                    ))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                 }
@@ -128,7 +131,7 @@ struct FocusView: View {
                 
                 // 已完成的专注部分
                 VStack(alignment: .leading) {
-                    Text("已完成的专注：")
+                    Text(NSLocalizedString("已完成的专注：", comment: "Completed focus sessions title"))
                         .font(.headline)
                         .foregroundColor(.secondary)
                     
@@ -144,7 +147,7 @@ struct FocusView: View {
                         }
                         .frame(height: 50)
                     } else {
-                        Text("今天还没有完成专注。")
+                        Text(NSLocalizedString("今天还没有完成专注。", comment: "No focus sessions completed today"))
                             .foregroundColor(.secondary)
                             .padding(.vertical, 5)
                     }
@@ -156,7 +159,7 @@ struct FocusView: View {
                 NavigationLink(destination: FocusSettingsView()) {
                     HStack {
                         Image(systemName: "gear")
-                        Text("专注设置")
+                        Text(NSLocalizedString("专注设置", comment: "Focus Settings button"))
                     }
                     .foregroundColor(.secondary)
                     .padding()
@@ -166,18 +169,18 @@ struct FocusView: View {
                 .padding(.bottom)
             }
             .padding(.vertical)
-            .navigationTitle("专注")
+            .navigationTitle(NSLocalizedString("专注", comment: "Focus view navigation title"))
             .navigationBarTitleDisplayMode(.inline)
-            .alert("终止专注", isPresented: $showStopConfirmation) {
-                Button("取消", role: .cancel) { }
-                Button("终止", role: .destructive) {
+            .alert(NSLocalizedString("终止专注", comment: "Stop focus alert title"), isPresented: $showStopConfirmation) {
+                Button(NSLocalizedString("取消", comment: "Cancel button"), role: .cancel) { }
+                Button(NSLocalizedString("终止", comment: "Stop button"), role: .destructive) {
                     focusTimer.stopTimer()
                 }
             } message: {
-                let message = focusTimer.currentState == .focusing ? 
+                let messageKey = focusTimer.currentState == .focusing ? 
                     "提前终止专注将不会计入统计。确定要终止当前专注吗？" : 
                     "确定要终止当前休息吗？"
-                Text(message)
+                Text(NSLocalizedString(messageKey, comment: "Stop focus confirmation message"))
             }
         }
     }
@@ -208,76 +211,63 @@ struct FocusSettingsView: View {
     
     var body: some View {
         Form {
-            Section(header: Text("时间设置（分钟）")) {
+            Section(header: Text(NSLocalizedString("时间设置（分钟）", comment: "Time settings header (minutes)"))) {
                 VStack {
                     HStack {
-                        Text("专注时长")
+                        Text(NSLocalizedString("专注时长", comment: "Focus duration setting"))
                         Spacer()
-                        Text("\(Int(focusDuration))分钟")
+                        Text(String.localizedStringWithFormat(NSLocalizedString("%d分钟", comment: "Duration in minutes format"), Int(focusDuration)))
                     }
                     Slider(value: $focusDuration, in: 1...60, step: 1)
                 }
                 
                 VStack {
                     HStack {
-                        Text("短休息时长")
+                        Text(NSLocalizedString("短休息时长", comment: "Short break duration setting"))
                         Spacer()
-                        Text("\(Int(shortBreakDuration))分钟")
+                        Text(String.localizedStringWithFormat(NSLocalizedString("%d分钟", comment: "Duration in minutes format"), Int(shortBreakDuration)))
                     }
                     Slider(value: $shortBreakDuration, in: 1...30, step: 1)
                 }
                 
                 VStack {
                     HStack {
-                        Text("长休息时长")
+                        Text(NSLocalizedString("长休息时长", comment: "Long break duration setting"))
                         Spacer()
-                        Text("\(Int(longBreakDuration))分钟")
+                        Text(String.localizedStringWithFormat(NSLocalizedString("%d分钟", comment: "Duration in minutes format"), Int(longBreakDuration)))
                     }
                     Slider(value: $longBreakDuration, in: 1...45, step: 1)
                 }
                 
-                Stepper("长休息前专注次数: \(pomoBeforeBreak)", value: $pomoBeforeBreak, in: 1...10)
+                Stepper(String.localizedStringWithFormat(NSLocalizedString("长休息前专注次数: %d", comment: "Pomodoros before long break stepper"), pomoBeforeBreak), value: $pomoBeforeBreak, in: 1...10)
             }
             
-            Section(header: Text("通知与声音")) {
-                Toggle("启用音效", isOn: $enableSound)
-                Toggle("启用通知", isOn: $enableNotification)
+            Section(header: Text(NSLocalizedString("通知与声音", comment: "Notifications and sound header"))) {
+                Toggle(NSLocalizedString("启用音效", comment: "Enable sound effects toggle"), isOn: $enableSound)
+                Toggle(NSLocalizedString("启用通知", comment: "Enable notifications toggle"), isOn: $enableNotification)
             }
             
             Section {
-                Button("保存设置") {
+                Button(NSLocalizedString("保存设置", comment: "Save settings button")) {
                     saveSettings()
                     presentationMode.wrappedValue.dismiss()
                 }
-                .frame(maxWidth: .infinity)
-                .foregroundColor(.blue)
             }
         }
-        .navigationTitle("专注设置")
-        .onAppear {
-            DispatchQueue.main.async {
-                // 初始化设置
-                let settings = appSettings.focusSettings
-                focusDuration = settings.focusDuration
-                shortBreakDuration = settings.shortBreakDuration
-                longBreakDuration = settings.longBreakDuration
-                pomoBeforeBreak = settings.pomoBeforeBreak
-                enableSound = settings.enableSound
-                enableNotification = settings.enableNotification
-            }
-        }
+        .navigationTitle(NSLocalizedString("专注设置", comment: "Focus Settings navigation title"))
+        .navigationBarTitleDisplayMode(.inline)
     }
     
     private func saveSettings() {
-        var updatedSettings = appSettings.focusSettings
-        updatedSettings.focusDuration = focusDuration
-        updatedSettings.shortBreakDuration = shortBreakDuration
-        updatedSettings.longBreakDuration = longBreakDuration
-        updatedSettings.pomoBeforeBreak = pomoBeforeBreak
-        updatedSettings.enableSound = enableSound
-        updatedSettings.enableNotification = enableNotification
-        
-        appSettings.focusSettings = updatedSettings
-        focusTimer.updateSettings(from: updatedSettings)
+        let newSettings = FocusSettings(
+            focusDuration: focusDuration,
+            shortBreakDuration: shortBreakDuration,
+            longBreakDuration: longBreakDuration,
+            pomoBeforeBreak: pomoBeforeBreak,
+            enableSound: enableSound,
+            enableNotification: enableNotification
+        )
+        appSettings.focusSettings = newSettings
+        focusTimer.updateSettings(from: newSettings)
     }
 } 

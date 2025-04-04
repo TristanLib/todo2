@@ -1,0 +1,159 @@
+/* 
+  Localizable.strings
+  TodoList
+
+  Created by TristanLee on 2025/4/4.
+  
+*/
+
+// Task Priorities
+"Low" = "Low";
+"Medium" = "Medium";
+"High" = "High";
+
+// Default Task Categories
+"Work" = "Work";
+"Personal" = "Personal";
+"Health" = "Health";
+"Important" = "Important";
+
+// Task List View
+"任务列表" = "Tasks";
+"全部" = "All";
+"进行中" = "Active";
+"已完成" = "Completed";
+"搜索任务..." = "Search tasks...";
+"你的任务列表是空的" = "Your task list is empty";
+"没有找到匹配的任务" = "No matching tasks found";
+"没有进行中的任务" = "No active tasks";
+"没有完成的任务" = "No completed tasks";
+
+// Add Task View
+"基本信息" = "Basic Info";
+"任务名称" = "Task Name";
+"任务详情（可选）" = "Task Description (Optional)";
+"设置截止日期" = "Set Due Date";
+"日期" = "Date";
+"时间" = "Time";
+"优先级" = "Priority";
+"分类" = "Categories";
+"新分类" = "New Category";
+"子任务" = "Subtasks";
+"添加子任务" = "Add Subtask";
+"估计时间" = "Estimated Time";
+"暂未开放" = "Coming Soon";
+"新建任务" = "New Task";
+"取消" = "Cancel";
+"保存" = "Save";
+"添加新分类" = "Add New Category";
+
+// Task Detail View
+"截止日期: " = "Due date: ";
+"标记为完成" = "Mark as Complete";
+"已完成" = "Completed";
+"编辑" = "Edit";
+
+// Home View
+"主页" = "Home";
+"搜索" = "Search";
+"排序" = "Sort";
+"任务概览" = "Task Overview";
+"今日进行中" = "In Progress Today";
+"全部未完成" = "All Incomplete";
+"已逾期" = "Overdue";
+"今日进度" = "Today's Progress";
+
+// Home View Additions
+"早上好" = "Good morning";
+"下午好" = "Good afternoon";
+"晚上好" = "Good evening";
+"今日待办" = "Today's Todos";
+"查看全部" = "View All";
+"今日无任务" = "No Tasks Today";
+"你的今日安排目前是空闲的" = "Your schedule is clear for today";
+"已逾期任务" = "Overdue Tasks";
+"%d个未完成" = "%d incomplete";
+"没有逾期未完成的任务" = "No overdue tasks";
+"查看全部%d个逾期任务" = "View all %d overdue tasks";
+
+// Settings View
+"设置" = "Settings";
+"外观" = "Appearance";
+"深色模式" = "Dark Mode";
+"启用深色主题" = "Enable Dark Theme";
+"应用颜色" = "App Color";
+"自定义应用强调色" = "Customize Accent Color";
+"通知" = "Notifications";
+"任务提醒" = "Task Reminders";
+"启用任务通知" = "Enable Task Notifications";
+"提醒时间" = "Reminder Time";
+"设置默认提醒时间" = "Set Default Reminder Time";
+"%d小时前" = "%d hours before";
+"账户" = "Account";
+"个人资料" = "Profile";
+"偏好设置" = "Preferences";
+"应用语言、时间格式" = "App Language, Time Format";
+"数据管理" = "Data Management";
+"备份与恢复" = "Backup & Restore";
+"管理您的数据备份" = "Manage Your Data Backups";
+"清除所有任务" = "Clear All Tasks";
+"删除所有待办事项数据" = "Delete All Todo Data";
+"退出登录" = "Log Out";
+"版本 %@" = "Version %@";
+"确认清除" = "Confirm Clear";
+"这将删除所有任务数据，此操作无法撤销。" = "This will delete all task data. This action cannot be undone.";
+"删除" = "Delete";
+
+// ContentView Tab Bar
+"任务" = "Tasks";
+"新建" = "New";
+"专注" = "Focus";
+
+// EditTaskView Additions (if any were missed - double checking)
+"选择分类" = "Select Category";
+"无分类" = "No Category";
+
+// Focus View
+"已完成 %d 个专注" = "%d focus sessions completed";
+"已完成的专注：" = "Completed Sessions:";
+"今天还没有完成专注。" = "No focus sessions completed today.";
+"专注设置" = "Focus Settings";
+"专注" = "Focus"; // For Navigation Title
+"终止专注" = "Stop Focus";
+"终止" = "Stop";
+"提前终止专注将不会计入统计。确定要终止当前专注吗？" = "Stopping early won't count towards stats. Stop the current focus session?";
+"确定要终止当前休息吗？" = "Stop the current break?";
+
+// Focus Settings View
+"时间设置（分钟）" = "Time Settings (Minutes)";
+"专注时长" = "Focus Duration";
+"%d分钟" = "%d min";
+"短休息时长" = "Short Break";
+"长休息时长" = "Long Break";
+"长休息前专注次数: %d" = "Sessions before long break: %d";
+"通知与声音" = "Notifications & Sound";
+"启用音效" = "Enable Sound Effects";
+"启用通知" = "Enable Notifications";
+"保存设置" = "Save Settings";
+
+/* FocusTimerManager states */
+"准备开始" = "Ready to Start";
+"专注中" = "Focusing";
+"短休息" = "Short Break";
+"长休息" = "Long Break";
+"专注已暂停" = "Focus Paused";
+"短休息已暂停" = "Short Break Paused";
+"长休息已暂停" = "Long Break Paused";
+"已暂停" = "Paused";
+
+/* Notification titles and bodies */
+"专注开始" = "Focus Started";
+"专注时间已开始，请集中注意力完成任务" = "Focus session has started. Please concentrate on your tasks.";
+"专注结束" = "Focus Completed";
+"🌸 专注时间已结束，可以休息一下了" = "🌸 Focus session has ended. Time to take a break.";
+"休息开始" = "Break Started";
+"休息时间已开始，请放松一下" = "Break time has started. Time to relax.";
+"休息结束" = "Break Ended";
+"休息时间已结束，准备开始下一轮专注" = "Break time has ended. Get ready for your next focus session.";
+"任务提醒" = "Task Reminder";
+"任务「%@」即将到期，请尽快完成" = "Task \"%@\" is due soon. Please complete it as soon as possible.";
