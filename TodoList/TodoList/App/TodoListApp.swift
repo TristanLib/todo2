@@ -15,6 +15,7 @@ struct TodoListApp: App {
     @StateObject private var taskStore = TaskStore()
     @StateObject private var appSettings = AppSettings()
     @StateObject private var categoryManager = CategoryManager()
+    private let coreDataManager = CoreDataManager.shared
     
     // 系统管理器
     private let notificationManager = NotificationManager.shared
@@ -46,6 +47,12 @@ struct TodoListApp: App {
                 .environmentObject(categoryManager)
                 .preferredColorScheme(colorScheme)
                 .accentColor(appSettings.accentColor.color)
+                .onAppear {
+                    // 在这里注入 CategoryManager 到 CoreDataManager
+                    coreDataManager.setup(categoryManager: categoryManager)
+                    // 确保 TaskStore 也加载了任务（它内部会使用 CoreDataManager）
+                    taskStore.loadTasks()
+                }
                 .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                     // 应用程序回到前台时，刷新任务状态
                     taskStore.loadTasks()

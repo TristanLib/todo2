@@ -30,8 +30,18 @@ class PersistenceController {
     
     init(inMemory: Bool = false) {
         container = NSPersistentContainer(name: "TodoList")
+
+        // 获取默认的存储描述
+        guard let description = container.persistentStoreDescriptions.first else {
+            fatalError("###\(#function): Failed to retrieve the persistent store description.")
+        }
+        // 开启自动轻量级迁移
+        description.shouldInferMappingModelAutomatically = true
+        description.shouldMigrateStoreAutomatically = true
+        
+        // 原有的内存存储逻辑 (现在操作的是已经配置好的 description)
         if inMemory {
-            container.persistentStoreDescriptions.first!.url = URL(fileURLWithPath: "/dev/null")
+            description.url = URL(fileURLWithPath: "/dev/null")
         }
         
         // 使用异步加载避免阻塞主线程

@@ -5,8 +5,15 @@ import SwiftUI
 class CoreDataManager {
     static let shared = CoreDataManager()
     private let persistenceController = PersistenceController.shared
+    private var categoryManager: CategoryManager?
     
     private init() {}
+    
+    func setup(categoryManager: CategoryManager) {
+        guard self.categoryManager == nil else { return }
+        self.categoryManager = categoryManager
+        print("CoreDataManager: CategoryManager 已注入")
+    }
     
     var viewContext: NSManagedObjectContext {
         return persistenceController.container.viewContext
@@ -35,6 +42,7 @@ class CoreDataManager {
         cdTask.priority = task.priority.rawValue
         cdTask.isCompleted = task.isCompleted
         cdTask.createdAt = task.createdAt
+        cdTask.customCategoryID = task.customCategory?.id
         
         // 删除所有现有的子任务
         if let existingSubtasks = cdTask.subtasks as? Set<CDSubtask> {
@@ -156,11 +164,21 @@ class CoreDataManager {
             title: cdTask.title ?? "",
             description: cdTask.descriptionText ?? "",
             category: category,
+            customCategory: findCustomCategory(by: cdTask.customCategoryID),
             dueDate: cdTask.dueDate,
             priority: priority,
             isCompleted: cdTask.isCompleted,
             subtasks: subtasks,
             createdAt: cdTask.createdAt ?? Date()
         )
+    }
+    
+    private func findCustomCategory(by id: UUID?) -> CustomCategory? {
+        guard let categoryId = id else { return nil }
+        let category = categoryManager?.categories.first { $0.id == categoryId }
+        if category == nil && id != nil {
+            print("CoreDataManager WARN: 未找到 ID 为 \(categoryId) 的 CustomCategory")
+        }
+        return category
     }
 } 
