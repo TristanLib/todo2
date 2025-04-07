@@ -187,7 +187,7 @@ struct EnhancedTaskRow: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .top) {
+            HStack(alignment: .center) {
                 Button(action: {
                     withAnimation {
                         taskStore.toggleTaskCompletion(task)
@@ -198,7 +198,6 @@ struct EnhancedTaskRow: View {
                         .foregroundColor(task.isCompleted ? .green : .gray)
                 }
                 .buttonStyle(PlainButtonStyle())
-                .padding(.top, 2)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(task.title)
@@ -213,10 +212,12 @@ struct EnhancedTaskRow: View {
                             .lineLimit(2)
                     }
                 }
+                .padding(.vertical, 2)
                 
                 Spacer()
                 
                 priorityIcon(for: task.priority)
+                    .padding(.trailing, 4)
             }
             
             HStack {
@@ -259,14 +260,17 @@ struct EnhancedTaskRow: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .foregroundColor(.red)
                 .font(.system(size: 16))
+                .frame(width: 20, height: 20)
         case .medium:
             Image(systemName: "exclamationmark.circle.fill")
                 .foregroundColor(.orange)
                 .font(.system(size: 16))
+                .frame(width: 20, height: 20)
         case .low:
             Image(systemName: "info.circle.fill")
                 .foregroundColor(.blue)
                 .font(.system(size: 16))
+                .frame(width: 20, height: 20)
         }
     }
     
