@@ -57,12 +57,17 @@ class NotificationManager {
             let content = UNMutableNotificationContent()
             var request: UNNotificationRequest
             
+            // 设置通知的图标和徽章
+            content.badge = 1
+            
             switch type {
             case .focusStart:
                 content.title = NSLocalizedString("专注开始", comment: "Focus start notification title")
                 content.body = NSLocalizedString("专注时间已开始，请集中注意力完成任务", comment: "Focus start notification body")
                 content.sound = .default
                 content.userInfo["type"] = "focusStart"
+                // 添加线程标识符，帮助系统正确显示图标
+                content.threadIdentifier = "focus_session"
                 
                 let trigger = timeInterval.map { UNTimeIntervalNotificationTrigger(timeInterval: $0, repeats: false) }
                 request = UNNotificationRequest(

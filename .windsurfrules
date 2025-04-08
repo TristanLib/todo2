@@ -1,0 +1,92 @@
+# TodoList iOS App Development Guidelines
+
+## Project Overview
+This is an iOS todo list application built with SwiftUI. The app allows users to create, manage, and organize tasks with features like categories, priorities, due dates, and more.
+
+## Development Requirements
+
+### Code Style and Organization
+- Use Swift's latest features and best practices
+- Follow Apple's Human Interface Guidelines for UI/UX design
+- Maintain consistent naming conventions (camelCase for variables, PascalCase for types)
+- Use clear, descriptive variable and function names in English
+- Add comments in Chinese for better understanding by the Chinese-speaking development team
+- Organize code with MARK: comments to separate different functional sections
+
+### UI Requirements
+- Ensure all UI elements are properly aligned (e.g., radio buttons, titles, and icons should be top-aligned)
+- Maintain consistent spacing and padding throughout the app
+- Support both light and dark mode
+- Implement responsive layouts that work on all iOS device sizes
+- Use system SF Symbols for icons when possible for consistency
+
+### Localization
+- Support both English and Chinese (Simplified) languages
+- Use NSLocalizedString for all user-facing text
+- Maintain separate Localizable.strings files for each supported language
+
+### Data Management
+- Use CoreData for persistent storage
+- Implement proper error handling for data operations
+- Ensure data consistency across the app
+- Use appropriate data models and relationships
+
+### Performance
+- Optimize UI rendering with LazyVStack and other performance-focused components
+- Minimize unnecessary view updates
+- Use async/await for background operations when appropriate
+- Implement efficient search and filtering algorithms
+
+### Testing
+- Write unit tests for core functionality
+- Test on multiple device sizes and iOS versions
+- Verify localization works correctly in all supported languages
+- Test edge cases for task management (e.g., many tasks, long task names)
+
+### Accessibility
+- Support VoiceOver for visually impaired users
+- Ensure proper contrast ratios for text and background colors
+- Implement appropriate text scaling for Dynamic Type
+- Add meaningful accessibility labels to UI elements
+
+## Feature Requirements
+
+### Task Management
+- Create, edit, delete, and complete tasks
+- Support task priorities (high, medium, low)
+- Allow setting due dates and times
+- Support task categories and custom categories
+- Enable subtasks for complex items
+
+### UI Features
+- Implement filtering by status (all, active, completed)
+- Support searching tasks by title and description
+- Allow sorting by date, priority, and other attributes
+- Show visual indicators for task priority and status
+
+### Additional Features
+- Focus timer for productivity
+- Notification support for task reminders
+- Settings page for app customization
+- Support for different accent colors
+
+## Git Workflow
+- Use feature branches for new development
+- Write clear, descriptive commit messages
+- Review code before merging to main branch
+- Tag releases with semantic versioning
+
+## Deployment
+- Target iOS 15.0 and above
+- Optimize app size and performance
+- Prepare App Store assets and descriptions in both English and Chinese
+- Follow App Store guidelines for submission
+
+## Maintenance
+- Regularly update dependencies
+- Address user feedback and bug reports promptly
+- Document major architectural decisions
+- Keep the codebase clean and maintainable
+
+## Comunication
+- Use Chinese

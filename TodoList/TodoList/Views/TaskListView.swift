@@ -248,7 +248,7 @@ struct EnhancedTaskRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             // 顶部区域：复选框、标题、优先级
-            HStack(alignment: .center) {
+            HStack(alignment: .top) {
                 Button(action: {
                     withAnimation {
                         taskStore.toggleTaskCompletion(task)
@@ -259,6 +259,7 @@ struct EnhancedTaskRow: View {
                         .foregroundColor(task.isCompleted ? .green : .gray)
                 }
                 .buttonStyle(PlainButtonStyle())
+                .padding(.top, 2) // 轻微调整复选框位置
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(task.title)
