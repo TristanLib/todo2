@@ -181,8 +181,12 @@ struct HomeView: View {
         }
     }
     
+    @State private var showEmptyTaskAlert = false
+    @State private var emptyAlertTitle = ""
+    @State private var emptyAlertMessage = ""
+    
     private func progressCard(title: String, count: Int, icon: String, color: Color) -> some View {
-        HStack(alignment: .center) {
+        let cardContent = HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.subheadline)
@@ -208,6 +212,57 @@ struct HomeView: View {
                 .fill(Color(.systemBackground))
                 .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
         )
+        
+        return Group {
+            if count == 0 {
+                cardContent
+                    .onTapGesture {
+                        if title == NSLocalizedString("今日进行中", comment: "Today in progress card") {
+                            emptyAlertTitle = NSLocalizedString("今日无进行中任务", comment: "No in-progress tasks today")
+                            emptyAlertMessage = NSLocalizedString("今天没有需要处理的任务", comment: "No tasks to handle today")
+                        } else if title == NSLocalizedString("全部未完成", comment: "All incomplete card") {
+                            emptyAlertTitle = NSLocalizedString("没有未完成任务", comment: "No incomplete tasks")
+                            emptyAlertMessage = NSLocalizedString("你已完成所有任务", comment: "You have completed all tasks")
+                        } else if title == NSLocalizedString("已逾期", comment: "Overdue card") {
+                            emptyAlertTitle = NSLocalizedString("没有逾期任务", comment: "No overdue tasks")
+                            emptyAlertMessage = NSLocalizedString("你没有逾期的任务", comment: "You don't have any overdue tasks")
+                        } else if title == NSLocalizedString("已完成", comment: "Completed card") {
+                            emptyAlertTitle = NSLocalizedString("没有已完成任务", comment: "No completed tasks")
+                            emptyAlertMessage = NSLocalizedString("你还没有完成任何任务", comment: "You haven't completed any tasks yet")
+                        }
+                        showEmptyTaskAlert = true
+                    }
+                    .alert(isPresented: $showEmptyTaskAlert) {
+                        Alert(
+                            title: Text(emptyAlertTitle),
+                            message: Text(emptyAlertMessage),
+                            dismissButton: .default(Text(NSLocalizedString("确定", comment: "OK")))
+                        )
+                    }
+            } else if title == NSLocalizedString("今日进行中", comment: "Today in progress card") {
+                NavigationLink(destination: TaskListView(showTodayOnly: true)) {
+                    cardContent
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else if title == NSLocalizedString("全部未完成", comment: "All incomplete card") {
+                NavigationLink(destination: TaskListView(showAllIncomplete: true)) {
+                    cardContent
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else if title == NSLocalizedString("已逾期", comment: "Overdue card") {
+                NavigationLink(destination: TaskListView(showOverdueOnly: true)) {
+                    cardContent
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else if title == NSLocalizedString("已完成", comment: "Completed card") {
+                NavigationLink(destination: TaskListView(showCompletedOnly: true)) {
+                    cardContent
+                }
+                .buttonStyle(PlainButtonStyle())
+            } else {
+                cardContent
+            }
+        }
     }
     
     private var categorySection: some View {

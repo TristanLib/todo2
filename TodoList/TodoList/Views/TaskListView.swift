@@ -7,12 +7,22 @@ struct TaskListView: View {
     @State private var selectedFilter: TaskFilter
     @State private var searchText = ""
     
+    // Additional filter parameters
+    var showTodayOnly: Bool = false
+    var showOverdueOnly: Bool = false
+    var showAllIncomplete: Bool = false
+    var showCompletedOnly: Bool = false
+    
     enum TaskFilter {
         case all, active, completed
     }
     
-    init(initialFilter: TaskFilter = .all) {
+    init(initialFilter: TaskFilter = .all, showTodayOnly: Bool = false, showOverdueOnly: Bool = false, showAllIncomplete: Bool = false, showCompletedOnly: Bool = false) {
         _selectedFilter = State(initialValue: initialFilter)
+        self.showTodayOnly = showTodayOnly
+        self.showOverdueOnly = showOverdueOnly
+        self.showAllIncomplete = showAllIncomplete
+        self.showCompletedOnly = showCompletedOnly
     }
     
     var body: some View {
@@ -118,6 +128,16 @@ struct TaskListView: View {
     }
     
     private var emptyStateMessage: String {
+        if showTodayOnly {
+            return NSLocalizedString("今日没有任务", comment: "No tasks today message")
+        } else if showOverdueOnly {
+            return NSLocalizedString("没有逾期任务", comment: "No overdue tasks message")
+        } else if showAllIncomplete {
+            return NSLocalizedString("没有未完成的任务", comment: "No incomplete tasks message")
+        } else if showCompletedOnly {
+            return NSLocalizedString("没有已完成的任务", comment: "No completed tasks message")
+        }
+        
         switch selectedFilter {
         case .all:
             return searchText.isEmpty ? 
@@ -148,13 +168,33 @@ struct TaskListView: View {
     private var filteredTasks: [Task] {
         var tasks = taskStore.tasks
         
-        // 应用过滤器
-        switch selectedFilter {
-        case .all: break
-        case .active:
+        // 应用特殊过滤器
+        if showTodayOnly {
+            tasks = taskStore.getTasksDueToday()
+        } else if showOverdueOnly {
+            let calendar = Calendar.current
+            let today = calendar.startOfDay(for: Date())
+            
+            tasks = tasks.filter { task in
+                if let dueDate = task.dueDate {
+                    let dueDay = calendar.startOfDay(for: dueDate)
+                    return dueDay < today && !task.isCompleted
+                }
+                return false
+            }
+        } else if showAllIncomplete {
             tasks = tasks.filter { !$0.isCompleted }
-        case .completed:
+        } else if showCompletedOnly {
             tasks = tasks.filter { $0.isCompleted }
+        } else {
+            // 应用标准过滤器
+            switch selectedFilter {
+            case .all: break
+            case .active:
+                tasks = tasks.filter { !$0.isCompleted }
+            case .completed:
+                tasks = tasks.filter { $0.isCompleted }
+            }
         }
         
         // 应用搜索
