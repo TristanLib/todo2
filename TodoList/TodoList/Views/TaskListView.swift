@@ -35,6 +35,7 @@ struct TaskListView: View {
                 searchBar
                     .padding(.horizontal)
                     .padding(.top, 8)
+                    .padding(.bottom, 4)
                 
                 if filteredTasks.isEmpty {
                     emptyStateView
@@ -46,8 +47,30 @@ struct TaskListView: View {
             .navigationTitle(NSLocalizedString("任务列表", comment: "Navigation title for task list"))
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    EditButton()
-                        .foregroundColor(appSettings.accentColor.color)
+                    Menu {
+                        Button(action: {
+                            // 排序操作
+                        }) {
+                            Label(NSLocalizedString("按日期排序", comment: "Sort by date"), systemImage: "calendar")
+                        }
+                        
+                        Button(action: {
+                            // 排序操作
+                        }) {
+                            Label(NSLocalizedString("按优先级排序", comment: "Sort by priority"), systemImage: "exclamationmark.triangle")
+                        }
+                        
+                        Divider()
+                        
+                        Button(action: {
+                            // 显示已完成任务
+                        }) {
+                            Label(NSLocalizedString("显示已完成", comment: "Show completed"), systemImage: "eye")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .foregroundColor(appSettings.accentColor.color)
+                    }
                 }
             }
         }
@@ -151,17 +174,18 @@ struct TaskListView: View {
     }
     
     private var taskList: some View {
-        List {
-            ForEach(filteredTasks) { task in
-                NavigationLink(destination: TaskDetailView(task: task)) {
-                    EnhancedTaskRow(task: task)
+        ScrollView {
+            LazyVStack(spacing: 12) {
+                ForEach(filteredTasks) { task in
+                    NavigationLink(destination: TaskDetailView(task: task)) {
+                        EnhancedTaskRow(task: task)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 }
-                .listRowSeparator(.hidden)
             }
-            .onDelete(perform: deleteTask)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
         }
-        .listStyle(PlainListStyle())
-        .padding(.horizontal)
         .background(Color(.systemGroupedBackground))
     }
     
@@ -208,15 +232,11 @@ struct TaskListView: View {
         return tasks
     }
     
-    private func deleteTask(at offsets: IndexSet) {
-        print("TaskListView: 开始删除任务，索引: \(offsets)")
-        DispatchQueue.main.async {
-            for index in offsets {
-                let task = self.filteredTasks[index]
-                print("TaskListView: 删除任务 - ID: \(task.id), 标题: \(task.title)")
-                self.taskStore.deleteTask(task)
-            }
-        }
+    // 由于我们改用了ScrollView+LazyVStack，需要添加一个单独的删除方法
+    private func deleteTask(_ task: Task) {
+        // 使用标准中文标点符号
+        print("TaskListView：删除任务 - ID：\(task.id)，标题：\(task.title)")
+        taskStore.deleteTask(task)
     }
 }
 
@@ -227,6 +247,7 @@ struct EnhancedTaskRow: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            // 顶部区域：复选框、标题、优先级
             HStack(alignment: .center) {
                 Button(action: {
                     withAnimation {
@@ -245,12 +266,12 @@ struct EnhancedTaskRow: View {
                         .foregroundColor(task.isCompleted ? .gray : .primary)
                         .strikethrough(task.isCompleted)
                     
-                    if !task.description.isEmpty {
-                        Text(task.description)
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                            .lineLimit(2)
-                    }
+                    // 始终显示描述区域，如果没有描述则显示占位符
+                    Text(task.description.isEmpty ? " " : task.description)
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+                        .frame(height: 18) // 固定高度
                 }
                 .padding(.vertical, 2)
                 
@@ -260,24 +281,44 @@ struct EnhancedTaskRow: View {
                     .padding(.trailing, 4)
             }
             
-            HStack {
-                if let dueDate = task.dueDate {
-                    Label(
-                        formattedDate(dueDate),
-                        systemImage: "calendar"
-                    )
-                    .font(.caption)
-                    .foregroundColor(isPastDue(dueDate) && !task.isCompleted ? .red : .secondary)
+            // 底部区域：日期、分类、子任务
+            HStack(spacing: 8) {
+                // 日期区域 - 始终显示
+                HStack(spacing: 4) {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 12))
+                    
+                    if let dueDate = task.dueDate {
+                        Text(formattedDate(dueDate))
+                            .font(.caption)
+                            .foregroundColor(isPastDue(dueDate) && !task.isCompleted ? .red : .secondary)
+                    } else {
+                        Text(NSLocalizedString("无截止日期", comment: "No due date"))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .opacity(0.7)
+                    }
                 }
+                .frame(minWidth: 80, alignment: .leading)
                 
                 Spacer()
                 
+                // 分类标签 - 始终显示
                 if let category = task.category {
                     categoryTag(for: category)
                 } else if let customCategory = task.customCategory {
                     categoryTag(customCategory: customCategory)
+                } else {
+                    Text(NSLocalizedString("无分类", comment: "No category"))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(Color(.systemGray6).opacity(0.5))
+                        .cornerRadius(4)
                 }
                 
+                // 子任务计数
                 if !task.subtasks.isEmpty {
                     Label("\(completedSubtasks(task))/\(task.subtasks.count)", systemImage: "list.bullet")
                         .font(.caption)
@@ -289,6 +330,13 @@ struct EnhancedTaskRow: View {
                 }
             }
         }
+        .padding(.vertical, 6) // 统一垂直内边距
+        .padding(.horizontal, 4) // 统一水平内边距
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+        )
         .contentShape(Rectangle())
         .transition(.opacity)
     }
