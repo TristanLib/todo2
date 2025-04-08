@@ -1,6 +1,7 @@
 import Foundation
 import Combine
 import UIKit
+import UserNotifications
 
 // 计时器状态
 enum FocusTimerState: String {
@@ -37,10 +38,16 @@ class FocusTimerManager: ObservableObject {
     
     private var notificationManager = NotificationManager.shared
     private var soundManager = SoundManager.shared
+    private var taskStore: TaskStore?
     
     private init() {
         // 添加应用生命周期的观察者
         setupAppLifecycleObservers()
+        
+        // 延迟获取TaskStore实例，避免循环引用
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
+            self?.taskStore = TaskStore.shared
+        }
     }
     
     // 设置应用生命周期观察者
@@ -272,6 +279,14 @@ class FocusTimerManager: ObservableObject {
         timeRemaining = focusDuration
         progress = 0
         backgroundTime = nil
+        
+        // 清除应用图标标记
+        notificationManager.clearApplicationBadge()
+        
+        // 恢复显示未完成任务数量
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            self?.taskStore?.updateApplicationBadge()
+        }
     }
     
     // 更新计时器
@@ -317,6 +332,14 @@ class FocusTimerManager: ObservableObject {
             // 发送通知
             notificationManager.scheduleNotification(for: .focusEnd)
             
+            // 清除应用图标标记
+            notificationManager.clearApplicationBadge()
+            
+            // 恢复显示未完成任务数量
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.taskStore?.updateApplicationBadge()
+            }
+            
             // 决定下一个状态是短休息还是长休息
             if completedFocusSessions % sessionsBeforeLongBreak == 0 {
                 startTimer(state: .longBreak)
@@ -330,6 +353,14 @@ class FocusTimerManager: ObservableObject {
             
             // 发送通知
             notificationManager.scheduleNotification(for: .breakEnd)
+            
+            // 清除应用图标标记
+            notificationManager.clearApplicationBadge()
+            
+            // 恢复显示未完成任务数量
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.taskStore?.updateApplicationBadge()
+            }
             
             // 休息结束后回到空闲状态
             stopTimer()

@@ -1,8 +1,12 @@
 import Foundation
 import SwiftUI
 import CoreData
+import UserNotifications
 
 class TaskStore: ObservableObject {
+    // 单例实例
+    static let shared = TaskStore()
+    
     @Published var tasks: [Task] = []
     private let coreDataManager = CoreDataManager.shared
     
@@ -44,12 +48,14 @@ class TaskStore: ObservableObject {
     func addTask(_ task: Task) {
         _ = coreDataManager.addTask(task: task)
         loadTasks()
+        updateApplicationBadge()
     }
     
     func updateTask(_ task: Task) {
         if let cdTask = coreDataManager.getTask(byID: task.id) {
             coreDataManager.updateTask(cdTask, with: task)
             loadTasks()
+            updateApplicationBadge()
         }
     }
     
@@ -61,6 +67,7 @@ class TaskStore: ObservableObject {
             print("Core Data 任务已删除")
             loadTasks()
             print("任务列表已重新加载，当前任务数量: \(tasks.count)")
+            updateApplicationBadge()
         } else {
             print("未找到对应的 Core Data 任务: \(task.id)")
         }
@@ -72,6 +79,7 @@ class TaskStore: ObservableObject {
             coreDataManager.deleteTask(task)
         }
         loadTasks()
+        updateApplicationBadge()
     }
     
     func toggleTaskCompletion(_ task: Task) {
@@ -126,6 +134,7 @@ class TaskStore: ObservableObject {
         print("TaskStore: 从 Core Data 获取到 \(cdTasks.count) 个任务")
         tasks = cdTasks.map { coreDataManager.convertToTaskModel($0) }
         print("TaskStore: 任务加载完成，当前任务数量: \(tasks.count)")
+        updateApplicationBadge()
     }
     
     // MARK: - Backup and Restore
@@ -177,6 +186,9 @@ class TaskStore: ObservableObject {
             // 清空内存中的任务
             self.tasks = []
             
+            // 更新应用图标标记
+            self.updateApplicationBadge()
+            
             completion()
         }
     }
@@ -187,5 +199,26 @@ class TaskStore: ObservableObject {
     
     func deleteBackupFile(at url: URL) -> Bool {
         return DataManager.shared.deleteBackupFile(at: url)
+    }
+    
+    // MARK: - Application Badge
+    
+    /// 更新应用图标上的标记，显示未完成任务的数量
+    func updateApplicationBadge() {
+        let incompleteTasks = getIncompleteTasks()
+        let count = incompleteTasks.count
+        
+        // 如果专注模式正在运行，不要覆盖其标记
+        let focusManager = FocusTimerManager.shared
+        if focusManager.currentState != .idle && focusManager.currentState != .paused {
+            return
+        }
+        
+        // 设置应用图标标记为未完成任务数量
+        UNUserNotificationCenter.current().setBadgeCount(count) { error in
+            if let error = error {
+                print("更新应用图标标记失败: \(error.localizedDescription)")
+            }
+        }
     }
 } 

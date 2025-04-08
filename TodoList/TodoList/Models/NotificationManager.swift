@@ -57,8 +57,13 @@ class NotificationManager {
             let content = UNMutableNotificationContent()
             var request: UNNotificationRequest
             
-            // 设置通知的图标和徽章
-            content.badge = 1
+            // 根据通知类型设置徽章
+            switch type {
+            case .focusStart, .breakStart, .taskReminder:
+                content.badge = 1
+            case .focusEnd, .breakEnd:
+                content.badge = 0
+            }
             
             switch type {
             case .focusStart:
@@ -81,6 +86,8 @@ class NotificationManager {
                 content.body = NSLocalizedString("🌸 专注时间已结束，可以休息一下了", comment: "Focus end notification body")
                 content.sound = .default
                 content.userInfo["type"] = "focusEnd"
+                // 清除应用图标标记
+                self.clearApplicationBadge()
                 
                 let trigger = timeInterval.map { UNTimeIntervalNotificationTrigger(timeInterval: $0, repeats: false) }
                 request = UNNotificationRequest(
@@ -158,5 +165,14 @@ class NotificationManager {
     // 取消特定任务的提醒通知
     func cancelTaskReminder(taskId: UUID) {
         notificationCenter.removePendingNotificationRequests(withIdentifiers: ["task_reminder_\(taskId.uuidString)"])
+    }
+    
+    // 清除应用图标上的标记
+    func clearApplicationBadge() {
+        UNUserNotificationCenter.current().setBadgeCount(0) { error in
+            if let error = error {
+                print("清除应用图标标记失败: \(error.localizedDescription)")
+            }
+        }
     }
 } 
