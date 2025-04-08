@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 enum TaskPriority: String, Codable, CaseIterable, Identifiable {
     case low = "Low"
@@ -19,7 +20,7 @@ enum TaskPriority: String, Codable, CaseIterable, Identifiable {
         }
     }
     
-    var color: String {
+    var colorName: String {
         switch self {
         case .low:
             return "priorityLow"
@@ -27,6 +28,18 @@ enum TaskPriority: String, Codable, CaseIterable, Identifiable {
             return "priorityMedium"
         case .high:
             return "priorityHigh"
+        }
+    }
+    
+    // 返回优先级对应的SwiftUI颜色
+    var color: Color {
+        switch self {
+        case .low:
+            return .green
+        case .medium:
+            return .orange
+        case .high:
+            return .red
         }
     }
 }

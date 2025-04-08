@@ -77,8 +77,8 @@ struct AddTaskView: View {
                         // 基本信息卡片
                         VStack(alignment: .leading, spacing: 12) {
                             Text(NSLocalizedString("基本信息", comment: "Basic info section header"))
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.primary)
                                 .padding(.horizontal, 16)
                             
                             VStack(spacing: 0) {
@@ -144,20 +144,39 @@ struct AddTaskView: View {
                         // 优先级部分
                         VStack(alignment: .leading, spacing: 12) {
                             Text(NSLocalizedString("优先级", comment: "Priority section header"))
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.primary)
                                 .padding(.horizontal, 16)
                             
-                            Picker(NSLocalizedString("优先级", comment: "Priority picker"), selection: $selectedPriority) {
+                            // 自定义优先级选择器，增强选中状态的视觉效果
+                            HStack(spacing: 0) {
                                 ForEach(TaskPriority.allCases, id: \.self) { priority in
-                                    Text(priority.localizedString).tag(priority)
+                                    Button(action: {
+                                        selectedPriority = priority
+                                    }) {
+                                        Text(priority.localizedString)
+                                            .font(.system(size: 15, weight: selectedPriority == priority ? .semibold : .regular))
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 12)
+                                            .background(selectedPriority == priority ? 
+                                                        priority.color.opacity(0.2) : 
+                                                        Color(.systemGray6))
+                                            .foregroundColor(selectedPriority == priority ? priority.color : .gray)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    
+                                    if priority != .high {
+                                        Divider()
+                                    }
                                 }
                             }
-                            .pickerStyle(SegmentedPickerStyle())
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
                             .background(Color.white)
                             .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color(.systemGray4), lineWidth: 0.5)
+                            )
+                            .padding(.horizontal, 16)
                             .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
                         }
                         .padding(.horizontal)
@@ -165,8 +184,8 @@ struct AddTaskView: View {
                         // 分类部分
                         VStack(alignment: .leading, spacing: 12) {
                             Text(NSLocalizedString("分类", comment: "Category section header"))
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.primary)
                                 .padding(.horizontal, 16)
                             
                             ScrollView(.horizontal, showsIndicators: false) {
@@ -199,23 +218,7 @@ struct AddTaskView: View {
                         }
                         .padding(.horizontal)
                         
-                        // 估计时间部分
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text(NSLocalizedString("估计时间", comment: "Estimated time section header"))
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                                .padding(.horizontal, 16)
-                            
-                            Text(NSLocalizedString("暂未开放", comment: "Feature not available yet"))
-                                .foregroundColor(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
-                                .background(Color.white)
-                                .cornerRadius(10)
-                                .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
-                        }
-                        .padding(.horizontal)
+                        // 估计时间部分已移除
                         
                         // 底部间距
                         Spacer()
