@@ -19,7 +19,12 @@ class FocusTimerManager: ObservableObject {
     // 发布者
     @Published var timeRemaining: Int = 0
     @Published var currentState: FocusTimerState = .idle
-    @Published var completedFocusSessions: Int = 0
+    @Published var completedFocusSessions: Int = 0 {
+        didSet {
+            // 保存到 UserDefaults
+            UserDefaults.standard.set(completedFocusSessions, forKey: "completedFocusSessions")
+        }
+    }
     @Published var totalFocusSessions: Int = 0
     @Published var progress: Double = 0
     
@@ -41,6 +46,9 @@ class FocusTimerManager: ObservableObject {
     private var taskStore: TaskStore?
     
     private init() {
+        // 从 UserDefaults 加载已完成的专注会话数
+        completedFocusSessions = UserDefaults.standard.integer(forKey: "completedFocusSessions")
+        
         // 添加应用生命周期的观察者
         setupAppLifecycleObservers()
         
@@ -412,6 +420,8 @@ class FocusTimerManager: ObservableObject {
     // 重置会话计数
     func resetSessions() {
         completedFocusSessions = 0
+        // 保存到 UserDefaults
+        UserDefaults.standard.set(0, forKey: "completedFocusSessions")
     }
     
     // 获取暂停前的状态

@@ -132,10 +132,6 @@ struct FocusView: View {
                 
                 // 已完成的专注部分
                 VStack(alignment: .leading) {
-                    Text(NSLocalizedString("已完成的专注：", comment: "Completed focus sessions title"))
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-                    
                     if focusTimer.completedFocusSessions > 0 {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 2) {
