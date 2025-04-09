@@ -59,8 +59,9 @@ struct FocusView: View {
 
                 // 控制按钮
                 HStack(spacing: 30) {
+                    // 重置按钮 - 用于清除已完成的专注会话记录
                     Button(action: {
-                        // 重置会话按钮
+                        // 重置会话按钮 - 清除已完成的专注会话计数
                         focusTimer.resetSessions()
                     }) {
                         Image(systemName: "arrow.counterclockwise")
@@ -146,10 +147,6 @@ struct FocusView: View {
                             .padding(.vertical, 5)
                         }
                         .frame(height: 50)
-                    } else {
-                        Text(NSLocalizedString("今天还没有完成专注。", comment: "No focus sessions completed today"))
-                            .foregroundColor(.secondary)
-                            .padding(.vertical, 5)
                     }
                 }
                 .padding(.horizontal)
@@ -161,10 +158,11 @@ struct FocusView: View {
                         Image(systemName: "gear")
                         Text(NSLocalizedString("专注设置", comment: "Focus Settings button"))
                     }
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.white)
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(appSettings.accentColor.color)
                     .cornerRadius(10)
+                    .shadow(color: appSettings.accentColor.color.opacity(0.3), radius: 3, x: 0, y: 2)
                 }
                 .padding(.bottom)
             }
