@@ -21,9 +21,22 @@ struct QuickTask: Identifiable, Codable, Equatable {
     
     // 创建任务实例
     func createTask() -> Task {
+        // 根据自定义分类名称映射到预设分类
+        var presetCategory: TaskCategory? = nil
+        if let custom = category {
+            switch custom.localizedName {
+                case NSLocalizedString("Work", comment: "Task category work"): presetCategory = .work
+                case NSLocalizedString("Personal", comment: "Task category personal"): presetCategory = .personal
+                case NSLocalizedString("Health", comment: "Task category health"): presetCategory = .health
+                case NSLocalizedString("Important", comment: "Task category important"): presetCategory = .important
+                default: break
+            }
+        }
+        
         return Task(
             title: title,
             description: "",
+            category: presetCategory,
             customCategory: category,
             dueDate: Date(), // 默认为当天
             priority: priority,
