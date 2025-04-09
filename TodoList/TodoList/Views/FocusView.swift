@@ -17,12 +17,22 @@ struct FocusView: View {
                         .minimumScaleFactor(0.8)
                         .lineLimit(1)
                     
-                    Text(String.localizedStringWithFormat(
-                        NSLocalizedString("已完成 %d 个专注", comment: "Number of completed focus sessions"), 
-                        focusTimer.completedFocusSessions
-                    ))
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    VStack(spacing: 4) {
+                        Text(String.localizedStringWithFormat(
+                            NSLocalizedString("已完成 %d 个专注", comment: "Number of completed focus sessions"), 
+                            focusTimer.todayCompletedFocusSessions
+                        ))
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        // 显示今日累计专注时间
+                        Text(String.localizedStringWithFormat(
+                            NSLocalizedString("今日已累计完成 %@", comment: "Total focus time today"), 
+                            focusTimer.formattedTodayTotalFocusTime()
+                        ))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
                 // 计时器显示 - 使用 GeometryReader 使其自适应
@@ -165,6 +175,7 @@ struct FocusView: View {
             .padding(.vertical)
             .navigationTitle(NSLocalizedString("专注", comment: "Focus view navigation title"))
             .navigationBarTitleDisplayMode(.inline)
+
             .alert(NSLocalizedString("终止专注", comment: "Stop focus alert title"), isPresented: $showStopConfirmation) {
                 Button(NSLocalizedString("取消", comment: "Cancel button"), role: .cancel) { }
                 Button(NSLocalizedString("终止", comment: "Stop button"), role: .destructive) {
