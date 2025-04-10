@@ -28,6 +28,32 @@ class FocusTimerManager: ObservableObject {
     @Published var totalFocusSessions: Int = 0
     @Published var progress: Double = 0
     
+    // 今日完成的专注次数
+    @Published var todayCompletedFocusSessions: Int = 0 {
+        didSet {
+            // 保存到 UserDefaults，带上日期标记
+            let today = Calendar.current.startOfDay(for: Date())
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let todayString = dateFormatter.string(from: today)
+            
+            UserDefaults.standard.set(todayCompletedFocusSessions, forKey: "todayCompletedFocusSessions_\(todayString)")
+        }
+    }
+    
+    // 今日累计专注时间（秒）
+    @Published var todayTotalFocusTime: Int = 0 {
+        didSet {
+            // 保存到 UserDefaults，带上日期标记
+            let today = Calendar.current.startOfDay(for: Date())
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let todayString = dateFormatter.string(from: today)
+            
+            UserDefaults.standard.set(todayTotalFocusTime, forKey: "todayTotalFocusTime_\(todayString)")
+        }
+    }
+    
     // 设置
     private var focusDuration: Int = 25 * 60  // 默认25分钟
     private var shortBreakDuration: Int = 5 * 60  // 默认5分钟
@@ -49,6 +75,9 @@ class FocusTimerManager: ObservableObject {
         // 从 UserDefaults 加载已完成的专注会话数
         completedFocusSessions = UserDefaults.standard.integer(forKey: "completedFocusSessions")
         
+        // 加载今日完成的专注次数和累计专注时间
+        loadTodayData()
+        
         // 添加应用生命周期的观察者
         setupAppLifecycleObservers()
         
@@ -56,6 +85,17 @@ class FocusTimerManager: ObservableObject {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             self?.taskStore = TaskStore.shared
         }
+    }
+    
+    // 加载今日数据（完成的专注次数和累计专注时间）
+    private func loadTodayData() {
+        let today = Calendar.current.startOfDay(for: Date())
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let todayString = dateFormatter.string(from: today)
+        
+        todayCompletedFocusSessions = UserDefaults.standard.integer(forKey: "todayCompletedFocusSessions_\(todayString)")
+        todayTotalFocusTime = UserDefaults.standard.integer(forKey: "todayTotalFocusTime_\(todayString)")
     }
     
     // 设置应用生命周期观察者
@@ -294,6 +334,9 @@ class FocusTimerManager: ObservableObject {
         // 恢复显示未完成任务数量
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             self?.taskStore?.updateApplicationBadge()
+            
+            // 确保UI更新
+            self?.objectWillChange.send()
         }
     }
     
@@ -334,6 +377,18 @@ class FocusTimerManager: ObservableObject {
             completedFocusSessions += 1
             totalFocusSessions = max(totalFocusSessions, completedFocusSessions)
             
+            // 显式保存到UserDefaults，确保数据持久化
+            UserDefaults.standard.set(completedFocusSessions, forKey: "completedFocusSessions")
+            UserDefaults.standard.synchronize()
+            
+            // 更新今日结果
+            updateTodayData()
+            
+            // 确保UI立即更新
+            DispatchQueue.main.async { [weak self] in
+                self?.objectWillChange.send()
+            }
+            
             // 播放完成声音
             soundManager.playSound(.endFocus)
             
@@ -371,6 +426,8 @@ class FocusTimerManager: ObservableObject {
             }
             
             // 休息结束后回到空闲状态
+            // 确保UI更新
+            objectWillChange.send()
             stopTimer()
             
         default:
@@ -422,6 +479,42 @@ class FocusTimerManager: ObservableObject {
         completedFocusSessions = 0
         // 保存到 UserDefaults
         UserDefaults.standard.set(0, forKey: "completedFocusSessions")
+    }
+    
+    // 更新今日数据（专注次数和累计时间）
+    private func updateTodayData() {
+        // 更新今日专注次数
+        todayCompletedFocusSessions += 1
+        
+        // 将完成的专注时间（默认为focusDuration）添加到今日累计时间
+        todayTotalFocusTime += focusDuration
+        
+        // 确保数据持久化
+        let today = Calendar.current.startOfDay(for: Date())
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let todayString = dateFormatter.string(from: today)
+        
+        UserDefaults.standard.set(todayCompletedFocusSessions, forKey: "todayCompletedFocusSessions_\(todayString)")
+        UserDefaults.standard.set(todayTotalFocusTime, forKey: "todayTotalFocusTime_\(todayString)")
+        UserDefaults.standard.synchronize()
+        
+        // 强制刷新UI
+        DispatchQueue.main.async { [weak self] in
+            self?.objectWillChange.send()
+        }
+    }
+    
+    // 获取格式化的今日累计专注时间
+    func formattedTodayTotalFocusTime() -> String {
+        let hours = todayTotalFocusTime / 3600
+        let minutes = (todayTotalFocusTime % 3600) / 60
+        
+        if hours > 0 {
+            return String(format: NSLocalizedString("%d小时%02d分钟", comment: "Hours and minutes format"), hours, minutes)
+        } else {
+            return String(format: NSLocalizedString("%d分钟", comment: "Minutes only format"), minutes)
+        }
     }
     
     // 获取暂停前的状态

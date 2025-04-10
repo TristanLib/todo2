@@ -88,5 +88,7 @@ This is an iOS todo list application built with SwiftUI. The app allows users to
 - Document major architectural decisions
 - Keep the codebase clean and maintainable
 
-## Comunication
-- Use Chinese
+## Others
+- 使用中文交流
+- 不用运行项目，我会在xcode中手工执行
+- 如果有需要运行的命令或者执行的操作，请告诉我，我来执行操作，你只负责修改和编写代码。

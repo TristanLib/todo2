@@ -6,6 +6,7 @@ struct AddTaskView: View {
     @EnvironmentObject var categoryManager: CategoryManager
     @Binding var selectedTab: Int
     @Environment(\.presentationMode) var presentationMode
+    @ObservedObject var quickTaskManager = QuickTaskManager.shared
     
     @State private var title = ""
     @State private var description = ""
@@ -18,6 +19,12 @@ struct AddTaskView: View {
     @State private var showingAddCategorySheet = false
     @State private var newCategoryName = ""
     @State private var newCategoryColor = "blue"
+    
+    // 快捷任务相关状态
+    @State private var showingAddQuickTaskSheet = false
+    @State private var editingQuickTask: QuickTask? = nil
+    @State private var showingQuickTaskActionSheet = false
+    @State private var selectedQuickTask: QuickTask? = nil
     
     // 设置默认截止日期为当天晚上10点
     private static func defaultDueDate() -> Date {
@@ -218,6 +225,89 @@ struct AddTaskView: View {
                         }
                         .padding(.horizontal)
                         
+                        // 快捷任务部分
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(NSLocalizedString("快捷任务", comment: "Quick tasks section header"))
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.primary)
+                                .padding(.horizontal, 16)
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    // 显示快捷任务
+                                    ForEach(quickTaskManager.quickTasks) { quickTask in
+                                        Button {
+                                            // 创建并添加任务
+                                            let task = quickTask.createTask()
+                                            taskStore.addTask(task)
+                                            presentationMode.wrappedValue.dismiss()
+                                        } label: {
+                                            VStack(spacing: 6) {
+                                                Image(systemName: quickTask.iconName)
+                                                    .font(.system(size: 24))
+                                                    .foregroundColor(.white)
+                                                    .frame(width: 50, height: 50)
+                                                    .background(
+                                                        Circle()
+                                                            .fill(CategoryManager.color(for: quickTask.colorName))
+                                                    )
+                                                
+                                                Text(quickTask.title)
+                                                    .font(.system(size: 12))
+                                                    .foregroundColor(.primary)
+                                                    .lineLimit(1)
+                                            }
+                                            .frame(width: 70)
+                                        }
+                                        .contextMenu {
+                                            Button(action: {
+                                                // 编辑快捷任务
+                                                editingQuickTask = quickTask
+                                                showingAddQuickTaskSheet = true
+                                            }) {
+                                                Label(NSLocalizedString("编辑", comment: "Edit quick task"), systemImage: "pencil")
+                                            }
+                                            
+                                            Button(action: {
+                                                // 删除快捷任务
+                                                quickTaskManager.deleteQuickTask(quickTask)
+                                            }) {
+                                                Label(NSLocalizedString("删除", comment: "Delete quick task"), systemImage: "trash")
+                                                    .foregroundColor(.red)
+                                            }
+                                        }
+                                    }
+                                    
+                                    // 添加新快捷任务按钮
+                                    Button {
+                                        showingAddQuickTaskSheet = true
+                                    } label: {
+                                        VStack(spacing: 6) {
+                                            Image(systemName: "plus")
+                                                .font(.system(size: 24))
+                                                .foregroundColor(.white)
+                                                .frame(width: 50, height: 50)
+                                                .background(
+                                                    Circle()
+                                                        .fill(appSettings.accentColor.color)
+                                                )
+                                            
+                                            Text(NSLocalizedString("添加", comment: "Add quick task button"))
+                                                .font(.system(size: 12))
+                                                .foregroundColor(.primary)
+                                        }
+                                        .frame(width: 70)
+                                    }
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                            }
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                        }
+                        .padding(.horizontal)
+                        
                         // 估计时间部分已移除
                         
                         // 底部间距
@@ -246,6 +336,25 @@ struct AddTaskView: View {
                 .navigationTitle(NSLocalizedString("添加新分类", comment: "Add new category title"))
                 .navigationBarItems(leading: Button(NSLocalizedString("取消", comment: "Cancel button")) { showingAddCategorySheet = false }
                 .foregroundColor(appSettings.accentColor.color))
+            }
+        }
+        .sheet(isPresented: $showingAddQuickTaskSheet) {
+            AddQuickTaskView(editingTask: editingQuickTask, onSave: { updatedTask in
+                if let editingTask = editingQuickTask {
+                    // 编辑现有快捷任务
+                    quickTaskManager.updateQuickTask(updatedTask)
+                } else {
+                    // 添加新快捷任务
+                    quickTaskManager.addQuickTask(updatedTask)
+                }
+                // 重置编辑状态
+                editingQuickTask = nil
+            })
+            .environmentObject(categoryManager)
+            .environmentObject(appSettings)
+            .onDisappear {
+                // 关闭时重置编辑状态
+                editingQuickTask = nil
             }
         }
     }
