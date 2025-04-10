@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct HomeView: View {
     @EnvironmentObject var taskStore: TaskStore
@@ -9,6 +10,9 @@ struct HomeView: View {
     @State private var isLoadingComplete = false
     @State private var showCategorySection = false
     @State private var showTasksSection = false
+    
+    // 天气服务
+    @ObservedObject private var weatherService = WeatherService.shared
     
     // Helper for localized date formatting
     private var dateFormatter: DateFormatter {
@@ -74,6 +78,7 @@ struct HomeView: View {
             .onAppear {
                 DispatchQueue.main.async {
                     animateContentOnAppear()
+                    weatherService.fetchCurrentWeather() // 获取天气数据
                 }
             }
         }
@@ -93,12 +98,8 @@ struct HomeView: View {
             
             Spacer()
             
-            Image(systemName: currentTimeIcon)
-                .font(.system(size: 44))
-                .foregroundColor(appSettings.accentColor.color)
-                .frame(width: 75, height: 75)
-                .background(appSettings.accentColor.color.opacity(0.1))
-                .clipShape(Circle())
+            // 天气信息显示
+            weatherInfoView
         }
         .padding()
         .background(
@@ -580,17 +581,48 @@ struct HomeView: View {
         }
     }
     
-    private var currentTimeIcon: String {
-        let hour = Calendar.current.component(.hour, from: Date())
-        
-        if hour < 6 {
-            return "moon.stars.fill"
-        } else if hour < 12 {
-            return "sun.max.fill"
-        } else if hour < 18 {
-            return "sun.min.fill"
-        } else {
-            return "moon.fill"
+    // 天气信息视图
+    private var weatherInfoView: some View {
+        Group {
+            if let weather = weatherService.currentWeather {
+                VStack(alignment: .center, spacing: 4) {
+                    // 天气图标
+                    Image(systemName: weather.systemIconName)
+                        .font(.system(size: 40))
+                        .foregroundColor(appSettings.accentColor.color)
+                    
+                    // 地点
+                    Text(weather.location)
+                        .font(.caption)
+                        .fontWeight(.medium)
+                    
+                    // 温度
+                    Text("\(Int(weather.temperature))°C")
+                        .font(.caption)
+                        .fontWeight(.bold)
+                }
+                .frame(width: 75, height: 75)
+                .padding(8)
+                .background(appSettings.accentColor.color.opacity(0.1))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else if weatherService.isLoading {
+                // 加载中状态
+                ProgressView()
+                    .frame(width: 75, height: 75)
+                    .background(appSettings.accentColor.color.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+            } else {
+                // 默认或错误状态
+                Image(systemName: "cloud.fill")
+                    .font(.system(size: 44))
+                    .foregroundColor(appSettings.accentColor.color)
+                    .frame(width: 75, height: 75)
+                    .background(appSettings.accentColor.color.opacity(0.1))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .onTapGesture {
+                        weatherService.fetchCurrentWeather()
+                    }
+            }
         }
     }
     
