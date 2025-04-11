@@ -174,19 +174,23 @@ struct TaskListView: View {
     }
     
     private var taskList: some View {
-        ScrollView {
-            LazyVStack(spacing: 12) {
-                ForEach(filteredTasks) { task in
-                    NavigationLink(destination: TaskDetailView(task: task)) {
-                        EnhancedTaskRow(task: task)
-                    }
-                    .buttonStyle(PlainButtonStyle())
+        // 將 ScrollView 替換為 List 以啟用滑動刪除
+        List {
+            ForEach(filteredTasks.indices, id: \.self) { index in
+                NavigationLink(destination: TaskDetailView(task: filteredTasks[index])) {
+                    EnhancedTaskRow(task: filteredTasks[index])
                 }
+                .buttonStyle(PlainButtonStyle())
+                .listRowInsets(EdgeInsets()) // 移除 List 默认的边距
+                .listRowBackground(Color.clear) // 行背景透明
+                .padding(.vertical, 4) // 添加一些垂直间距
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .onDelete(perform: deleteItems) // 添加 onDelete 修饰符
+            .listRowSeparator(.hidden) // 隐藏分隔线
         }
+        .listStyle(PlainListStyle()) // 使用 PlainListStyle 移除默认样式
         .background(Color(.systemGroupedBackground))
+        .padding(.horizontal, 16) // 为 List 添加水平内边距
     }
     
     private var filteredTasks: [Task] {
@@ -232,11 +236,17 @@ struct TaskListView: View {
         return tasks
     }
     
-    // 由于我们改用了ScrollView+LazyVStack，需要添加一个单独的删除方法
-    private func deleteTask(_ task: Task) {
-        // 使用标准中文标点符号
-        print("TaskListView：删除任务 - ID：\(task.id)，标题：\(task.title)")
-        taskStore.deleteTask(task)
+    // MARK: - Helper Methods
+    
+    /// 删除指定偏移量的任务
+    private func deleteItems(offsets: IndexSet) {
+        // 从 filteredTasks 获取要删除的实际 Task 对象
+        let tasksToDelete = offsets.map { filteredTasks[$0] }
+        
+        // 遍历要删除的任务并从 taskStore 中删除它们
+        for task in tasksToDelete {
+            taskStore.deleteTask(task)
+        }
     }
 }
 
@@ -411,4 +421,4 @@ struct TaskListView_Previews: PreviewProvider {
             .environmentObject(AppSettings())
             .environmentObject(CategoryManager())
     }
-} 
+}
