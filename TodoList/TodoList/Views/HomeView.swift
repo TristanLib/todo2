@@ -402,9 +402,9 @@ struct HomeView: View {
                     .popIn(isPresented: showTasksSection)
             } else {
                 List {
-                    ForEach(filteredTasks) { task in
-                        NavigationLink(destination: TaskDetailView(task: task)) {
-                            EnhancedTaskRow(task: task)
+                    ForEach(filteredTasks.indices, id: \.self) { index in
+                        NavigationLink(destination: TaskDetailView(task: filteredTasks[index])) {
+                            EnhancedTaskRow(task: filteredTasks[index])
                                 .padding(.vertical, 4)
                         }
                         .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
@@ -486,13 +486,17 @@ struct HomeView: View {
                     
                     HStack(spacing: 8) {
                         if let dueDate = task.dueDate {
-                            Label(
-                                formatTime(dueDate),
-                                systemImage: "clock"
-                            )
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                            HStack {
+                                Image(systemName: "calendar.badge.exclamationmark")
+                                    .foregroundColor(.red)
+                                
+                                Text(formatTime(dueDate))
+                                    .font(.caption)
+                                    .foregroundColor(.red)
+                            }
                         }
+                        
+                        Spacer()
                         
                         if let category = task.category {
                             Text(category.localizedString)
@@ -504,6 +508,16 @@ struct HomeView: View {
                                         .fill(categoryColor(for: category).opacity(0.15))
                                 )
                                 .foregroundColor(categoryColor(for: category))
+                        } else if let customCategory = task.customCategory {
+                            Text(customCategory.localizedName)
+                                .font(.caption)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(CategoryManager.color(for: customCategory.colorName).opacity(0.15))
+                                )
+                                .foregroundColor(CategoryManager.color(for: customCategory.colorName))
                         }
                     }
                 }
@@ -525,10 +539,10 @@ struct HomeView: View {
         }
         
         private func formatTime(_ date: Date) -> String {
-            let formatter = DateFormatter()
-            formatter.timeStyle = .short
-            return formatter.string(from: date)
-        }
+             let formatter = DateFormatter()
+             formatter.timeStyle = .short
+             return formatter.string(from: date)
+         }
         
         private func categoryColor(for category: TaskCategory) -> Color {
             switch category {
