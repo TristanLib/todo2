@@ -147,6 +147,10 @@ struct FocusSettings: Codable {
     var enableNotification: Bool = true // 启用通知
     var dailyFocusSessionsTarget: Int = 10 // 每日专注次数目标
     var dailyFocusTimeTarget: Int = 250    // 每日专注时间目标（分钟）
+    
+    // 白噪音设置
+    var whiteNoiseType: String = "none"  // 白噪音类型
+    var whiteNoiseVolume: Float = 0.5    // 白噪音音量（0.0-1.0）
 }
 
 // 通知设置结构

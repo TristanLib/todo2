@@ -232,6 +232,7 @@ struct FocusView: View {
 struct FocusSettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
     @Environment(\.presentationMode) var presentationMode
+    @ObservedObject private var soundManager = SoundManager.shared
     
     @State private var focusDuration: Double
     @State private var shortBreakDuration: Double
@@ -240,6 +241,9 @@ struct FocusSettingsView: View {
     @State private var enableSound: Bool
     @State private var enableNotification: Bool
     @State private var dailyFocusSessionsTarget: Int
+    @State private var whiteNoiseType: WhiteNoiseType = .none
+    @State private var whiteNoiseVolume: Float = 0.5
+    @State private var showWhiteNoiseSelector = false
     
     private let focusTimer = FocusTimerManager.shared
     
@@ -303,7 +307,44 @@ struct FocusSettingsView: View {
             
             Section(header: Text(NSLocalizedString("通知与声音", comment: "Notifications and sound header"))) {
                 Toggle(NSLocalizedString("启用音效", comment: "Enable sound effects toggle"), isOn: $enableSound)
+                    .onChange(of: enableSound) { newValue in
+                        soundManager.setEnabled(newValue)
+                    }
                 Toggle(NSLocalizedString("启用通知", comment: "Enable notifications toggle"), isOn: $enableNotification)
+                
+                // 白噪音选择器
+                if enableSound {
+                    NavigationLink(destination: WhiteNoiseSelectionView(selectedNoise: $whiteNoiseType, volume: $whiteNoiseVolume)) {
+                        HStack {
+                            Text(NSLocalizedString("白噪音", comment: "White noise setting"))
+                            Spacer()
+                            HStack(spacing: 4) {
+                                Image(systemName: whiteNoiseType.iconName)
+                                    .foregroundColor(.blue)
+                                Text(whiteNoiseType.displayName)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                    }
+                    .onChange(of: whiteNoiseType) { newValue in
+                        // 当白噪音类型变化时更新UI
+                        print("白噪音类型变化为: \(newValue.displayName)")
+                    }
+                    
+                    if whiteNoiseType != .none {
+                        VStack {
+                            HStack {
+                                Text(NSLocalizedString("音量", comment: "Volume setting"))
+                                Spacer()
+                                Text("\(Int(whiteNoiseVolume * 100))%")
+                            }
+                            Slider(value: $whiteNoiseVolume, in: 0...1, step: 0.05)
+                                .onChange(of: whiteNoiseVolume) { newValue in
+                                    soundManager.setWhiteNoiseVolume(newValue)
+                                }
+                        }
+                    }
+                }
             }
             
             Section {
@@ -324,6 +365,30 @@ struct FocusSettingsView: View {
             enableSound = appSettings.focusSettings.enableSound
             enableNotification = appSettings.focusSettings.enableNotification
             dailyFocusSessionsTarget = appSettings.focusSettings.dailyFocusSessionsTarget
+            
+            // 首先从SoundManager加载白噪音设置，因为它可能包含最新的选择
+            if soundManager.currentWhiteNoise != .none {
+                whiteNoiseType = soundManager.currentWhiteNoise
+                whiteNoiseVolume = soundManager.whiteNoiseVolume
+                print("从SoundManager加载白噪音设置: \(soundManager.currentWhiteNoise.displayName)")
+                
+                // 同步更新AppSettings中的设置
+                var focusSettings = appSettings.focusSettings
+                focusSettings.whiteNoiseType = soundManager.currentWhiteNoise.rawValue
+                focusSettings.whiteNoiseVolume = soundManager.whiteNoiseVolume
+                appSettings.focusSettings = focusSettings
+            } 
+            // 如果从SoundManager加载失败，则从AppSettings加载
+            else if let noiseType = WhiteNoiseType(rawValue: appSettings.focusSettings.whiteNoiseType), noiseType != .none {
+                whiteNoiseType = noiseType
+                whiteNoiseVolume = appSettings.focusSettings.whiteNoiseVolume
+                print("从AppSettings加载白噪音设置: \(noiseType.displayName)")
+            } else {
+                // 如果两者都加载失败，使用默认值
+                whiteNoiseType = .none
+                whiteNoiseVolume = 0.5
+                print("使用默认白噪音设置: 无白噪音")
+            }
         }
     }
     
@@ -331,7 +396,7 @@ struct FocusSettingsView: View {
         // 计算每日专注时间目标 = 专注时长 × 每日专注次数目标
         let calculatedDailyFocusTimeTarget = Int(focusDuration * Double(dailyFocusSessionsTarget))
         
-        let newSettings = FocusSettings(
+        var newSettings = FocusSettings(
             focusDuration: focusDuration,
             shortBreakDuration: shortBreakDuration,
             longBreakDuration: longBreakDuration,
@@ -341,7 +406,154 @@ struct FocusSettingsView: View {
             dailyFocusSessionsTarget: dailyFocusSessionsTarget,
             dailyFocusTimeTarget: calculatedDailyFocusTimeTarget
         )
+        
+        // 保存白噪音设置
+        newSettings.whiteNoiseType = whiteNoiseType.rawValue
+        newSettings.whiteNoiseVolume = whiteNoiseVolume
+        
         appSettings.focusSettings = newSettings
         focusTimer.updateSettings(from: newSettings)
+        
+        // 如果启用了音效且选择了白噪音，播放白噪音
+        if enableSound && whiteNoiseType != .none {
+            soundManager.playWhiteNoise(whiteNoiseType)
+        } else if !enableSound || whiteNoiseType == .none {
+            soundManager.stopWhiteNoise()
+        }
     }
-} 
+}
+
+// 白噪音选择视图
+struct WhiteNoiseSelectionView: View {
+    @Binding var selectedNoise: WhiteNoiseType
+    @Binding var volume: Float
+    @ObservedObject private var soundManager = SoundManager.shared
+    
+    // 预览时使用的临时选择
+    @State private var previewNoise: WhiteNoiseType = .none
+    @State private var isPreviewPlaying = false
+    
+    var body: some View {
+        List {
+            Section(header: Text(NSLocalizedString("选择白噪音", comment: "Select white noise header"))) {
+                ForEach(WhiteNoiseType.allCases) { noiseType in
+                    Button(action: {
+                        // 如果选择了当前正在播放的预览噪音，则停止预览
+                        if isPreviewPlaying && previewNoise == noiseType {
+                            soundManager.stopWhiteNoise()
+                            isPreviewPlaying = false
+                            previewNoise = .none
+                        } else {
+                            // 否则开始预览新选择的噪音
+                            previewNoise = noiseType
+                            soundManager.playWhiteNoise(noiseType)
+                            isPreviewPlaying = true
+                        }
+                    }) {
+                        HStack {
+                            Image(systemName: noiseType.iconName)
+                                .foregroundColor(.blue)
+                                .frame(width: 30)
+                            
+                            Text(noiseType.displayName)
+                            
+                            Spacer()
+                            
+                            if selectedNoise == noiseType {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                            
+                            if isPreviewPlaying && previewNoise == noiseType {
+                                Image(systemName: "speaker.wave.3.fill")
+                                    .foregroundColor(.green)
+                            }
+                        }
+                    }
+                    .foregroundColor(.primary)
+                }
+            }
+            
+            if isPreviewPlaying && previewNoise != .none {
+                Section(header: Text(NSLocalizedString("预览音量", comment: "Preview volume header"))) {
+                    VStack {
+                        HStack {
+                            Image(systemName: "speaker.wave.1.fill")
+                            Slider(value: $volume, in: 0...1, step: 0.05)
+                                .onChange(of: volume) { newValue in
+                                    soundManager.setWhiteNoiseVolume(newValue)
+                                }
+                            Image(systemName: "speaker.wave.3.fill")
+                        }
+                        Text("\(Int(volume * 100))%")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+            
+            Section {
+                Button(action: {
+                    // 停止预览
+                    if isPreviewPlaying {
+                        soundManager.stopWhiteNoise()
+                        isPreviewPlaying = false
+                    }
+                    
+                    // 设置选择的噪音
+                    selectedNoise = previewNoise
+                    
+                    // 确保当前选择的白噪音被保存到SoundManager
+                    if previewNoise != .none {
+                        soundManager.currentWhiteNoise = previewNoise
+                        UserDefaults.standard.set(previewNoise.rawValue, forKey: "currentWhiteNoise")
+                        
+                        // 同时也更新AppSettings中的设置
+                        let appSettings = AppSettings()
+                        var focusSettings = appSettings.focusSettings
+                        focusSettings.whiteNoiseType = previewNoise.rawValue
+                        focusSettings.whiteNoiseVolume = volume
+                        appSettings.focusSettings = focusSettings
+                        
+                        print("已将白噪音设置保存到AppSettings: \(previewNoise.displayName)")
+                    }
+                    
+                    // 返回上一个页面
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let rootViewController = windowScene.windows.first?.rootViewController {
+                        rootViewController.dismiss(animated: true, completion: nil)
+                    }
+                }) {
+                    Text(NSLocalizedString("确认选择", comment: "Confirm selection button"))
+                        .frame(maxWidth: .infinity)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                }
+            }
+        }
+        .navigationTitle(NSLocalizedString("白噪音", comment: "White noise navigation title"))
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // 预览默认选择当前的噪音
+            previewNoise = selectedNoise
+            if selectedNoise != .none {
+                soundManager.playWhiteNoise(selectedNoise)
+                isPreviewPlaying = true
+            }
+        }
+        .onDisappear {
+            // 离开页面时停止预览
+            if isPreviewPlaying {
+                soundManager.stopWhiteNoise()
+                isPreviewPlaying = false
+            }
+            
+            // 如果有选择噪音，则重新播放原来的噪音
+            if selectedNoise != .none {
+                soundManager.playWhiteNoise(selectedNoise)
+            }
+        }
+    }
+}
