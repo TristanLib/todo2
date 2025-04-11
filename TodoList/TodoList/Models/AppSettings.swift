@@ -145,6 +145,8 @@ struct FocusSettings: Codable {
     var pomoBeforeBreak: Int = 4        // 进行长休息前的专注次数
     var enableSound: Bool = true        // 启用音效
     var enableNotification: Bool = true // 启用通知
+    var dailyFocusSessionsTarget: Int = 10 // 每日专注次数目标
+    var dailyFocusTimeTarget: Int = 250    // 每日专注时间目标（分钟）
 }
 
 // 通知设置结构

@@ -17,6 +17,18 @@ struct FocusView: View {
                         .minimumScaleFactor(0.8)
                         .lineLimit(1)
                     
+                    // 今日目标
+                    VStack(spacing: 4) {
+                        Text(String.localizedStringWithFormat(
+                            NSLocalizedString("今日目标: %d个专注，%d分钟", comment: "Daily focus target"), 
+                            appSettings.focusSettings.dailyFocusSessionsTarget,
+                            appSettings.focusSettings.dailyFocusTimeTarget
+                        ))
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(.vertical, 4)
+                    
                     VStack(spacing: 4) {
                         Text(String.localizedStringWithFormat(
                             NSLocalizedString("已完成 %d 个专注", comment: "Number of completed focus sessions"), 
@@ -140,23 +152,49 @@ struct FocusView: View {
                 }
                 .padding(.horizontal)
                 
-                // 已完成的专注部分
-                VStack(alignment: .leading) {
-                    if focusTimer.completedFocusSessions > 0 {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 2) {
-                                ForEach(0..<focusTimer.completedFocusSessions, id: \.self) { _ in
-                                    Text("🌸")
-                                        .font(.title)
+                // 专注进度可视化部分
+                VStack(alignment: .center, spacing: 8) {
+                    Text(NSLocalizedString("今日专注进度", comment: "Today's focus progress"))
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    
+                    // 使用番茄图标来可视化进度
+                    let targetSessions = appSettings.focusSettings.dailyFocusSessionsTarget
+                    let completedSessions = focusTimer.todayCompletedFocusSessions
+                    
+                    // 计算每行显示的番茄数量
+                    let itemsPerRow = min(6, targetSessions) // 每行最多显示6个
+                    let rowCount = (targetSessions + itemsPerRow - 1) / itemsPerRow // 向上取整
+                    
+                    VStack(spacing: 8) {
+                        ForEach(0..<rowCount, id: \.self) { rowIndex in
+                            HStack(spacing: 8) {
+                                ForEach(0..<min(itemsPerRow, targetSessions - rowIndex * itemsPerRow), id: \.self) { colIndex in
+                                    let index = rowIndex * itemsPerRow + colIndex
+                                    let isCompleted = index < completedSessions
+                                    
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 6)
+                                            .fill(Color(.systemGray6))
+                                            .frame(width: 40, height: 40)
+                                        
+                                        if isCompleted {
+                                            Text("🍅") // 番茄图标
+                                                .font(.title)
+                                        } else {
+                                            Text("🍅")
+                                                .font(.title)
+                                                .foregroundColor(Color(.systemGray4))
+                                                .opacity(0.3)
+                                        }
+                                    }
                                 }
                             }
-                            .padding(.vertical, 5)
                         }
-                        .frame(height: 50)
                     }
                 }
                 .padding(.horizontal)
-                .frame(maxHeight: 80)
+                .frame(maxHeight: 160)
 
                 // 设置按钮
                 NavigationLink(destination: FocusSettingsView()) {
@@ -201,17 +239,20 @@ struct FocusSettingsView: View {
     @State private var pomoBeforeBreak: Int
     @State private var enableSound: Bool
     @State private var enableNotification: Bool
+    @State private var dailyFocusSessionsTarget: Int
     
     private let focusTimer = FocusTimerManager.shared
     
+    // 使用 onAppear 来加载设置，而不是在初始化时加载
     init() {
-        let settings = AppSettings().focusSettings
-        _focusDuration = State(initialValue: settings.focusDuration)
-        _shortBreakDuration = State(initialValue: settings.shortBreakDuration)
-        _longBreakDuration = State(initialValue: settings.longBreakDuration)
-        _pomoBeforeBreak = State(initialValue: settings.pomoBeforeBreak)
-        _enableSound = State(initialValue: settings.enableSound)
-        _enableNotification = State(initialValue: settings.enableNotification)
+        // 初始化时设置默认值，稍后在 onAppear 中更新
+        _focusDuration = State(initialValue: 25)
+        _shortBreakDuration = State(initialValue: 5)
+        _longBreakDuration = State(initialValue: 15)
+        _pomoBeforeBreak = State(initialValue: 4)
+        _enableSound = State(initialValue: true)
+        _enableNotification = State(initialValue: true)
+        _dailyFocusSessionsTarget = State(initialValue: 10)
     }
     
     var body: some View {
@@ -247,6 +288,19 @@ struct FocusSettingsView: View {
                 Stepper(String.localizedStringWithFormat(NSLocalizedString("长休息前专注次数: %d", comment: "Pomodoros before long break stepper"), pomoBeforeBreak), value: $pomoBeforeBreak, in: 1...10)
             }
             
+            Section(header: Text(NSLocalizedString("今日目标", comment: "Daily target header"))) {
+                Stepper(String.localizedStringWithFormat(NSLocalizedString("每日专注次数目标: %d", comment: "Daily focus sessions target stepper"), dailyFocusSessionsTarget), value: $dailyFocusSessionsTarget, in: 1...30)
+                
+                VStack {
+                    HStack {
+                        Text(NSLocalizedString("每日专注时间目标", comment: "Daily focus time target setting"))
+                        Spacer()
+                        Text(String.localizedStringWithFormat(NSLocalizedString("%d分钟", comment: "Duration in minutes format"), Int(focusDuration * Double(dailyFocusSessionsTarget))))
+                    }
+                    .foregroundColor(.secondary)
+                }
+            }
+            
             Section(header: Text(NSLocalizedString("通知与声音", comment: "Notifications and sound header"))) {
                 Toggle(NSLocalizedString("启用音效", comment: "Enable sound effects toggle"), isOn: $enableSound)
                 Toggle(NSLocalizedString("启用通知", comment: "Enable notifications toggle"), isOn: $enableNotification)
@@ -261,16 +315,31 @@ struct FocusSettingsView: View {
         }
         .navigationTitle(NSLocalizedString("专注设置", comment: "Focus Settings navigation title"))
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // 在视图出现时加载当前设置
+            focusDuration = appSettings.focusSettings.focusDuration
+            shortBreakDuration = appSettings.focusSettings.shortBreakDuration
+            longBreakDuration = appSettings.focusSettings.longBreakDuration
+            pomoBeforeBreak = appSettings.focusSettings.pomoBeforeBreak
+            enableSound = appSettings.focusSettings.enableSound
+            enableNotification = appSettings.focusSettings.enableNotification
+            dailyFocusSessionsTarget = appSettings.focusSettings.dailyFocusSessionsTarget
+        }
     }
     
     private func saveSettings() {
+        // 计算每日专注时间目标 = 专注时长 × 每日专注次数目标
+        let calculatedDailyFocusTimeTarget = Int(focusDuration * Double(dailyFocusSessionsTarget))
+        
         let newSettings = FocusSettings(
             focusDuration: focusDuration,
             shortBreakDuration: shortBreakDuration,
             longBreakDuration: longBreakDuration,
             pomoBeforeBreak: pomoBeforeBreak,
             enableSound: enableSound,
-            enableNotification: enableNotification
+            enableNotification: enableNotification,
+            dailyFocusSessionsTarget: dailyFocusSessionsTarget,
+            dailyFocusTimeTarget: calculatedDailyFocusTimeTarget
         )
         appSettings.focusSettings = newSettings
         focusTimer.updateSettings(from: newSettings)

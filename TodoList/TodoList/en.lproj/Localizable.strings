@@ -172,3 +172,10 @@
 "任务「%@」即将到期，请尽快完成" = "Task \"%@\" is due soon. Please complete it as soon as possible.";
 
 "设置应用显示语言" = "Set app display language"; // 这是 SettingsView 里偏好设置行的副标题
+
+/* 专注目标相关 */
+"今日目标: %d个专注，%d分钟" = "Today's Goal: %d sessions, %d minutes";
+"今日目标" = "Daily Goal";
+"每日专注次数目标: %d" = "Daily Focus Sessions Target: %d";
+"每日专注时间目标" = "Daily Focus Time Target";
+"今日专注进度" = "Today's Focus Progress";
