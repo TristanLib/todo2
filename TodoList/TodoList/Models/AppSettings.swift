@@ -84,6 +84,38 @@ enum AppAccentColor: String, CaseIterable, Codable {
     }
 }
 
+// 支持的语言
+enum AppLanguage: String, CaseIterable, Codable, Identifiable {
+    case system = "system"       // 跟随系统
+    case english = "en"        // 英语
+    case chineseSimplified = "zh-Hans" // 简体中文
+
+    var id: String { self.rawValue }
+
+    var displayName: String {
+        switch self {
+        case .system:
+            return NSLocalizedString("跟随系统", comment: "System language setting display name")
+        case .english:
+            return NSLocalizedString("English", comment: "English language setting display name")
+        case .chineseSimplified:
+            return NSLocalizedString("简体中文", comment: "Simplified Chinese language setting display name")
+        }
+    }
+    
+    // 返回语言代码，用于设置 UserDefaults
+    var languageCode: String? {
+        switch self {
+        case .system:
+            return nil // 跟随系统时，不强制设置特定语言
+        case .english:
+            return "en"
+        case .chineseSimplified:
+            return "zh-Hans"
+        }
+    }
+}
+
 // 任务排序方式
 enum TaskSortOption: String, CaseIterable, Codable {
     case dueDate = "dueDate"        // 按截止日期
@@ -168,6 +200,11 @@ class AppSettings: ObservableObject {
         didSet { queueSaveSettings() }
     }
     
+    // 语言设置
+    @Published var language: AppLanguage = .system {
+        didSet { queueSaveSettings() }
+    }
+    
     // 防抖动计时器，避免频繁保存
     private var saveWorkItem: DispatchWorkItem?
     
@@ -202,6 +239,7 @@ class AppSettings: ObservableObject {
                 daysBeforeAutoArchive: daysBeforeAutoArchive,
                 notificationSettings: notificationSettings,
                 focusSettings: focusSettings,
+                language: language,
                 completedFocusSessions: FocusTimerManager.shared.completedFocusSessions
             )
             
@@ -238,6 +276,12 @@ class AppSettings: ObservableObject {
             // 专注模式设置
             self.focusSettings = settings.focusSettings
             
+            // 语言设置
+            self.language = settings.language
+            
+            // 应用初始语言设置
+            self.applyLanguageSetting(settings.language)
+            
             // 异步加载专注次数，避免在初始化期间直接修改另一个 ObservableObject
             DispatchQueue.main.async {
                 FocusTimerManager.shared.completedFocusSessions = settings.completedFocusSessions ?? 0
@@ -266,10 +310,20 @@ class AppSettings: ObservableObject {
         // 专注模式设置
         self.focusSettings = FocusSettings()
         
+        // 语言设置
+        self.language = .system
+        
         // 重置专注次数
         FocusTimerManager.shared.completedFocusSessions = 0
         
         saveSettings()
+    }
+    
+    // 应用语言设置
+    private func applyLanguageSetting(_ language: AppLanguage) {
+        if let languageCode = language.languageCode {
+            UserDefaults.standard.set([languageCode], forKey: "AppleLanguages")
+        }
     }
 }
 
@@ -292,6 +346,9 @@ private struct SettingsData: Codable {
     // 专注模式设置
     let focusSettings: FocusSettings
     
+    // 语言设置
+    let language: AppLanguage
+    
     // 专注次数
     let completedFocusSessions: Int?
-} 
+}

@@ -5,8 +5,6 @@ struct SettingsView: View {
     @EnvironmentObject var taskStore: TaskStore
     @State private var showClearConfirmation = false
     @State private var showBackupView = false
-    @State private var showProfileView = false
-    @State private var showPreferencesView = false
     @State private var showAppColorPicker = false
     @State private var showReminderTimePicker = false
     
@@ -104,31 +102,14 @@ struct SettingsView: View {
                     
                     // 账户设置
                     settingsSection(title: NSLocalizedString("账户", comment: "Account section title")) {
-                        // 个人资料
-                        Button(action: { showProfileView = true }) {
-                            settingsRow(
-                                icon: "person.fill",
-                                iconBackground: Color.green.opacity(0.2),
-                                iconColor: .green,
-                                title: NSLocalizedString("个人资料", comment: "Profile setting"),
-                                subtitle: "张三 • user@example.com",
-                                trailingView: {
-                                    Image(systemName: "chevron.right")
-                                        .font(.system(size: 14, weight: .semibold))
-                                        .foregroundColor(.gray)
-                                }
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        
                         // 偏好设置
-                        Button(action: { showPreferencesView = true }) {
+                        NavigationLink(destination: PreferencesView()) {
                             settingsRow(
                                 icon: "gearshape.fill",
                                 iconBackground: Color.gray.opacity(0.2),
                                 iconColor: .gray,
                                 title: NSLocalizedString("偏好设置", comment: "Preferences setting"),
-                                subtitle: NSLocalizedString("应用语言、时间格式", comment: "App language, time format"),
+                                subtitle: NSLocalizedString("设置应用显示语言", comment: "Set app display language"),
                                 trailingView: {
                                     Image(systemName: "chevron.right")
                                         .font(.system(size: 14, weight: .semibold))
@@ -136,7 +117,6 @@ struct SettingsView: View {
                                 }
                             )
                         }
-                        .buttonStyle(PlainButtonStyle())
                     }
                     
                     // 数据管理
@@ -175,27 +155,6 @@ struct SettingsView: View {
                         }
                         .buttonStyle(PlainButtonStyle())
                     }
-                    
-                    // 退出登录按钮
-                    Button(action: {}) {
-                        HStack {
-                            Spacer()
-                            HStack {
-                                Image(systemName: "rectangle.portrait.and.arrow.right")
-                                Text(NSLocalizedString("退出登录", comment: "Log out button"))
-                            }
-                            .foregroundColor(.red)
-                            .padding()
-                            Spacer()
-                        }
-                        .background(
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.red.opacity(0.1))
-                        )
-                        .padding(.horizontal)
-                        .padding(.top, 12)
-                    }
-                    .buttonStyle(PlainButtonStyle())
                     
                     // 版本信息
                     HStack {
@@ -633,4 +592,4 @@ struct SettingsView_Previews: PreviewProvider {
             .environmentObject(AppSettings())
             .environmentObject(TaskStore())
     }
-} 
+}

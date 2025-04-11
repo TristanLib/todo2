@@ -104,6 +104,19 @@
 "这将删除所有任务数据，此操作无法撤销。" = "This will delete all task data. This action cannot be undone.";
 "删除" = "Delete";
 
+// App Language Display Names
+"跟随系统" = "System Default";
+"English" = "English";
+"简体中文" = "Simplified Chinese";
+
+// Language Settings UI
+"语言设置" = "Language Settings";
+"应用语言" = "App Language";
+"偏好设置" = "Preferences";
+"语言已更改" = "Language Changed";
+"您可能需要重新启动应用以使更改完全生效。" = "You may need to restart the app for the changes to take full effect.";
+"好的" = "OK";
+
 // ContentView Tab Bar
 "任务" = "Tasks";
 "新建" = "New";
@@ -157,3 +170,5 @@
 "休息时间已结束，准备开始下一轮专注" = "Break time has ended. Get ready for your next focus session.";
 "任务提醒" = "Task Reminder";
 "任务「%@」即将到期，请尽快完成" = "Task \"%@\" is due soon. Please complete it as soon as possible.";
+
+"设置应用显示语言" = "Set app display language"; // 这是 SettingsView 里偏好设置行的副标题
