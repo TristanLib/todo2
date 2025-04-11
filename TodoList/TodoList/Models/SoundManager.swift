@@ -94,10 +94,8 @@ class SoundManager: ObservableObject {
         
         setupAudioPlayers()
         
-        // 如果有保存的白噪音设置，启动它
-        if currentWhiteNoise != .none && isEnabled {
-            playWhiteNoise(currentWhiteNoise)
-        }
+        // 注意：不再在初始化时自动播放白噪音
+        // 白噪音将仅在专注模式启动时播放
     }
     
     // 设置音频播放器
@@ -229,10 +227,9 @@ class SoundManager: ObservableObject {
         // 如果禁用声音，停止白噪音
         if !enabled && whiteNoisePlayer?.isPlaying == true {
             stopWhiteNoise()
-        } else if enabled && currentWhiteNoise != .none {
-            // 如果启用声音，且有选择的白噪音，开始播放
-            playWhiteNoise(currentWhiteNoise)
         }
+        // 注意：不再在这里自动播放白噪音
+        // 白噪音将仅在专注模式启动时播放
     }
     
     // 播放声音

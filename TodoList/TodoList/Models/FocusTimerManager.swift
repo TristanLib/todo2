@@ -249,14 +249,22 @@ class FocusTimerManager: ObservableObject {
                 case .focusing:
                     timeRemaining = focusDuration
                     soundManager.playSound(.startFocus)
+                    // 在专注模式启动时播放当前设置的白噪音
+                    if soundManager.currentWhiteNoise != .none && soundManager.isEnabled {
+                        soundManager.playWhiteNoise(soundManager.currentWhiteNoise)
+                    }
                     notificationManager.scheduleNotification(for: .focusStart)
                 case .shortBreak:
                     timeRemaining = shortBreakDuration
                     soundManager.playSound(.startBreak)
+                    // 休息时停止白噪音
+                    soundManager.stopWhiteNoise()
                     notificationManager.scheduleNotification(for: .breakStart)
                 case .longBreak:
                     timeRemaining = longBreakDuration
                     soundManager.playSound(.startBreak)
+                    // 休息时停止白噪音
+                    soundManager.stopWhiteNoise()
                     notificationManager.scheduleNotification(for: .breakStart)
                 default:
                     timeRemaining = focusDuration
@@ -265,10 +273,20 @@ class FocusTimerManager: ObservableObject {
                 // 恢复到暂停前的状态
                 currentState = previousState
                 timeRemaining = pausedTimeRemaining
+                
+                // 如果恢复到专注状态，重新播放白噪音
+                if previousState == .focusing && soundManager.currentWhiteNoise != .none && soundManager.isEnabled {
+                    soundManager.playWhiteNoise(soundManager.currentWhiteNoise)
+                }
             } else {
                 // 默认恢复到专注状态
                 currentState = .focusing
                 timeRemaining = pausedTimeRemaining
+                
+                // 重新播放白噪音
+                if soundManager.currentWhiteNoise != .none && soundManager.isEnabled {
+                    soundManager.playWhiteNoise(soundManager.currentWhiteNoise)
+                }
             }
         } else {
             // 设置新状态的时间
@@ -279,14 +297,22 @@ class FocusTimerManager: ObservableObject {
             case .focusing:
                 timeRemaining = focusDuration
                 soundManager.playSound(.startFocus)
+                // 在专注模式启动时播放当前设置的白噪音
+                if soundManager.currentWhiteNoise != .none && soundManager.isEnabled {
+                    soundManager.playWhiteNoise(soundManager.currentWhiteNoise)
+                }
                 notificationManager.scheduleNotification(for: .focusStart)
             case .shortBreak:
                 timeRemaining = shortBreakDuration
                 soundManager.playSound(.startBreak)
+                // 休息时停止白噪音
+                soundManager.stopWhiteNoise()
                 notificationManager.scheduleNotification(for: .breakStart)
             case .longBreak:
                 timeRemaining = longBreakDuration
                 soundManager.playSound(.startBreak)
+                // 休息时停止白噪音
+                soundManager.stopWhiteNoise()
                 notificationManager.scheduleNotification(for: .breakStart)
             default:
                 timeRemaining = focusDuration
@@ -317,6 +343,9 @@ class FocusTimerManager: ObservableObject {
         currentState = .paused
         timer?.invalidate()
         timer = nil
+        
+        // 在专注暂停时停止白噪音播放
+        soundManager.stopWhiteNoise()
     }
     
     // 停止计时器
@@ -327,6 +356,9 @@ class FocusTimerManager: ObservableObject {
         timeRemaining = focusDuration
         progress = 0
         backgroundTime = nil
+        
+        // 在专注停止时停止白噪音播放
+        soundManager.stopWhiteNoise()
         
         // 清除应用图标标记
         notificationManager.clearApplicationBadge()
