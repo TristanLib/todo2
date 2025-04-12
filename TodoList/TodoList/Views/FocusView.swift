@@ -8,8 +8,8 @@ struct FocusView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                // 标题和状态
-                VStack(spacing: 8) {
+                // 标题和目标信息
+                VStack(spacing: 12) {
                     Text(focusTimer.currentStateDisplayName())
                         .font(.largeTitle)
                         .fontWeight(.bold)
@@ -17,50 +17,41 @@ struct FocusView: View {
                         .minimumScaleFactor(0.8)
                         .lineLimit(1)
 
-                    // 今日目标
-                    VStack(spacing: 4) {
+                    // 目标和已完成信息
+                    VStack(spacing: 8) {
                         Text(String.localizedStringWithFormat(
-                            NSLocalizedString("今日目标: %d个专注，%d分钟", comment: "Daily focus target"),
-                            appSettings.focusSettings.dailyFocusSessionsTarget,
-                            appSettings.focusSettings.dailyFocusTimeTarget
+                            NSLocalizedString("目标: %d 个番茄", comment: "Focus target"),
+                            appSettings.focusSettings.dailyFocusSessionsTarget
                         ))
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.vertical, 4)
+                        .font(.headline)
+                        .foregroundColor(.secondary)
 
-                    VStack(spacing: 4) {
                         Text(String.localizedStringWithFormat(
-                            NSLocalizedString("已完成 %d 个专注", comment: "Number of completed focus sessions"),
+                            NSLocalizedString("已完成: %d 个", comment: "Completed sessions"),
                             focusTimer.todayCompletedFocusSessions
                         ))
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-
-                        // 显示今日累计专注时间
-                        Text(String.localizedStringWithFormat(
-                            NSLocalizedString("今日已累计完成 %@", comment: "Total focus time today"),
-                            focusTimer.formattedTodayTotalFocusTime()
-                        ))
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                        .font(.headline)
+                        .foregroundColor(.secondary)
                     }
                 }
+                .padding(.top)
 
                 // 计时器显示 - 使用 GeometryReader 使其自适应
                 GeometryReader { geometry in
-                    let timerSize = min(geometry.size.width * 0.7, geometry.size.height * 0.4)
-                    let lineWidth: CGFloat = max(timerSize * 0.07, 15)
+                    let timerSize = min(geometry.size.width * 0.8, geometry.size.height * 0.6)
+                    let lineWidth: CGFloat = max(timerSize * 0.05, 12)
 
                     ZStack {
+                        // 背景圆环
                         Circle()
                             .stroke(Color(.systemGray5), lineWidth: lineWidth)
 
+                        // 进度圆环 - 使用橙色渐变
                         Circle()
                             .trim(from: 0, to: CGFloat(focusTimer.progress))
                             .stroke(
                                 LinearGradient(
-                                    gradient: Gradient(colors: [appSettings.accentColor.color, appSettings.accentColor.color.opacity(0.6)]),
+                                    gradient: Gradient(colors: [Color.orange, Color.orange.opacity(0.7)]),
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ),
@@ -69,8 +60,9 @@ struct FocusView: View {
                             .rotationEffect(.degrees(-90))
                             .animation(.linear(duration: 0.25), value: focusTimer.progress)
 
+                        // 时间显示
                         Text(focusTimer.formattedTimeRemaining())
-                            .font(.system(size: timerSize * 0.25, weight: .medium, design: .rounded))
+                            .font(.system(size: timerSize * 0.25, weight: .bold, design: .rounded))
                             .minimumScaleFactor(0.5)
                             .lineLimit(1)
                     }
@@ -80,45 +72,33 @@ struct FocusView: View {
                 .frame(maxHeight: 350)
 
                 // 控制按钮
-                HStack(spacing: 30) {
-                    // 重置按钮 - 用于清除已完成的专注会话记录
+                HStack(spacing: 40) {
+                    // 重置按钮
                     Button(action: {
-                        // 重置会话按钮 - 清除已完成的专注会话计数
                         focusTimer.resetSessions()
                     }) {
                         Image(systemName: "arrow.counterclockwise")
-                            .font(.title)
+                            .font(.title2)
                             .foregroundColor(.secondary)
-                            .frame(width: 60, height: 60)
+                            .frame(width: 50, height: 50)
                             .background(Color(.systemGray6))
                             .clipShape(Circle())
                     }
                     .disabled(focusTimer.completedFocusSessions == 0)
                     .opacity(focusTimer.completedFocusSessions == 0 ? 0.5 : 1)
 
-                    if focusTimer.currentState == .idle {
+                    // 开始/暂停按钮
+                    if focusTimer.currentState == .idle || focusTimer.currentState == .paused {
                         Button(action: {
                             focusTimer.startTimer()
                         }) {
                             Image(systemName: "play.fill")
                                 .font(.title)
                                 .foregroundColor(.white)
-                                .frame(width: 80, height: 80)
-                                .background(Color.blue)
+                                .frame(width: 70, height: 70)
+                                .background(Color.orange)
                                 .clipShape(Circle())
-                                .shadow(color: Color.blue.opacity(0.3), radius: 5, x: 0, y: 5)
-                        }
-                    } else if focusTimer.currentState == .paused {
-                        Button(action: {
-                            focusTimer.startTimer()
-                        }) {
-                            Image(systemName: "play.fill")
-                                .font(.title)
-                                .foregroundColor(.white)
-                                .frame(width: 80, height: 80)
-                                .background(Color.blue)
-                                .clipShape(Circle())
-                                .shadow(color: Color.blue.opacity(0.3), radius: 5, x: 0, y: 5)
+                                .shadow(color: Color.orange.opacity(0.3), radius: 5, x: 0, y: 3)
                         }
                     } else {
                         Button(action: {
@@ -127,23 +107,23 @@ struct FocusView: View {
                             Image(systemName: "pause.fill")
                                 .font(.title)
                                 .foregroundColor(.white)
-                                .frame(width: 80, height: 80)
-                                .background(Color.blue)
+                                .frame(width: 70, height: 70)
+                                .background(Color.orange)
                                 .clipShape(Circle())
-                                .shadow(color: Color.blue.opacity(0.3), radius: 5, x: 0, y: 5)
+                                .shadow(color: Color.orange.opacity(0.3), radius: 5, x: 0, y: 3)
                         }
                     }
 
+                    // 跳过/停止按钮
                     Button(action: {
-                        // 仅在非空闲状态下显示确认对话框
                         if focusTimer.currentState != .idle {
                             showStopConfirmation = true
                         }
                     }) {
-                        Image(systemName: "stop.fill")
-                            .font(.title)
+                        Image(systemName: "forward.fill")
+                            .font(.title2)
                             .foregroundColor(.secondary)
-                            .frame(width: 60, height: 60)
+                            .frame(width: 50, height: 50)
                             .background(Color(.systemGray6))
                             .clipShape(Circle())
                     }
@@ -152,11 +132,12 @@ struct FocusView: View {
                 }
                 .padding(.horizontal)
 
-                // 专注进度可视化部分
-                VStack(alignment: .center, spacing: 8) {
-                    Text(NSLocalizedString("今日专注进度", comment: "Today's focus progress"))
-                        .font(.subheadline)
+                // 今日进度
+                VStack(alignment: .center, spacing: 12) {
+                    Text(NSLocalizedString("今日进度", comment: "Today's progress"))
+                        .font(.headline)
                         .foregroundColor(.secondary)
+                        .padding(.top, 8)
 
                     // 使用番茄图标来可视化进度
                     let targetSessions = appSettings.focusSettings.dailyFocusSessionsTarget
@@ -166,27 +147,24 @@ struct FocusView: View {
                     let itemsPerRow = min(6, targetSessions) // 每行最多显示6个
                     let rowCount = (targetSessions + itemsPerRow - 1) / itemsPerRow // 向上取整
 
-                    VStack(spacing: 8) {
+                    VStack(spacing: 12) {
                         ForEach(0..<rowCount, id: \.self) { rowIndex in
-                            HStack(spacing: 8) {
+                            HStack(spacing: 12) {
                                 ForEach(0..<min(itemsPerRow, targetSessions - rowIndex * itemsPerRow), id: \.self) { colIndex in
                                     let index = rowIndex * itemsPerRow + colIndex
                                     let isCompleted = index < completedSessions
 
-                                    ZStack {
-                                        RoundedRectangle(cornerRadius: 6)
-                                            .fill(Color(.systemGray6))
-                                            .frame(width: 40, height: 40)
-
-                                        if isCompleted {
-                                            Text("🍅") // 番茄图标
-                                                .font(.title)
-                                        } else {
-                                            Text("🍅")
-                                                .font(.title)
-                                                .foregroundColor(Color(.systemGray4))
-                                                .opacity(0.3)
-                                        }
+                                    if isCompleted {
+                                        // 已完成的番茄
+                                        Text("🍅")
+                                            .font(.title)
+                                            .shadow(color: Color.orange.opacity(0.3), radius: 2, x: 0, y: 1)
+                                    } else {
+                                        // 未完成的番茄
+                                        Text("🍅")
+                                            .font(.title)
+                                            .foregroundColor(Color(.systemGray4))
+                                            .opacity(0.3)
                                     }
                                 }
                             }
@@ -196,34 +174,28 @@ struct FocusView: View {
                 .padding(.horizontal)
                 .frame(maxHeight: 160)
 
-                // 设置按钮
-                NavigationLink(destination: FocusSettingsView()) {
-                    HStack {
-                        Image(systemName: "gear")
-                        Text(NSLocalizedString("专注设置", comment: "Focus Settings button"))
-                    }
-                    .foregroundColor(.white)
-                    .padding()
-                    .background(appSettings.accentColor.color)
-                    .cornerRadius(10)
-                    .shadow(color: appSettings.accentColor.color.opacity(0.3), radius: 3, x: 0, y: 2)
-                }
-                .padding(.bottom)
+                Spacer()
             }
             .padding(.vertical)
-            .navigationTitle(NSLocalizedString("专注", comment: "Focus view navigation title"))
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: FocusSettingsView()) {
+                        Image(systemName: "gear")
+                    }
+                }
+            }
 
-            .alert(NSLocalizedString("终止专注", comment: "Stop focus alert title"), isPresented: $showStopConfirmation) {
+            .alert(NSLocalizedString("跳过当前阶段", comment: "Skip current phase"), isPresented: $showStopConfirmation) {
                 Button(NSLocalizedString("取消", comment: "Cancel button"), role: .cancel) { }
-                Button(NSLocalizedString("终止", comment: "Stop button"), role: .destructive) {
+                Button(NSLocalizedString("跳过", comment: "Skip button"), role: .destructive) {
                     focusTimer.stopTimer()
                 }
             } message: {
                 let messageKey = focusTimer.currentState == .focusing ?
-                    "提前终止专注将不会计入统计。确定要终止当前专注吗？" :
-                    "确定要终止当前休息吗？"
-                Text(NSLocalizedString(messageKey, comment: "Stop focus confirmation message"))
+                    "提前结束专注将不会计入统计。确定要跳过当前专注吗？" :
+                    "确定要跳过当前休息吗？"
+                Text(NSLocalizedString(messageKey, comment: "Skip confirmation message"))
             }
         }
     }
@@ -269,6 +241,9 @@ struct FocusSettingsView: View {
                         Text(String.localizedStringWithFormat(NSLocalizedString("%d分钟", comment: "Duration in minutes format"), Int(focusDuration)))
                     }
                     Slider(value: $focusDuration, in: 1...60, step: 1)
+                        .onChange(of: focusDuration) { _ in
+                            saveSettings()
+                        }
                 }
 
                 VStack {
@@ -278,6 +253,9 @@ struct FocusSettingsView: View {
                         Text(String.localizedStringWithFormat(NSLocalizedString("%d分钟", comment: "Duration in minutes format"), Int(shortBreakDuration)))
                     }
                     Slider(value: $shortBreakDuration, in: 1...30, step: 1)
+                        .onChange(of: shortBreakDuration) { _ in
+                            saveSettings()
+                        }
                 }
 
                 VStack {
@@ -287,13 +265,22 @@ struct FocusSettingsView: View {
                         Text(String.localizedStringWithFormat(NSLocalizedString("%d分钟", comment: "Duration in minutes format"), Int(longBreakDuration)))
                     }
                     Slider(value: $longBreakDuration, in: 1...45, step: 1)
+                        .onChange(of: longBreakDuration) { _ in
+                            saveSettings()
+                        }
                 }
 
                 Stepper(String.localizedStringWithFormat(NSLocalizedString("长休息前专注次数: %d", comment: "Pomodoros before long break stepper"), pomoBeforeBreak), value: $pomoBeforeBreak, in: 1...10)
+                    .onChange(of: pomoBeforeBreak) { _ in
+                        saveSettings()
+                    }
             }
 
             Section(header: Text(NSLocalizedString("今日目标", comment: "Daily target header"))) {
                 Stepper(String.localizedStringWithFormat(NSLocalizedString("每日专注次数目标: %d", comment: "Daily focus sessions target stepper"), dailyFocusSessionsTarget), value: $dailyFocusSessionsTarget, in: 1...30)
+                    .onChange(of: dailyFocusSessionsTarget) { _ in
+                        saveSettings()
+                    }
 
                 VStack {
                     HStack {
@@ -309,8 +296,12 @@ struct FocusSettingsView: View {
                 Toggle(NSLocalizedString("启用音效", comment: "Enable sound effects toggle"), isOn: $enableSound)
                     .onChange(of: enableSound) { newValue in
                         soundManager.setEnabled(newValue)
+                        saveSettings()
                     }
                 Toggle(NSLocalizedString("启用通知", comment: "Enable notifications toggle"), isOn: $enableNotification)
+                    .onChange(of: enableNotification) { _ in
+                        saveSettings()
+                    }
 
                 // 白噪音选择器
                 if enableSound {
@@ -329,6 +320,7 @@ struct FocusSettingsView: View {
                     .onChange(of: whiteNoiseType) { newValue in
                         // 当白噪音类型变化时更新UI
                         print("白噪音类型变化为: \(newValue.displayName)")
+                        saveSettings()
                     }
 
                     if whiteNoiseType != .none {
@@ -341,21 +333,22 @@ struct FocusSettingsView: View {
                             Slider(value: $whiteNoiseVolume, in: 0...1, step: 0.05)
                                 .onChange(of: whiteNoiseVolume) { newValue in
                                     soundManager.setWhiteNoiseVolume(newValue)
+                                    saveSettings()
                                 }
                         }
                     }
                 }
             }
-
-            Section {
-                Button(NSLocalizedString("保存设置", comment: "Save settings button")) {
-                    saveSettings()
+        }
+        .navigationTitle(NSLocalizedString("专注设置", comment: "Focus Settings navigation title"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(NSLocalizedString("完成", comment: "Done button")) {
                     presentationMode.wrappedValue.dismiss()
                 }
             }
         }
-        .navigationTitle(NSLocalizedString("专注设置", comment: "Focus Settings navigation title"))
-        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             // 在视图出现时加载当前设置
             focusDuration = appSettings.focusSettings.focusDuration
@@ -501,8 +494,13 @@ struct WhiteNoiseSelectionView: View {
                 }
             }
 
-            Section {
-                Button(action: {
+            // 使用工具栏代替确认按钮
+        }
+        .navigationTitle(NSLocalizedString("白噪音", comment: "White noise navigation title"))
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(NSLocalizedString("确认", comment: "Confirm button")) {
                     // 停止预览
                     if isPreviewPlaying {
                         soundManager.stopWhiteNoise()
@@ -532,18 +530,9 @@ struct WhiteNoiseSelectionView: View {
                        let rootViewController = windowScene.windows.first?.rootViewController {
                         rootViewController.dismiss(animated: true, completion: nil)
                     }
-                }) {
-                    Text(NSLocalizedString("确认选择", comment: "Confirm selection button"))
-                        .frame(maxWidth: .infinity)
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
                 }
             }
         }
-        .navigationTitle(NSLocalizedString("白噪音", comment: "White noise navigation title"))
-        .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             // 预览默认选择当前的噪音
             previewNoise = selectedNoise

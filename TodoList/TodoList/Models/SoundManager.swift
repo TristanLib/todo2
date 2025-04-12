@@ -201,14 +201,12 @@ class SoundManager: ObservableObject {
         if !foundPath {
             print("描述白噪音失败 \(filename).\(ext): 未能完成操作。")
 
-            // 如果是雷声，尝试直接从文件系统加载
-            if type == .thunder {
-                let projectPath = "/Volumes/disk2/cursor_projects/todo2/TodoList/TodoList/Resources/Sounds/WhiteNoise/thunder.mp3"
-                if FileManager.default.fileExists(atPath: projectPath) {
-                    print("在文件系统中找到雷声文件: \(projectPath)")
-                } else {
-                    print("在文件系统中也未找到雷声文件")
-                }
+            // 尝试直接从文件系统加载
+            let projectPath = "/Volumes/disk2/cursor_projects/todo2/TodoList/TodoList/Resources/Sounds/WhiteNoise/\(filename).mp3"
+            if FileManager.default.fileExists(atPath: projectPath) {
+                print("在文件系统中找到\(type.displayName)文件: \(projectPath)")
+            } else {
+                print("在文件系统中未找到\(type.displayName)文件")
             }
 
             // 创建临时文件以模拟白噪音
@@ -302,9 +300,9 @@ class SoundManager: ObservableObject {
             }
         }
 
-        // 如果是雷声且从资源目录加载失败，尝试直接从文件系统加载
-        if !foundAndPlayed && type == .thunder {
-            let projectPath = "/Volumes/disk2/cursor_projects/todo2/TodoList/TodoList/Resources/Sounds/WhiteNoise/thunder.mp3"
+        // 如果从资源目录加载失败，尝试直接从文件系统加载
+        if !foundAndPlayed {
+            let projectPath = "/Volumes/disk2/cursor_projects/todo2/TodoList/TodoList/Resources/Sounds/WhiteNoise/\(filename).mp3"
             if FileManager.default.fileExists(atPath: projectPath) {
                 do {
                     let fileUrl = URL(fileURLWithPath: projectPath)
@@ -315,13 +313,13 @@ class SoundManager: ObservableObject {
                     player.play()
 
                     whiteNoisePlayer = player
-                    print("成功从文件系统直接播放雷声白噪音")
+                    print("成功从文件系统直接播放\(type.displayName)白噪音")
                     foundAndPlayed = true
                 } catch {
-                    print("从文件系统直接播放雷声失败: \(error.localizedDescription)")
+                    print("从文件系统直接播放\(type.displayName)失败: \(error.localizedDescription)")
                 }
             } else {
-                print("在文件系统中也未找到雷声文件")
+                print("在文件系统中未找到\(type.displayName)文件")
             }
         }
 
