@@ -4,7 +4,7 @@ struct FocusView: View {
     @EnvironmentObject var appSettings: AppSettings
     @ObservedObject private var focusTimer = FocusTimerManager.shared
     @State private var showStopConfirmation = false
-    
+
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
@@ -16,11 +16,11 @@ struct FocusView: View {
                         .animation(.none)
                         .minimumScaleFactor(0.8)
                         .lineLimit(1)
-                    
+
                     // 今日目标
                     VStack(spacing: 4) {
                         Text(String.localizedStringWithFormat(
-                            NSLocalizedString("今日目标: %d个专注，%d分钟", comment: "Daily focus target"), 
+                            NSLocalizedString("今日目标: %d个专注，%d分钟", comment: "Daily focus target"),
                             appSettings.focusSettings.dailyFocusSessionsTarget,
                             appSettings.focusSettings.dailyFocusTimeTarget
                         ))
@@ -28,34 +28,34 @@ struct FocusView: View {
                             .foregroundColor(.secondary)
                     }
                     .padding(.vertical, 4)
-                    
+
                     VStack(spacing: 4) {
                         Text(String.localizedStringWithFormat(
-                            NSLocalizedString("已完成 %d 个专注", comment: "Number of completed focus sessions"), 
+                            NSLocalizedString("已完成 %d 个专注", comment: "Number of completed focus sessions"),
                             focusTimer.todayCompletedFocusSessions
                         ))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
-                        
+
                         // 显示今日累计专注时间
                         Text(String.localizedStringWithFormat(
-                            NSLocalizedString("今日已累计完成 %@", comment: "Total focus time today"), 
+                            NSLocalizedString("今日已累计完成 %@", comment: "Total focus time today"),
                             focusTimer.formattedTodayTotalFocusTime()
                         ))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 // 计时器显示 - 使用 GeometryReader 使其自适应
                 GeometryReader { geometry in
                     let timerSize = min(geometry.size.width * 0.7, geometry.size.height * 0.4)
                     let lineWidth: CGFloat = max(timerSize * 0.07, 15)
-                    
+
                     ZStack {
                         Circle()
                             .stroke(Color(.systemGray5), lineWidth: lineWidth)
-                        
+
                         Circle()
                             .trim(from: 0, to: CGFloat(focusTimer.progress))
                             .stroke(
@@ -68,7 +68,7 @@ struct FocusView: View {
                             )
                             .rotationEffect(.degrees(-90))
                             .animation(.linear(duration: 0.25), value: focusTimer.progress)
-                        
+
                         Text(focusTimer.formattedTimeRemaining())
                             .font(.system(size: timerSize * 0.25, weight: .medium, design: .rounded))
                             .minimumScaleFactor(0.5)
@@ -95,7 +95,7 @@ struct FocusView: View {
                     }
                     .disabled(focusTimer.completedFocusSessions == 0)
                     .opacity(focusTimer.completedFocusSessions == 0 ? 0.5 : 1)
-                    
+
                     if focusTimer.currentState == .idle {
                         Button(action: {
                             focusTimer.startTimer()
@@ -133,7 +133,7 @@ struct FocusView: View {
                                 .shadow(color: Color.blue.opacity(0.3), radius: 5, x: 0, y: 5)
                         }
                     }
-                    
+
                     Button(action: {
                         // 仅在非空闲状态下显示确认对话框
                         if focusTimer.currentState != .idle {
@@ -151,33 +151,33 @@ struct FocusView: View {
                     .opacity(focusTimer.currentState == .idle ? 0.5 : 1)
                 }
                 .padding(.horizontal)
-                
+
                 // 专注进度可视化部分
                 VStack(alignment: .center, spacing: 8) {
                     Text(NSLocalizedString("今日专注进度", comment: "Today's focus progress"))
                         .font(.subheadline)
                         .foregroundColor(.secondary)
-                    
+
                     // 使用番茄图标来可视化进度
                     let targetSessions = appSettings.focusSettings.dailyFocusSessionsTarget
                     let completedSessions = focusTimer.todayCompletedFocusSessions
-                    
+
                     // 计算每行显示的番茄数量
                     let itemsPerRow = min(6, targetSessions) // 每行最多显示6个
                     let rowCount = (targetSessions + itemsPerRow - 1) / itemsPerRow // 向上取整
-                    
+
                     VStack(spacing: 8) {
                         ForEach(0..<rowCount, id: \.self) { rowIndex in
                             HStack(spacing: 8) {
                                 ForEach(0..<min(itemsPerRow, targetSessions - rowIndex * itemsPerRow), id: \.self) { colIndex in
                                     let index = rowIndex * itemsPerRow + colIndex
                                     let isCompleted = index < completedSessions
-                                    
+
                                     ZStack {
                                         RoundedRectangle(cornerRadius: 6)
                                             .fill(Color(.systemGray6))
                                             .frame(width: 40, height: 40)
-                                        
+
                                         if isCompleted {
                                             Text("🍅") // 番茄图标
                                                 .font(.title)
@@ -220,8 +220,8 @@ struct FocusView: View {
                     focusTimer.stopTimer()
                 }
             } message: {
-                let messageKey = focusTimer.currentState == .focusing ? 
-                    "提前终止专注将不会计入统计。确定要终止当前专注吗？" : 
+                let messageKey = focusTimer.currentState == .focusing ?
+                    "提前终止专注将不会计入统计。确定要终止当前专注吗？" :
                     "确定要终止当前休息吗？"
                 Text(NSLocalizedString(messageKey, comment: "Stop focus confirmation message"))
             }
@@ -233,7 +233,7 @@ struct FocusSettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
     @Environment(\.presentationMode) var presentationMode
     @ObservedObject private var soundManager = SoundManager.shared
-    
+
     @State private var focusDuration: Double
     @State private var shortBreakDuration: Double
     @State private var longBreakDuration: Double
@@ -244,9 +244,9 @@ struct FocusSettingsView: View {
     @State private var whiteNoiseType: WhiteNoiseType = .none
     @State private var whiteNoiseVolume: Float = 0.5
     @State private var showWhiteNoiseSelector = false
-    
+
     private let focusTimer = FocusTimerManager.shared
-    
+
     // 使用 onAppear 来加载设置，而不是在初始化时加载
     init() {
         // 初始化时设置默认值，稍后在 onAppear 中更新
@@ -258,7 +258,7 @@ struct FocusSettingsView: View {
         _enableNotification = State(initialValue: true)
         _dailyFocusSessionsTarget = State(initialValue: 10)
     }
-    
+
     var body: some View {
         Form {
             Section(header: Text(NSLocalizedString("时间设置（分钟）", comment: "Time settings header (minutes)"))) {
@@ -270,7 +270,7 @@ struct FocusSettingsView: View {
                     }
                     Slider(value: $focusDuration, in: 1...60, step: 1)
                 }
-                
+
                 VStack {
                     HStack {
                         Text(NSLocalizedString("短休息时长", comment: "Short break duration setting"))
@@ -279,7 +279,7 @@ struct FocusSettingsView: View {
                     }
                     Slider(value: $shortBreakDuration, in: 1...30, step: 1)
                 }
-                
+
                 VStack {
                     HStack {
                         Text(NSLocalizedString("长休息时长", comment: "Long break duration setting"))
@@ -288,13 +288,13 @@ struct FocusSettingsView: View {
                     }
                     Slider(value: $longBreakDuration, in: 1...45, step: 1)
                 }
-                
+
                 Stepper(String.localizedStringWithFormat(NSLocalizedString("长休息前专注次数: %d", comment: "Pomodoros before long break stepper"), pomoBeforeBreak), value: $pomoBeforeBreak, in: 1...10)
             }
-            
+
             Section(header: Text(NSLocalizedString("今日目标", comment: "Daily target header"))) {
                 Stepper(String.localizedStringWithFormat(NSLocalizedString("每日专注次数目标: %d", comment: "Daily focus sessions target stepper"), dailyFocusSessionsTarget), value: $dailyFocusSessionsTarget, in: 1...30)
-                
+
                 VStack {
                     HStack {
                         Text(NSLocalizedString("每日专注时间目标", comment: "Daily focus time target setting"))
@@ -304,14 +304,14 @@ struct FocusSettingsView: View {
                     .foregroundColor(.secondary)
                 }
             }
-            
+
             Section(header: Text(NSLocalizedString("通知与声音", comment: "Notifications and sound header"))) {
                 Toggle(NSLocalizedString("启用音效", comment: "Enable sound effects toggle"), isOn: $enableSound)
                     .onChange(of: enableSound) { newValue in
                         soundManager.setEnabled(newValue)
                     }
                 Toggle(NSLocalizedString("启用通知", comment: "Enable notifications toggle"), isOn: $enableNotification)
-                
+
                 // 白噪音选择器
                 if enableSound {
                     NavigationLink(destination: WhiteNoiseSelectionView(selectedNoise: $whiteNoiseType, volume: $whiteNoiseVolume)) {
@@ -330,7 +330,7 @@ struct FocusSettingsView: View {
                         // 当白噪音类型变化时更新UI
                         print("白噪音类型变化为: \(newValue.displayName)")
                     }
-                    
+
                     if whiteNoiseType != .none {
                         VStack {
                             HStack {
@@ -346,7 +346,7 @@ struct FocusSettingsView: View {
                     }
                 }
             }
-            
+
             Section {
                 Button(NSLocalizedString("保存设置", comment: "Save settings button")) {
                     saveSettings()
@@ -365,19 +365,19 @@ struct FocusSettingsView: View {
             enableSound = appSettings.focusSettings.enableSound
             enableNotification = appSettings.focusSettings.enableNotification
             dailyFocusSessionsTarget = appSettings.focusSettings.dailyFocusSessionsTarget
-            
+
             // 首先从SoundManager加载白噪音设置，因为它可能包含最新的选择
             if soundManager.currentWhiteNoise != .none {
                 whiteNoiseType = soundManager.currentWhiteNoise
                 whiteNoiseVolume = soundManager.whiteNoiseVolume
                 print("从SoundManager加载白噪音设置: \(soundManager.currentWhiteNoise.displayName)")
-                
+
                 // 同步更新AppSettings中的设置
                 var focusSettings = appSettings.focusSettings
                 focusSettings.whiteNoiseType = soundManager.currentWhiteNoise.rawValue
                 focusSettings.whiteNoiseVolume = soundManager.whiteNoiseVolume
                 appSettings.focusSettings = focusSettings
-            } 
+            }
             // 如果从SoundManager加载失败，则从AppSettings加载
             else if let noiseType = WhiteNoiseType(rawValue: appSettings.focusSettings.whiteNoiseType), noiseType != .none {
                 whiteNoiseType = noiseType
@@ -391,11 +391,11 @@ struct FocusSettingsView: View {
             }
         }
     }
-    
+
     private func saveSettings() {
         // 计算每日专注时间目标 = 专注时长 × 每日专注次数目标
         let calculatedDailyFocusTimeTarget = Int(focusDuration * Double(dailyFocusSessionsTarget))
-        
+
         var newSettings = FocusSettings(
             focusDuration: focusDuration,
             shortBreakDuration: shortBreakDuration,
@@ -406,17 +406,26 @@ struct FocusSettingsView: View {
             dailyFocusSessionsTarget: dailyFocusSessionsTarget,
             dailyFocusTimeTarget: calculatedDailyFocusTimeTarget
         )
-        
+
         // 保存白噪音设置
         newSettings.whiteNoiseType = whiteNoiseType.rawValue
         newSettings.whiteNoiseVolume = whiteNoiseVolume
-        
+
         appSettings.focusSettings = newSettings
         focusTimer.updateSettings(from: newSettings)
-        
-        // 如果启用了音效且选择了白噪音，播放白噪音
+
+        // 保存白噪音设置到SoundManager
         if enableSound && whiteNoiseType != .none {
-            soundManager.playWhiteNoise(whiteNoiseType)
+            // 只更新设置，不播放白噪音
+            soundManager.currentWhiteNoise = whiteNoiseType
+            soundManager.setWhiteNoiseVolume(whiteNoiseVolume)
+            UserDefaults.standard.set(whiteNoiseType.rawValue, forKey: "currentWhiteNoise")
+
+            // 只有在专注状态下才播放白噪音
+            if focusTimer.currentState == .focusing {
+                soundManager.playWhiteNoise(whiteNoiseType)
+                print("保存设置并在专注状态下播放白噪音: \(whiteNoiseType.displayName)")
+            }
         } else if !enableSound || whiteNoiseType == .none {
             soundManager.stopWhiteNoise()
         }
@@ -428,11 +437,11 @@ struct WhiteNoiseSelectionView: View {
     @Binding var selectedNoise: WhiteNoiseType
     @Binding var volume: Float
     @ObservedObject private var soundManager = SoundManager.shared
-    
+
     // 预览时使用的临时选择
     @State private var previewNoise: WhiteNoiseType = .none
     @State private var isPreviewPlaying = false
-    
+
     var body: some View {
         List {
             Section(header: Text(NSLocalizedString("选择白噪音", comment: "Select white noise header"))) {
@@ -454,16 +463,16 @@ struct WhiteNoiseSelectionView: View {
                             Image(systemName: noiseType.iconName)
                                 .foregroundColor(.blue)
                                 .frame(width: 30)
-                            
+
                             Text(noiseType.displayName)
-                            
+
                             Spacer()
-                            
+
                             if selectedNoise == noiseType {
                                 Image(systemName: "checkmark")
                                     .foregroundColor(.blue)
                             }
-                            
+
                             if isPreviewPlaying && previewNoise == noiseType {
                                 Image(systemName: "speaker.wave.3.fill")
                                     .foregroundColor(.green)
@@ -473,7 +482,7 @@ struct WhiteNoiseSelectionView: View {
                     .foregroundColor(.primary)
                 }
             }
-            
+
             if isPreviewPlaying && previewNoise != .none {
                 Section(header: Text(NSLocalizedString("预览音量", comment: "Preview volume header"))) {
                     VStack {
@@ -491,7 +500,7 @@ struct WhiteNoiseSelectionView: View {
                     }
                 }
             }
-            
+
             Section {
                 Button(action: {
                     // 停止预览
@@ -499,25 +508,25 @@ struct WhiteNoiseSelectionView: View {
                         soundManager.stopWhiteNoise()
                         isPreviewPlaying = false
                     }
-                    
+
                     // 设置选择的噪音
                     selectedNoise = previewNoise
-                    
+
                     // 确保当前选择的白噪音被保存到SoundManager
                     if previewNoise != .none {
                         soundManager.currentWhiteNoise = previewNoise
                         UserDefaults.standard.set(previewNoise.rawValue, forKey: "currentWhiteNoise")
-                        
+
                         // 同时也更新AppSettings中的设置
                         let appSettings = AppSettings()
                         var focusSettings = appSettings.focusSettings
                         focusSettings.whiteNoiseType = previewNoise.rawValue
                         focusSettings.whiteNoiseVolume = volume
                         appSettings.focusSettings = focusSettings
-                        
+
                         print("已将白噪音设置保存到AppSettings: \(previewNoise.displayName)")
                     }
-                    
+
                     // 返回上一个页面
                     if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                        let rootViewController = windowScene.windows.first?.rootViewController {
@@ -549,10 +558,12 @@ struct WhiteNoiseSelectionView: View {
                 soundManager.stopWhiteNoise()
                 isPreviewPlaying = false
             }
-            
-            // 如果有选择噪音，则重新播放原来的噪音
-            if selectedNoise != .none {
+
+            // 只有在专注状态下才重新播放白噪音
+            let focusTimer = FocusTimerManager.shared
+            if selectedNoise != .none && focusTimer.currentState == .focusing {
                 soundManager.playWhiteNoise(selectedNoise)
+                print("离开白噪音选择页面，恢复专注状态下的白噪音播放")
             }
         }
     }
