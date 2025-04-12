@@ -9,7 +9,7 @@ struct FocusView: View {
         NavigationView {
             VStack(spacing: 20) {
                 // 标题和目标信息
-                VStack(spacing: 12) {
+                VStack(spacing: 8) {
                     Text(focusTimer.currentStateDisplayName())
                         .font(.largeTitle)
                         .fontWeight(.bold)
@@ -19,18 +19,23 @@ struct FocusView: View {
 
                     // 目标和已完成信息
                     VStack(spacing: 8) {
+                        // 番茄目标和已完成
                         Text(String.localizedStringWithFormat(
-                            NSLocalizedString("目标: %d 个番茄", comment: "Focus target"),
-                            appSettings.focusSettings.dailyFocusSessionsTarget
-                        ))
-                        .font(.headline)
-                        .foregroundColor(.secondary)
-
-                        Text(String.localizedStringWithFormat(
-                            NSLocalizedString("已完成: %d 个", comment: "Completed sessions"),
+                            NSLocalizedString("目标: %d个番茄 (已完成: %d)", comment: "Target: X tomatoes (Completed: Y)"),
+                            appSettings.focusSettings.dailyFocusSessionsTarget,
                             focusTimer.todayCompletedFocusSessions
                         ))
                         .font(.headline)
+                        .foregroundColor(.secondary)
+                        .padding(.top, 2)
+
+                        // 目标时间和已累计时间
+                        Text(String.localizedStringWithFormat(
+                            NSLocalizedString("目标时间: %d分钟 (已累计: %@)", comment: "Target time: X min (Accumulated: Y)"),
+                            appSettings.focusSettings.dailyFocusTimeTarget,
+                            focusTimer.formattedTodayTotalFocusTime()
+                        ))
+                        .font(.subheadline)
                         .foregroundColor(.secondary)
                     }
                 }
