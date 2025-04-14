@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import UIKit
 
 // 声音类型枚举
 enum SoundType: String {
@@ -91,7 +92,13 @@ class SoundManager: ObservableObject {
         }
         whiteNoiseVolume = UserDefaults.standard.float(forKey: "whiteNoiseVolume")
         if whiteNoiseVolume == 0 { whiteNoiseVolume = 0.5 } // 确保有默认值
-
+        
+        // 配置音频会话以支持后台播放
+        setupAudioSession()
+        
+        // 注册应用生命周期通知
+        registerForNotifications()
+        
         setupAudioPlayers()
 
         // 注意：不再在初始化时自动播放白噪音
@@ -362,5 +369,97 @@ class SoundManager: ObservableObject {
         whiteNoiseVolume = volume
         whiteNoisePlayer?.volume = volume
         UserDefaults.standard.set(volume, forKey: "whiteNoiseVolume")
+    }
+    
+    // MARK: - 后台播放支持
+    
+    // 配置音频会话以支持后台播放
+    private func setupAudioSession() {
+        do {
+            // 设置音频会话类别为播放，并允许混音和后台播放
+            try AVAudioSession.sharedInstance().setCategory(
+                .playback,
+                mode: .default,
+                options: [.mixWithOthers, .duckOthers]
+            )
+            try AVAudioSession.sharedInstance().setActive(true)
+            print("音频会话配置成功，支持后台播放")
+        } catch {
+            print("配置音频会话失败: \(error.localizedDescription)")
+        }
+    }
+    
+    // 注册应用生命周期通知
+    private func registerForNotifications() {
+        // 监听应用进入后台通知
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
+        
+        // 监听应用进入前台通知
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAppWillEnterForeground),
+            name: UIApplication.willEnterForegroundNotification,
+            object: nil
+        )
+        
+        // 监听音频会话中断通知
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleAudioSessionInterruption),
+            name: AVAudioSession.interruptionNotification,
+            object: nil
+        )
+    }
+    
+    // 处理应用进入后台
+    @objc private func handleAppDidEnterBackground() {
+        print("应用进入后台，确保音频继续播放")
+        // 如果需要，可以在这里添加额外的后台播放逻辑
+    }
+    
+    // 处理应用进入前台
+    @objc private func handleAppWillEnterForeground() {
+        print("应用进入前台")
+        // 重新激活音频会话
+        do {
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            print("重新激活音频会话失败: \(error.localizedDescription)")
+        }
+    }
+    
+    // 处理音频会话中断
+    @objc private func handleAudioSessionInterruption(notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
+            return
+        }
+        
+        switch type {
+        case .began:
+            // 音频被中断（例如来电）
+            print("音频播放被中断")
+            
+        case .ended:
+            // 中断结束，检查是否应该恢复播放
+            if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt,
+               AVAudioSession.InterruptionOptions(rawValue: optionsValue).contains(.shouldResume) {
+                print("中断结束，恢复音频播放")
+                
+                // 恢复白噪音播放（如果之前正在播放）
+                if currentWhiteNoise != .none && isEnabled && whiteNoisePlayer == nil {
+                    playWhiteNoise(currentWhiteNoise)
+                }
+            }
+            
+        @unknown default:
+            break
+        }
     }
 }
