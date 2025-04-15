@@ -4,9 +4,12 @@ struct FocusView: View {
     @EnvironmentObject var appSettings: AppSettings
     @ObservedObject private var focusTimer = FocusTimerManager.shared
     @State private var showStopConfirmation = false
+    @State private var viewAppeared = false
 
     var body: some View {
         NavigationView {
+            // 使用onAppear和onDisappear来跟踪视图的生命周期
+            // 这有助于解决从设置页面返回时按钮状态不同步的问题
             VStack(spacing: 20) {
                 // 标题和目标信息
                 VStack(spacing: 8) {
@@ -161,15 +164,17 @@ struct FocusView: View {
 
                                     if isCompleted {
                                         // 已完成的番茄
-                                        Text("🍅")
-                                            .font(.title)
+                                        Image("TomatoCompleted")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 30, height: 30)
                                             .shadow(color: Color.orange.opacity(0.3), radius: 2, x: 0, y: 1)
                                     } else {
                                         // 未完成的番茄
-                                        Text("🍅")
-                                            .font(.title)
-                                            .foregroundColor(Color(.systemGray4))
-                                            .opacity(0.3)
+                                        Image("TomatoUncompleted")
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(width: 30, height: 30)
                                     }
                                 }
                             }
@@ -189,6 +194,17 @@ struct FocusView: View {
                         Image(systemName: "gear")
                     }
                 }
+            }
+            .onAppear {
+                // 视图出现时，强制刷新状态
+                viewAppeared = true
+                // 确保UI状态与计时器状态同步
+                DispatchQueue.main.async {
+                    focusTimer.objectWillChange.send()
+                }
+            }
+            .onDisappear {
+                viewAppeared = false
             }
 
             .alert(NSLocalizedString("跳过当前阶段", comment: "Skip current phase"), isPresented: $showStopConfirmation) {

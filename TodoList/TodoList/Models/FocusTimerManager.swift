@@ -447,13 +447,10 @@ class FocusTimerManager: ObservableObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
                 self?.taskStore?.updateApplicationBadge()
             }
-
-            // 决定下一个状态是短休息还是长休息
-            if completedFocusSessions % sessionsBeforeLongBreak == 0 {
-                startTimer(state: .longBreak)
-            } else {
-                startTimer(state: .shortBreak)
-            }
+            
+            // 修改：专注结束后回到空闲状态，等待用户手动开始休息
+            // 不再自动启动休息模式
+            stopTimer()
 
         case .shortBreak, .longBreak:
             // 播放休息结束声音
