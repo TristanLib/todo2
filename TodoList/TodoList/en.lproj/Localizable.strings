@@ -21,7 +21,7 @@
 "任务列表" = "Tasks";
 "全部" = "All";
 "进行中" = "Active";
-"已完成" = "Completed";
+"已完成" = "Done";
 "搜索任务..." = "Search tasks...";
 "你的任务列表是空的" = "Your task list is empty";
 "没有找到匹配的任务" = "No matching tasks found";
@@ -50,7 +50,7 @@
 // Task Detail View
 "截止日期: " = "Due date: ";
 "标记为完成" = "Mark as Complete";
-"已完成" = "Completed";
+"已完成" = "Done";
 "编辑" = "Edit";
 
 // Home View
@@ -58,8 +58,8 @@
 "搜索" = "Search";
 "排序" = "Sort";
 "任务概览" = "Task Overview";
-"今日进行中" = "In Progress Today";
-"全部未完成" = "All Incomplete";
+"今日进行中" = "Today's Tasks";
+"全部未完成" = "Pending";
 "已逾期" = "Overdue";
 "今日进度" = "Today's Progress";
 
@@ -182,8 +182,8 @@
 "今日进度" = "Today's Progress";
 
 /* 新增的合并格式文本 */
-"目标: %d个番茄 (已完成: %d)" = "Target: %d tomatoes (Completed: %d)";
-"目标时间: %d分钟 (已累计: %@)" = "Target time: %d min (Accumulated: %@)";
+"目标: %d个番茄 (已完成: %d)" = "Target: %d tomatoes (Done: %d)";
+"目标时间: %d分钟 (已累计: %@)" = "Time: %d min (Done: %@)";
 "跳过当前阶段" = "Skip Current Phase";
 "跳过" = "Skip";
 "提前结束专注将不会计入统计。确定要跳过当前专注吗？" = "Ending focus early won't count towards stats. Skip current focus session?";

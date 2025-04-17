@@ -80,6 +80,9 @@ class FocusTimerManager: ObservableObject {
 
         // 添加应用生命周期的观察者
         setupAppLifecycleObservers()
+        
+        // 添加每日检查定时器，确保日期变更时数据会被重置
+        setupDailyCheckTimer()
 
         // 延迟获取TaskStore实例，避免循环引用
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
@@ -93,9 +96,28 @@ class FocusTimerManager: ObservableObject {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
         let todayString = dateFormatter.string(from: today)
-
-        todayCompletedFocusSessions = UserDefaults.standard.integer(forKey: "todayCompletedFocusSessions_\(todayString)")
-        todayTotalFocusTime = UserDefaults.standard.integer(forKey: "todayTotalFocusTime_\(todayString)")
+        
+        // 检查上次加载数据的日期
+        let lastLoadedDateString = UserDefaults.standard.string(forKey: "lastLoadedFocusDate") ?? ""
+        
+        // 如果日期变更了，清零今日数据
+        if lastLoadedDateString != todayString {
+            print("日期已变更，重置专注统计数据：从 \(lastLoadedDateString) 到 \(todayString)")
+            // 重置今日数据
+            todayCompletedFocusSessions = 0
+            todayTotalFocusTime = 0
+            
+            // 保存新的数据到今日的键
+            UserDefaults.standard.set(0, forKey: "todayCompletedFocusSessions_\(todayString)")
+            UserDefaults.standard.set(0, forKey: "todayTotalFocusTime_\(todayString)")
+            
+            // 更新最后加载日期
+            UserDefaults.standard.set(todayString, forKey: "lastLoadedFocusDate")
+        } else {
+            // 日期未变，正常加载今日数据
+            todayCompletedFocusSessions = UserDefaults.standard.integer(forKey: "todayCompletedFocusSessions_\(todayString)")
+            todayTotalFocusTime = UserDefaults.standard.integer(forKey: "todayTotalFocusTime_\(todayString)")
+        }
     }
 
     // 设置应用生命周期观察者
@@ -158,6 +180,9 @@ class FocusTimerManager: ObservableObject {
 
     // 应用成为活跃状态
     @objc private func appDidBecomeActive() {
+        // 检查日期是否变更，如果变更则重新加载今日数据（会自动清零）
+        loadTodayData()
+        
         if currentState != .idle && currentState != .paused && backgroundTime != nil {
             handleBackgroundToForeground()
         }
@@ -189,6 +214,40 @@ class FocusTimerManager: ObservableObject {
 
         // 重置后台时间
         self.backgroundTime = nil
+    }
+    
+    // 设置每日检查定时器，确保日期变更时数据会被重置
+    private func setupDailyCheckTimer() {
+        // 获取当前日期
+        let now = Date()
+        let calendar = Calendar.current
+        
+        // 计算下一个午夜时刻（明天的0点）
+        var components = DateComponents()
+        components.day = 1
+        components.hour = 0
+        components.minute = 0
+        components.second = 0
+        
+        guard let tomorrow = calendar.date(byAdding: components, to: calendar.startOfDay(for: now)) else {
+            print("无法计算下一个午夜时刻")
+            return
+        }
+        
+        // 计算从现在到明天0点的时间间隔
+        let timeInterval = tomorrow.timeIntervalSince(now)
+        
+        // 创建一个定时器，在下一个午夜触发
+        DispatchQueue.main.asyncAfter(deadline: .now() + timeInterval) { [weak self] in
+            print("午夜已到，重置专注统计数据")
+            // 重新加载今日数据（会自动检测日期变更并重置）
+            self?.loadTodayData()
+            
+            // 递归调用，设置下一天的定时器
+            self?.setupDailyCheckTimer()
+        }
+        
+        print("已设置每日检查定时器，将在\(String(format: "%.1f", timeInterval/3600))小时后（\(tomorrow))触发")
     }
 
     // 重新启动计时器但不重置时间
