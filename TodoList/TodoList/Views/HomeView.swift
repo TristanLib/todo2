@@ -126,14 +126,14 @@ struct HomeView: View {
             
             HStack(spacing: 12) {
                 progressCard(
-                    title: NSLocalizedString("今日进行中", comment: "Today in progress card"),
+                    title: NSLocalizedString("今日进行中", comment: "Today's Tasks"),
                     count: todayTasks.filter { !$0.isCompleted }.count,
                     icon: "hourglass.circle.fill",
                     color: .blue
                 )
                 
                 progressCard(
-                    title: NSLocalizedString("全部未完成", comment: "All incomplete card"),
+                    title: NSLocalizedString("全部未完成", comment: "Pending"),
                     count: allIncompleteTasks.count,
                     icon: "exclamationmark.circle.fill",
                     color: .orange
@@ -142,14 +142,14 @@ struct HomeView: View {
             
             HStack(spacing: 12) {
                 progressCard(
-                    title: NSLocalizedString("已逾期", comment: "Overdue card"),
+                    title: NSLocalizedString("已逾期", comment: "Overdue"),
                     count: overdueIncompleteTasks.count,
                     icon: "calendar.badge.exclamationmark",
                     color: .red
                 )
                 
                 progressCard(
-                    title: NSLocalizedString("已完成", comment: "Completed card"),
+                    title: NSLocalizedString("已完成", comment: "Done"),
                     count: completedTodayTasks.count,
                     icon: "checkmark.circle.fill",
                     color: .green
@@ -193,6 +193,9 @@ struct HomeView: View {
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
+                    .lineLimit(1) // 限制为一行
+                    .minimumScaleFactor(0.75) // 允许字体缩小以适应空间
+                    .fixedSize(horizontal: false, vertical: true) // 固定垂直高度
                 
                 Text("\(count)")
                     .font(.title)
@@ -207,7 +210,7 @@ struct HomeView: View {
                 .foregroundColor(color)
         }
         .padding()
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 90) // 设置最小高度确保所有卡片一致
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.systemBackground))
@@ -218,16 +221,16 @@ struct HomeView: View {
             if count == 0 {
                 cardContent
                     .onTapGesture {
-                        if title == NSLocalizedString("今日进行中", comment: "Today in progress card") {
+                        if title == NSLocalizedString("今日进行中", comment: "Today's Tasks") {
                             emptyAlertTitle = NSLocalizedString("今日无进行中任务", comment: "No in-progress tasks today")
                             emptyAlertMessage = NSLocalizedString("今天没有需要处理的任务", comment: "No tasks to handle today")
-                        } else if title == NSLocalizedString("全部未完成", comment: "All incomplete card") {
+                        } else if title == NSLocalizedString("全部未完成", comment: "Pending") {
                             emptyAlertTitle = NSLocalizedString("没有未完成任务", comment: "No incomplete tasks")
                             emptyAlertMessage = NSLocalizedString("你已完成所有任务", comment: "You have completed all tasks")
-                        } else if title == NSLocalizedString("已逾期", comment: "Overdue card") {
+                        } else if title == NSLocalizedString("已逾期", comment: "Overdue") {
                             emptyAlertTitle = NSLocalizedString("没有逾期任务", comment: "No overdue tasks")
                             emptyAlertMessage = NSLocalizedString("你没有逾期的任务", comment: "You don't have any overdue tasks")
-                        } else if title == NSLocalizedString("已完成", comment: "Completed card") {
+                        } else if title == NSLocalizedString("已完成", comment: "Done") {
                             emptyAlertTitle = NSLocalizedString("没有已完成任务", comment: "No completed tasks")
                             emptyAlertMessage = NSLocalizedString("你还没有完成任何任务", comment: "You haven't completed any tasks yet")
                         }
@@ -240,22 +243,22 @@ struct HomeView: View {
                             dismissButton: .default(Text(NSLocalizedString("确定", comment: "OK")))
                         )
                     }
-            } else if title == NSLocalizedString("今日进行中", comment: "Today in progress card") {
+            } else if title == NSLocalizedString("今日进行中", comment: "Today's Tasks") {
                 NavigationLink(destination: TaskListView(showTodayOnly: true)) {
                     cardContent
                 }
                 .buttonStyle(PlainButtonStyle())
-            } else if title == NSLocalizedString("全部未完成", comment: "All incomplete card") {
+            } else if title == NSLocalizedString("全部未完成", comment: "Pending") {
                 NavigationLink(destination: TaskListView(showAllIncomplete: true)) {
                     cardContent
                 }
                 .buttonStyle(PlainButtonStyle())
-            } else if title == NSLocalizedString("已逾期", comment: "Overdue card") {
+            } else if title == NSLocalizedString("已逾期", comment: "Overdue") {
                 NavigationLink(destination: TaskListView(showOverdueOnly: true)) {
                     cardContent
                 }
                 .buttonStyle(PlainButtonStyle())
-            } else if title == NSLocalizedString("已完成", comment: "Completed card") {
+            } else if title == NSLocalizedString("已完成", comment: "Done") {
                 NavigationLink(destination: TaskListView(showCompletedOnly: true)) {
                     cardContent
                 }

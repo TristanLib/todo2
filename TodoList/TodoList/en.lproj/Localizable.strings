@@ -58,15 +58,24 @@
 "搜索" = "Search";
 "排序" = "Sort";
 "任务概览" = "Task Overview";
-"今日进行中" = "Today's Tasks";
+"今日进行中" = "Today";
 "全部未完成" = "Pending";
 "已逾期" = "Overdue";
+"已完成" = "Done";
 "今日进度" = "Today's Progress";
 
 // Home View Additions
 "早上好" = "Good morning";
 "下午好" = "Good afternoon";
 "晚上好" = "Good evening";
+"今日无进行中任务" = "No Tasks In Progress Today";
+"今天没有需要处理的任务" = "You have no tasks to handle today";
+"没有未完成任务" = "No Pending Tasks";
+"你已完成所有任务" = "You have completed all tasks";
+"没有逾期任务" = "No Overdue Tasks";
+"你没有逾期的任务" = "You don't have any overdue tasks";
+"没有已完成任务" = "No Completed Tasks";
+"你还没有完成任何任务" = "You haven't completed any tasks yet";
 "今日待办" = "Today's Todos";
 "查看全部" = "View All";
 "今日无任务" = "No Tasks Today";
@@ -116,6 +125,7 @@
 "语言已更改" = "Language Changed";
 "您可能需要重新启动应用以使更改完全生效。" = "You may need to restart the app for the changes to take full effect.";
 "好的" = "OK";
+"确定" = "OK";
 
 // ContentView Tab Bar
 "任务" = "Tasks";
@@ -172,6 +182,22 @@
 "任务「%@」即将到期，请尽快完成" = "Task \"%@\" is due soon. Please complete it as soon as possible.";
 
 "设置应用显示语言" = "Set app display language"; // 这是 SettingsView 里偏好设置行的副标题
+
+/* 白噪音相关 */
+"白噪音" = "White Noise";
+"选择白噪音" = "Select White Noise";
+"音量" = "Volume";
+"预览音量" = "Preview Volume";
+"确认" = "Confirm";
+"无白噪音" = "No White Noise";
+"雨声" = "Rain";
+"海浪" = "Ocean Waves";
+"篝火" = "Fire";
+"森林" = "Forest";
+"咖啡厅" = "Cafe";
+"雷声" = "Thunder";
+"风声" = "Wind";
+"河流" = "River";
 
 /* 专注目标相关 */
 "今日目标: %d个专注，%d分钟" = "Today's Goal: %d sessions, %d minutes";
