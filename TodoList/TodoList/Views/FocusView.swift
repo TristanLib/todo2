@@ -23,11 +23,24 @@ struct FocusView: View {
                     // 目标和已完成信息
                     VStack(spacing: 8) {
                         // 番茄目标和已完成
-                        Text(String.localizedStringWithFormat(
-                            NSLocalizedString("目标: %d个番茄 (已完成: %d)", comment: "Target: X tomatoes (Completed: Y)"),
-                            appSettings.focusSettings.dailyFocusSessionsTarget,
-                            focusTimer.todayCompletedFocusSessions
-                        ))
+                        HStack(spacing: 4) {
+                            Text(String.localizedStringWithFormat(
+                                NSLocalizedString("目标: %d", comment: "Target: X"),
+                                appSettings.focusSettings.dailyFocusSessionsTarget
+                            ))
+                            
+                            // 番茄图标
+                            Image("TomatoCompleted")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 22, height: 22)
+                                .shadow(color: Color.orange.opacity(0.3), radius: 2, x: 0, y: 1)
+                            
+                            Text(String.localizedStringWithFormat(
+                                NSLocalizedString("(已完成: %d)", comment: "(Done: X)"),
+                                focusTimer.todayCompletedFocusSessions
+                            ))
+                        }
                         .font(.headline)
                         .foregroundColor(.secondary)
                         .padding(.top, 2)

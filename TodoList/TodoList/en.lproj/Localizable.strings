@@ -254,6 +254,8 @@
 "今日进度" = "Today's Progress";
 
 /* 新增的合并格式文本 */
+"目标: %d" = "Target: %d";
+"(已完成: %d)" = "(Done: %d)";
 "目标: %d个番茄 (已完成: %d)" = "Target: %d tomatoes (Done: %d)";
 "目标时间: %d分钟 (已累计: %@)" = "Time: %d min (Done: %@)";
 "跳过当前阶段" = "Skip Current Phase";
