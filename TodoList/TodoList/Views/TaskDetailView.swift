@@ -245,134 +245,207 @@ struct EditTaskView: View {
     }
     
     var body: some View {
-        VStack(spacing: 0) {
-            // 自定义导航栏
-            ZStack {
-                // 左侧返回按钮
-                HStack {
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        HStack(spacing: 2) {
-                            Image(systemName: "chevron.left")
-                                .font(.system(size: 14))
-                            Text(NSLocalizedString("返回", comment: "Back button"))
-                                .font(.system(size: 14))
-                        }
-                        .foregroundColor(appSettings.accentColor.color)
-                        .padding(.vertical, 6)
-                        .padding(.horizontal, 10)
-                    }
-                    Spacer()
-                }
-                
-                // 中间标题
-                Text(NSLocalizedString("编辑任务", comment: "Edit task title"))
-                    .font(.title2)
-                    .fontWeight(.bold)
-                
-                // 右侧保存按钮
-                HStack {
-                    Spacer()
-                    Button(action: saveTask) {
-                        Text(NSLocalizedString("保存更改", comment: "Save changes button"))
-                            .font(.system(size: 14))
-                            .foregroundColor(title.isEmpty ? .gray : .white)
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(title.isEmpty ? Color.gray.opacity(0.3) : appSettings.accentColor.color)
-                            )
-                    }
-                    .disabled(title.isEmpty)
-                }
-            }
-            .padding()
-            .background(Color(.systemBackground))
+        ZStack {
+            // 背景颜色
+            Color(UIColor.systemGroupedBackground)
+                .edgesIgnoringSafeArea(.all)
             
-            ScrollView {
-                VStack(spacing: 24) {
-                    // 任务标题和描述区域
-                    VStack(alignment: .leading, spacing: 20) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("任务标题")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            TextField("你需要做什么？", text: $title)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("描述")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            ZStack(alignment: .topLeading) {
-                                if description.isEmpty {
-                                    Text("添加任务详情")
-                                        .foregroundColor(.gray)
-                                        .padding(.top, 16)
-                                        .padding(.leading, 16)
-                                }
-                                
-                                TextEditor(text: $description)
-                                    .padding(8)
-                                    .frame(minHeight: 120)
-                                    .background(Color(.systemGray6))
-                                    .cornerRadius(10)
+            VStack(spacing: 0) {
+                // 自定义导航栏
+                ZStack {
+                    // 左侧返回按钮
+                    HStack {
+                        Button(action: {
+                            presentationMode.wrappedValue.dismiss()
+                        }) {
+                            HStack(spacing: 2) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 14))
+                                Text(NSLocalizedString("返回", comment: "Back button"))
+                                    .font(.system(size: 14))
                             }
+                            .foregroundColor(appSettings.accentColor.color)
                         }
+                        Spacer()
                     }
-                    .padding()
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(.systemBackground))
-                            .shadow(color: Color.black.opacity(0.03), radius: 6, x: 0, y: 2)
-                    )
                     
-                    // 分类和截止日期
-                    HStack(spacing: 16) {
-                        // 分类选择器
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("分类")
-                                .font(.headline)
+                    // 中间标题
+                    Text(NSLocalizedString("编辑任务", comment: "Edit task title"))
+                        .font(.headline)
+                        .fontWeight(.bold)
+                    
+                    // 右侧保存按钮
+                    HStack {
+                        Spacer()
+                        Button(action: saveTask) {
+                            Text(NSLocalizedString("保存更改", comment: "Save changes button"))
+                                .font(.system(size: 14))
+                                .foregroundColor(title.isEmpty ? .gray : .white)
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 10)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(title.isEmpty ? Color.gray.opacity(0.3) : appSettings.accentColor.color)
+                                )
+                        }
+                        .disabled(title.isEmpty)
+                    }
+                }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
+                
+                // 表单区域
+                ScrollView {
+                    VStack(spacing: 16) {
+                        // 基本信息卡片
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(NSLocalizedString("基本信息", comment: "Basic info section header"))
+                                .font(.subheadline.weight(.medium))
                                 .foregroundColor(.primary)
+                                .padding(.horizontal, 16)
                             
-                            Menu {
-                                // 无分类选项
-                                Button(action: {
-                                    selectedCategoryTag = .none
-                                }) {
-                                    HStack {
-                                        Text("无分类")
-                                        if selectedCategoryTag == .none {
-                                            Image(systemName: "checkmark")
-                                        }
-                                    }
-                                }
+                            VStack(spacing: 0) {
+                                // 任务名称
+                                TextField(NSLocalizedString("任务名称", comment: "Task name field"), text: $title)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                                    .background(Color.white)
                                 
                                 Divider()
                                 
-                                // 预设分类
-                                ForEach(TaskCategory.allCases, id: \.self) { category in
+                                // 任务详情
+                                ZStack(alignment: .topLeading) {
+                                    if description.isEmpty {
+                                        Text(NSLocalizedString("任务详情（可选）", comment: "Task description placeholder"))
+                                            .foregroundColor(Color(.placeholderText))
+                                            .padding(.top, 12)
+                                            .padding(.leading, 16)
+                                    }
+                                    TextEditor(text: $description)
+                                        .frame(minHeight: 60)
+                                        .padding(.horizontal, 12)
+                                        .background(Color.white)
+                                }
+                                .frame(minHeight: 60)
+                                .background(Color.white)
+                            }
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                        }
+                        .padding(.horizontal)
+                    
+                        // 截止日期部分
+                        VStack(alignment: .leading, spacing: 12) {
+                            Toggle(NSLocalizedString("设置截止日期", comment: "Set due date toggle"), isOn: $hasDueDate.animation())
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(Color.white)
+                                .cornerRadius(10)
+                                .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                            
+                            if hasDueDate {
+                                VStack(spacing: 0) {
+                                    DatePicker(NSLocalizedString("日期", comment: "Date picker label"), selection: $dueDate, displayedComponents: [.date])
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 12)
+                                    
+                                    Divider()
+                                        .padding(.leading, 16)
+                                    
+                                    DatePicker(NSLocalizedString("时间", comment: "Time picker label"), selection: $dueDate, displayedComponents: [.hourAndMinute])
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 12)
+                                }
+                                .background(Color.white)
+                                .cornerRadius(10)
+                                .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                            }
+                        }
+                        .padding(.horizontal)
+                        
+                        // 优先级部分
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(NSLocalizedString("优先级", comment: "Priority section header"))
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.primary)
+                                .padding(.horizontal, 16)
+                            
+                            // 自定义优先级选择器
+                            HStack(spacing: 0) {
+                                ForEach(TaskPriority.allCases, id: \.self) { priority in
                                     Button(action: {
-                                        selectedCategoryTag = .preset(category)
+                                        selectedPriority = priority
                                     }) {
-                                        HStack {
-                                            Text(category.localizedString)
-                                            if selectedCategoryTag == .preset(category) {
-                                                Image(systemName: "checkmark")
-                                            }
-                                        }
+                                        Text(priority.localizedString)
+                                            .font(.system(size: 15, weight: selectedPriority == priority ? .semibold : .regular))
+                                            .frame(maxWidth: .infinity)
+                                            .padding(.vertical, 12)
+                                            .background(selectedPriority == priority ? 
+                                                        priority.color.opacity(0.2) : 
+                                                        Color(.systemGray6))
+                                            .foregroundColor(selectedPriority == priority ? priority.color : .gray)
+                                    }
+                                    .buttonStyle(PlainButtonStyle())
+                                    
+                                    if priority != .high {
+                                        Divider()
                                     }
                                 }
-                                
-                                if !categoryManager.categories.isEmpty {
-                                    Divider()
+                            }
+                            .background(Color.white)
+                            .cornerRadius(10)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .stroke(Color(.systemGray4), lineWidth: 0.5)
+                            )
+                            .padding(.horizontal, 16)
+                            .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                        }
+                        .padding(.horizontal)
+                        
+                        // 分类部分
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text(NSLocalizedString("分类", comment: "Category section header"))
+                                .font(.subheadline.weight(.medium))
+                                .foregroundColor(.primary)
+                                .padding(.horizontal, 16)
+                            
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 10) {
+                                    // 无分类选项
+                                    Button(action: {
+                                        selectedCategoryTag = .none
+                                    }) {
+                                        Text(NSLocalizedString("无分类", comment: "No category option"))
+                                            .font(.system(size: 14, weight: selectedCategoryTag == .some(.none) ? .semibold : .regular))
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 6)
+                                            .foregroundColor(selectedCategoryTag == .some(.none) ? .white : .gray)
+                                            .background(
+                                                Capsule().fill(selectedCategoryTag == .some(.none) ? Color.gray : Color.gray.opacity(0.15))
+                                            )
+                                    }
+                                    
+                                    // 预设分类
+                                    ForEach(TaskCategory.allCases, id: \.self) { category in
+                                        Button(action: {
+                                            selectedCategoryTag = .preset(category)
+                                        }) {
+                                            let isSelected = selectedCategoryTag == .some(.preset(category))
+                                            let categoryColor = getCategoryColor(for: category)
+                                            
+                                            Text(category.localizedString)
+                                                .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                                                .padding(.horizontal, 16)
+                                                .padding(.vertical, 6)
+                                                .foregroundColor(isSelected ? .white : categoryColor)
+                                                .background(
+                                                    Capsule().fill(isSelected ? categoryColor : categoryColor.opacity(0.15))
+                                                )
+                                        }
+                                    }
                                     
                                     // 自定义分类
                                     ForEach(categoryManager.categories) { category in
@@ -381,114 +454,52 @@ struct EditTaskView: View {
                                             Button(action: {
                                                 selectedCategoryTag = .custom(category.id)
                                             }) {
-                                                HStack {
-                                                    Text(category.name)
-                                                    if selectedCategoryTag == .custom(category.id) {
-                                                        Image(systemName: "checkmark")
-                                                    }
-                                                }
+                                                let isSelected = selectedCategoryTag == .some(.custom(category.id))
+                                                let chipColor = CategoryManager.color(for: category.colorName)
+                                                
+                                                Text(category.localizedName)
+                                                    .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                                                    .padding(.horizontal, 16)
+                                                    .padding(.vertical, 6)
+                                                    .foregroundColor(isSelected ? .white : chipColor)
+                                                    .background(
+                                                        Capsule().fill(isSelected ? chipColor : chipColor.opacity(0.15))
+                                                    )
                                             }
                                         }
                                     }
-                                }
-                            } label: {
-                                HStack {
-                                    Text(getCategoryName())
-                                    Spacer()
-                                    Image(systemName: "chevron.down")
-                                        .font(.caption)
-                                }
-                                .foregroundColor(.primary)
-                                .padding()
-                                .frame(maxWidth: .infinity)
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-                            }
-                        }
-                        
-                        // 截止日期选择器
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("截止日期")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            HStack {
-                                DatePicker("", selection: $dueDate, displayedComponents: [.date])
-                                    .labelsHidden()
-                                    .onChange(of: dueDate) { _, _ in
-                                        hasDueDate = true
-                                    }
-                                
-                                Spacer()
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(Color(.systemGray6))
-                            .cornerRadius(10)
-                        }
-                    }
-                    
-                    // 时间和优先级
-                    HStack(spacing: 16) {
-                        // 时间选择器
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("时间")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            DatePicker("", selection: $dueDate, displayedComponents: [.hourAndMinute])
-                                .labelsHidden()
-                                .onChange(of: dueDate) { _, _ in
-                                    hasDueDate = true
-                                }
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-                        }
-                        
-                        // 优先级选择器
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("优先级")
-                                .font(.headline)
-                                .foregroundColor(.primary)
-                            
-                            HStack(spacing: 8) {
-                                ForEach(TaskPriority.allCases, id: \.self) { priority in
-                                    Button(action: {
-                                        selectedPriority = priority
-                                    }) {
-                                        Text(priorityLabel(for: priority))
+                                    
+                                    // 添加新分类按钮
+                                    Button {
+                                        // 这里可以添加创建新分类的功能，如果需要的话
+                                    } label: {
+                                        Label(NSLocalizedString("新分类", comment: "New category button"), systemImage: "plus.circle.fill")
+                                            .font(.system(size: 14))
                                             .padding(.horizontal, 12)
-                                            .padding(.vertical, 8)
-                                            .foregroundColor(selectedPriority == priority ? .white : priorityColor(for: priority))
+                                            .padding(.vertical, 6)
+                                            .foregroundColor(appSettings.accentColor.color)
                                             .background(
-                                                RoundedRectangle(cornerRadius: 8)
-                                                    .fill(selectedPriority == priority ? priorityColor(for: priority) : priorityColor(for: priority).opacity(0.1))
+                                                Capsule().fill(appSettings.accentColor.color.opacity(0.1))
                                             )
                                     }
-                                    .buttonStyle(PlainButtonStyle())
                                 }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(8)
-                            .background(Color(.systemGray6))
+                            .background(Color.white)
                             .cornerRadius(10)
+                            .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
                         }
+                        .padding(.horizontal)
+                        
+                        // 底部间距
+                        Spacer()
+                            .frame(height: 20)
                     }
-                    
-                    // 底部空间
-                    Color.clear
-                        .frame(height: 0)
-                    
-                    // 底部空间，替代原来的保存按钮
-                    Color.clear
-                        .frame(height: 20)
+                    .padding(.top, 8)
                 }
-                .padding()
             }
         }
-        .background(Color(.systemGroupedBackground).edgesIgnoringSafeArea(.all))
         .navigationBarHidden(true)
     }
     
@@ -555,15 +566,31 @@ struct EditTaskView: View {
     // 获取当前选中的分类名称
     private func getCategoryName() -> String {
         switch selectedCategoryTag {
-        case nil: // Explicitly handle the nil case
+        case nil: // 处理 nil 情况
             return NSLocalizedString("选择分类", comment: "Select category placeholder")
-        case .some(.none): // Handle the .none case inside the Optional
-            return NSLocalizedString("选择分类", comment: "Select category placeholder")
+        case .some(.none):
+            return NSLocalizedString("无分类", comment: "No category")
         case .some(.preset(let category)):
             return category.localizedString
         case .some(.custom(let id)):
-            // Find the custom category name by ID
-            return categoryManager.categories.first { $0.id == id }?.name ?? NSLocalizedString("选择分类", comment: "Select category placeholder")
+            if let category = categoryManager.categories.first(where: { $0.id == id }) {
+                return category.name
+            } else {
+                return NSLocalizedString("无分类", comment: "No category")
+            }
+        }
+    }
+    
+    private func getCategoryColor(for category: TaskCategory) -> Color {
+        switch category {
+        case .work:
+            return .blue
+        case .personal:
+            return .purple
+        case .health:
+            return .green
+        case .important:
+            return .red
         }
     }
     
