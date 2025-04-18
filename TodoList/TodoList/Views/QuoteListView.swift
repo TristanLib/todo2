@@ -3,11 +3,24 @@ import SwiftUI
 // 箴言列表管理界面
 struct QuoteListView: View {
     @EnvironmentObject var quoteManager: QuoteManager
+    @EnvironmentObject var appSettings: AppSettings
     @State private var showAddQuoteSheet = false
     @State private var showEditQuoteSheet = false
     @State private var selectedQuote: BilingualQuote?
     @State private var showingDefaultQuotes = false
     @State private var searchText = ""
+    
+    // 当前是否为中文环境
+    private var isChinese: Bool {
+        if appSettings.language == .chineseSimplified {
+            return true
+        } else if appSettings.language == .system {
+            // 获取系统语言
+            let preferredLanguages = Locale.preferredLanguages
+            return preferredLanguages.first?.starts(with: "zh") ?? false
+        }
+        return false
+    }
     
     // 过滤后的箴言列表
     var filteredQuotes: [BilingualQuote] {
@@ -100,12 +113,16 @@ struct QuoteListView: View {
         )
         .sheet(isPresented: $showAddQuoteSheet) {
             QuoteEditView(mode: .add)
+                .environmentObject(quoteManager)
+                .environmentObject(appSettings)
         }
         .sheet(isPresented: $showEditQuoteSheet, onDismiss: {
             selectedQuote = nil
         }) {
             if let quote = selectedQuote {
                 QuoteEditView(mode: .edit, quote: quote)
+                    .environmentObject(quoteManager)
+                    .environmentObject(appSettings)
             }
         }
         .background(Color(.systemGroupedBackground))
@@ -123,27 +140,39 @@ struct QuoteListView: View {
 // 箴言行视图
 struct QuoteRow: View {
     let quote: BilingualQuote
+    @EnvironmentObject var appSettings: AppSettings
+    
+    // 当前是否为中文环境
+    private var isChinese: Bool {
+        if appSettings.language == .chineseSimplified {
+            return true
+        } else if appSettings.language == .system {
+            // 获取系统语言
+            let preferredLanguages = Locale.preferredLanguages
+            return preferredLanguages.first?.starts(with: "zh") ?? false
+        }
+        return false
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(quote.chineseText)
-                .font(.headline)
-                .lineLimit(2)
-            
-            Text("— \(quote.chineseAuthor)")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            
-            Divider()
-            
-            Text(quote.englishText)
-                .font(.headline)
-                .foregroundColor(.secondary)
-                .lineLimit(2)
-            
-            Text("— \(quote.englishAuthor)")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            if isChinese {
+                Text(quote.chineseText)
+                    .font(.headline)
+                    .lineLimit(2)
+                
+                Text("— \(quote.chineseAuthor)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            } else {
+                Text(quote.englishText)
+                    .font(.headline)
+                    .lineLimit(2)
+                
+                Text("— \(quote.englishAuthor)")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
         }
         .padding(.vertical, 8)
     }
@@ -187,6 +216,7 @@ enum QuoteEditMode {
 struct QuoteEditView: View {
     @Environment(\.presentationMode) var presentationMode
     @EnvironmentObject var quoteManager: QuoteManager
+    @EnvironmentObject var appSettings: AppSettings
     
     var mode: QuoteEditMode
     var quote: BilingualQuote?
@@ -196,17 +226,49 @@ struct QuoteEditView: View {
     @State private var chineseAuthor = ""
     @State private var englishAuthor = ""
     
+    // 当前是否为中文环境
+    private var isChinese: Bool {
+        if appSettings.language == .chineseSimplified {
+            return true
+        } else if appSettings.language == .system {
+            // 获取系统语言
+            let preferredLanguages = Locale.preferredLanguages
+            return preferredLanguages.first?.starts(with: "zh") ?? false
+        }
+        return false
+    }
+    
     var body: some View {
         NavigationView {
             Form {
-                Section(header: Text(NSLocalizedString("中文", comment: "Chinese section header"))) {
-                    TextField(NSLocalizedString("中文箴言", comment: "Chinese quote placeholder"), text: $chineseText)
-                    TextField(NSLocalizedString("中文作者", comment: "Chinese author placeholder"), text: $chineseAuthor)
-                }
-                
-                Section(header: Text(NSLocalizedString("英文", comment: "English section header"))) {
-                    TextField(NSLocalizedString("英文箴言", comment: "English quote placeholder"), text: $englishText)
-                    TextField(NSLocalizedString("英文作者", comment: "English author placeholder"), text: $englishAuthor)
+                if isChinese {
+                    Section(header: Text(NSLocalizedString("中文", comment: "Chinese section header"))) {
+                        TextEditor(text: $chineseText)
+                            .frame(minHeight: 60)
+                            .overlay(
+                                Text(chineseText.isEmpty ? NSLocalizedString("中文箴言", comment: "Chinese quote placeholder") : "")
+                                    .foregroundColor(Color(.placeholderText))
+                                    .padding(.leading, 4)
+                                    .padding(.top, 8)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading),
+                                alignment: .topLeading
+                            )
+                        TextField(NSLocalizedString("中文作者", comment: "Chinese author placeholder"), text: $chineseAuthor)
+                    }
+                } else {
+                    Section(header: Text(NSLocalizedString("英文", comment: "English section header"))) {
+                        TextEditor(text: $englishText)
+                            .frame(minHeight: 60)
+                            .overlay(
+                                Text(englishText.isEmpty ? NSLocalizedString("英文箴言", comment: "English quote placeholder") : "")
+                                    .foregroundColor(Color(.placeholderText))
+                                    .padding(.leading, 4)
+                                    .padding(.top, 8)
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading),
+                                alignment: .topLeading
+                            )
+                        TextField(NSLocalizedString("英文作者", comment: "English author placeholder"), text: $englishAuthor)
+                    }
                 }
             }
             .navigationTitle(mode == .add 
@@ -257,6 +319,7 @@ struct QuoteListView_Previews: PreviewProvider {
         NavigationView {
             QuoteListView()
                 .environmentObject(QuoteManager.shared)
+                .environmentObject(AppSettings())
         }
     }
 }
