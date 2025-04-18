@@ -1,0 +1,8 @@
+/* 
+  InfoPlist.strings
+  TodoList
+
+  Created by TristanLee on 2025/4/18.
+*/
+
+CFBundleDisplayName = "任务管家";

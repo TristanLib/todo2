@@ -60,7 +60,7 @@ struct HomeView: View {
                 .padding(.bottom, 24)
             }
             .background(Color(.systemGroupedBackground).edgesIgnoringSafeArea(.all))
-            .navigationTitle(NSLocalizedString("主页", comment: "Home navigation title"))
+            .navigationTitle(NSLocalizedString("任务管家", comment: "App name as navigation title"))
             .navigationBarItems(trailing: 
                 Menu {
                     Button(action: {}) {
