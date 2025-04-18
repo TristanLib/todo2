@@ -253,17 +253,15 @@ struct EditTaskView: View {
                     Button(action: {
                         presentationMode.wrappedValue.dismiss()
                     }) {
-                        HStack(spacing: 4) {
+                        HStack(spacing: 2) {
                             Image(systemName: "chevron.left")
+                                .font(.system(size: 14))
                             Text(NSLocalizedString("返回", comment: "Back button"))
+                                .font(.system(size: 14))
                         }
                         .foregroundColor(appSettings.accentColor.color)
-                        .padding(.vertical, 10)
-                        .padding(.horizontal, 12)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(appSettings.accentColor.color, lineWidth: 1)
-                        )
+                        .padding(.vertical, 6)
+                        .padding(.horizontal, 10)
                     }
                     Spacer()
                 }
@@ -278,12 +276,13 @@ struct EditTaskView: View {
                     Spacer()
                     Button(action: saveTask) {
                         Text(NSLocalizedString("保存更改", comment: "Save changes button"))
-                            .foregroundColor(title.isEmpty ? .gray : appSettings.accentColor.color)
-                            .padding(.vertical, 10)
-                            .padding(.horizontal, 12)
+                            .font(.system(size: 14))
+                            .foregroundColor(title.isEmpty ? .gray : .white)
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 10)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .stroke(title.isEmpty ? Color.gray : appSettings.accentColor.color, lineWidth: 1)
+                                    .fill(title.isEmpty ? Color.gray.opacity(0.3) : appSettings.accentColor.color)
                             )
                     }
                     .disabled(title.isEmpty)

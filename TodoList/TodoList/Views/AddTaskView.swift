@@ -56,24 +56,40 @@ struct AddTaskView: View {
             
             VStack(spacing: 0) {
                 // 自定义导航栏，减少顶部空间
-                HStack {
-                    Button(NSLocalizedString("取消", comment: "Cancel button")) {
-                        presentationMode.wrappedValue.dismiss()
+                ZStack {
+                    // 左侧取消按钮
+                    HStack {
+                        Button(action: {
+                            presentationMode.wrappedValue.dismiss()
+                        }) {
+                            Text(NSLocalizedString("取消", comment: "Cancel button"))
+                                .font(.system(size: 14))
+                                .foregroundColor(appSettings.accentColor.color)
+                        }
+                        Spacer()
                     }
-                    .foregroundColor(appSettings.accentColor.color)
                     
-                    Spacer()
-                    
+                    // 中间标题
                     Text(NSLocalizedString("新建任务", comment: "New task title"))
                         .font(.headline)
+                        .fontWeight(.bold)
                     
-                    Spacer()
-                    
-                    Button(NSLocalizedString("保存", comment: "Save button")) {
-                        saveTask()
+                    // 右侧保存按钮
+                    HStack {
+                        Spacer()
+                        Button(action: saveTask) {
+                            Text(NSLocalizedString("保存", comment: "Save button"))
+                                .font(.system(size: 14))
+                                .foregroundColor(title.isEmpty ? .gray : .white)
+                                .padding(.vertical, 6)
+                                .padding(.horizontal, 10)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(title.isEmpty ? Color.gray.opacity(0.3) : appSettings.accentColor.color)
+                                )
+                        }
+                        .disabled(title.isEmpty)
                     }
-                    .disabled(title.isEmpty)
-                    .foregroundColor(title.isEmpty ? .gray : appSettings.accentColor.color)
                 }
                 .padding(.horizontal)
                 .padding(.top, 8)
