@@ -435,7 +435,10 @@ struct HomeView: View {
                 List {
                     ForEach(filteredTasks.indices, id: \.self) { index in
                         ZStack {
-                            NavigationLink(destination: TaskDetailView(task: filteredTasks[index])) {
+                            NavigationLink(destination: TaskDetailView(task: filteredTasks[index])
+                                .environmentObject(taskStore)
+                                .environmentObject(appSettings)
+                                .environmentObject(categoryManager)) {
                                 EmptyView()
                             }
                             .opacity(0)
@@ -443,24 +446,6 @@ struct HomeView: View {
                             EnhancedTaskRow(task: filteredTasks[index])
                                 .padding(.vertical, 4)
                                 .contentShape(Rectangle())
-                                .onTapGesture {
-                                    // 点击时导航到详情页面
-                                    let task = filteredTasks[index]
-                                    let detailView = TaskDetailView(task: task)
-                                    let hostingController = UIHostingController(rootView: detailView
-                                        .environmentObject(taskStore)
-                                        .environmentObject(appSettings)
-                                        .environmentObject(categoryManager))
-                                    
-                                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                                       let window = windowScene.windows.first,
-                                       let rootViewController = window.rootViewController {
-                                        
-                                        if let navigationController = rootViewController.findNavigationController() {
-                                            navigationController.pushViewController(hostingController, animated: true)
-                                        }
-                                    }
-                                }
                         }
                         .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                         .listRowBackground(Color.clear)

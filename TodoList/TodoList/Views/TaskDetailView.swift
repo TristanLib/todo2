@@ -247,47 +247,47 @@ struct EditTaskView: View {
     var body: some View {
         VStack(spacing: 0) {
             // 自定义导航栏
-            HStack {
-                Button(action: {
-                    presentationMode.wrappedValue.dismiss()
-                }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                        Text("返回")
-                    }
-                    .foregroundColor(appSettings.accentColor.color)
-                    .padding(.vertical, 10)
-                    .padding(.horizontal, 12)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(appSettings.accentColor.color, lineWidth: 1)
-                    )
-                }
-                
-                Spacer()
-                
-                Text("编辑任务")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                
-                Spacer()
-                
-                // 保存按钮
-                Button(action: saveTask) {
-                    Text("保存更改")
-                        .foregroundColor(title.isEmpty ? .gray : appSettings.accentColor.color)
+            ZStack {
+                // 左侧返回按钮
+                HStack {
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                            Text(NSLocalizedString("返回", comment: "Back button"))
+                        }
+                        .foregroundColor(appSettings.accentColor.color)
                         .padding(.vertical, 10)
                         .padding(.horizontal, 12)
                         .background(
                             RoundedRectangle(cornerRadius: 8)
-                                .stroke(title.isEmpty ? Color.gray : appSettings.accentColor.color, lineWidth: 1)
+                                .stroke(appSettings.accentColor.color, lineWidth: 1)
                         )
+                    }
+                    Spacer()
                 }
-                .disabled(title.isEmpty)
                 
-                // 平衡布局的空视图
-                Color.clear
-                    .frame(width: 70, height: 10)
+                // 中间标题
+                Text(NSLocalizedString("编辑任务", comment: "Edit task title"))
+                    .font(.title2)
+                    .fontWeight(.bold)
+                
+                // 右侧保存按钮
+                HStack {
+                    Spacer()
+                    Button(action: saveTask) {
+                        Text(NSLocalizedString("保存更改", comment: "Save changes button"))
+                            .foregroundColor(title.isEmpty ? .gray : appSettings.accentColor.color)
+                            .padding(.vertical, 10)
+                            .padding(.horizontal, 12)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(title.isEmpty ? Color.gray : appSettings.accentColor.color, lineWidth: 1)
+                            )
+                    }
+                    .disabled(title.isEmpty)
+                }
             }
             .padding()
             .background(Color(.systemBackground))
