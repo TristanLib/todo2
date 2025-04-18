@@ -198,8 +198,6 @@ struct EditTaskView: View {
     @State private var selectedPriority: TaskPriority
     @State private var hasDueDate: Bool
     @State private var dueDate: Date
-    @State private var subtasks: [Subtask] = []
-    @State private var newSubtaskTitle: String = ""
     
     // Helper enum/struct to represent selection state unambiguously
     enum CategorySelectionTag: Hashable {
@@ -244,7 +242,6 @@ struct EditTaskView: View {
         _selectedPriority = State(initialValue: task.priority)
         _hasDueDate = State(initialValue: task.dueDate != nil)
         _dueDate = State(initialValue: task.dueDate ?? EditTaskView.defaultDueDate())
-        _subtasks = State(initialValue: task.subtasks)
     }
     
     var body: some View {
@@ -274,6 +271,19 @@ struct EditTaskView: View {
                     .fontWeight(.bold)
                 
                 Spacer()
+                
+                // 保存按钮
+                Button(action: saveTask) {
+                    Text("保存更改")
+                        .foregroundColor(title.isEmpty ? .gray : appSettings.accentColor.color)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 12)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(title.isEmpty ? Color.gray : appSettings.accentColor.color, lineWidth: 1)
+                        )
+                }
+                .disabled(title.isEmpty)
                 
                 // 平衡布局的空视图
                 Color.clear
@@ -468,73 +478,13 @@ struct EditTaskView: View {
                         }
                     }
                     
-                    // 子任务
-                    VStack(alignment: .leading, spacing: 16) {
-                        Text("子任务")
-                            .font(.headline)
-                            .foregroundColor(.primary)
-                        
-                        ForEach(subtasks.indices, id: \.self) { index in
-                            HStack {
-                                Button(action: {
-                                    subtasks[index].isCompleted.toggle()
-                                }) {
-                                    Image(systemName: subtasks[index].isCompleted ? "checkmark.circle.fill" : "circle")
-                                        .foregroundColor(subtasks[index].isCompleted ? .green : .gray)
-                                }
-                                
-                                TextField("子任务", text: Binding(
-                                    get: { subtasks[index].title },
-                                    set: { subtasks[index].title = $0 }
-                                ))
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-                                
-                                Button(action: {
-                                    subtasks.remove(at: index)
-                                }) {
-                                    Image(systemName: "minus.circle.fill")
-                                        .foregroundColor(.red)
-                                }
-                            }
-                        }
-                        
-                        HStack {
-                            TextField("添加新子任务", text: $newSubtaskTitle)
-                                .padding()
-                                .background(Color(.systemGray6))
-                                .cornerRadius(10)
-                            
-                            Button(action: {
-                                if !newSubtaskTitle.isEmpty {
-                                    subtasks.append(Subtask(title: newSubtaskTitle))
-                                    newSubtaskTitle = ""
-                                }
-                            }) {
-                                Image(systemName: "plus.circle.fill")
-                                    .foregroundColor(appSettings.accentColor.color)
-                                    .font(.title2)
-                            }
-                        }
-                        
-                    }
+                    // 底部空间
+                    Color.clear
+                        .frame(height: 0)
                     
-                    // 保存按钮
-                    Button(action: saveTask) {
-                        Text("保存更改")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(title.isEmpty ? Color.gray : appSettings.accentColor.color)
-                            )
-                    }
-                    .disabled(title.isEmpty)
-                    .padding(.vertical, 8)
-                    .padding(.horizontal)
+                    // 底部空间，替代原来的保存按钮
+                    Color.clear
+                        .frame(height: 20)
                 }
                 .padding()
             }
@@ -573,7 +523,7 @@ struct EditTaskView: View {
             dueDate: hasDueDate ? dueDate : nil,
             priority: selectedPriority,
             isCompleted: task.isCompleted,
-            subtasks: subtasks,
+            subtasks: [], // 子任务功能已移除，传入空数组
             createdAt: task.createdAt
         )
         
