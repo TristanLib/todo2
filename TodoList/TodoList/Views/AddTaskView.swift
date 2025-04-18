@@ -12,7 +12,7 @@ struct AddTaskView: View {
     @State private var description = ""
     @State private var selectedCategory: CustomCategory? = nil
     @State private var selectedPriority: TaskPriority = .medium
-    @State private var hasDueDate = false
+    @State private var hasDueDate = true
     @State private var dueDate = defaultDueDate()
     
     // 新分类相关状态
