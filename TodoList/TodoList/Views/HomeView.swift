@@ -434,9 +434,33 @@ struct HomeView: View {
             } else {
                 List {
                     ForEach(filteredTasks.indices, id: \.self) { index in
-                        NavigationLink(destination: TaskDetailView(task: filteredTasks[index])) {
+                        ZStack {
+                            NavigationLink(destination: TaskDetailView(task: filteredTasks[index])) {
+                                EmptyView()
+                            }
+                            .opacity(0)
+                            
                             EnhancedTaskRow(task: filteredTasks[index])
                                 .padding(.vertical, 4)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    // 点击时导航到详情页面
+                                    let task = filteredTasks[index]
+                                    let detailView = TaskDetailView(task: task)
+                                    let hostingController = UIHostingController(rootView: detailView
+                                        .environmentObject(taskStore)
+                                        .environmentObject(appSettings)
+                                        .environmentObject(categoryManager))
+                                    
+                                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                       let window = windowScene.windows.first,
+                                       let rootViewController = window.rootViewController {
+                                        
+                                        if let navigationController = rootViewController.findNavigationController() {
+                                            navigationController.pushViewController(hostingController, animated: true)
+                                        }
+                                    }
+                                }
                         }
                         .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
                         .listRowBackground(Color.clear)
@@ -792,9 +816,32 @@ struct HomeView: View {
             } else {
                 // Use the extracted view within ForEach
                 ForEach(overdueIncompleteTasks.prefix(3)) { task in
-                    NavigationLink(destination: TaskDetailView(task: task)) {
+                    ZStack {
+                        NavigationLink(destination: TaskDetailView(task: task)) {
+                            EmptyView()
+                        }
+                        .opacity(0)
+                        
                         // Pass helper functions needed by the subview
                         OverdueTaskRowView(task: task, categoryColor: self.categoryColor, formatDate: self.formatDate)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                // 点击时导航到详情页面
+                                let detailView = TaskDetailView(task: task)
+                                let hostingController = UIHostingController(rootView: detailView
+                                    .environmentObject(taskStore)
+                                    .environmentObject(appSettings)
+                                    .environmentObject(categoryManager))
+                                
+                                if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                                   let window = windowScene.windows.first,
+                                   let rootViewController = window.rootViewController {
+                                    
+                                    if let navigationController = rootViewController.findNavigationController() {
+                                        navigationController.pushViewController(hostingController, animated: true)
+                                    }
+                                }
+                            }
                     }
                     .buttonStyle(PlainButtonStyle())
                 }

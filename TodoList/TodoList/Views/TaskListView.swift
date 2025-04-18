@@ -177,8 +177,32 @@ struct TaskListView: View {
         // 將 ScrollView 替換為 List 以啟用滑動刪除
         List {
             ForEach(filteredTasks.indices, id: \.self) { index in
-                NavigationLink(destination: TaskDetailView(task: filteredTasks[index])) {
+                ZStack {
+                    NavigationLink(destination: TaskDetailView(task: filteredTasks[index])) {
+                        EmptyView()
+                    }
+                    .opacity(0)
+                    
                     EnhancedTaskRow(task: filteredTasks[index])
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            // 点击时导航到详情页面
+                            let task = filteredTasks[index]
+                            let detailView = TaskDetailView(task: task)
+                            let hostingController = UIHostingController(rootView: detailView
+                                .environmentObject(taskStore)
+                                .environmentObject(appSettings)
+                                .environmentObject(categoryManager))
+                            
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let window = windowScene.windows.first,
+                               let rootViewController = window.rootViewController {
+                                
+                                if let navigationController = rootViewController.findNavigationController() {
+                                    navigationController.pushViewController(hostingController, animated: true)
+                                }
+                            }
+                        }
                 }
                 .buttonStyle(PlainButtonStyle())
                 .listRowInsets(EdgeInsets()) // 移除 List 默认的边距
