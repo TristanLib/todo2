@@ -123,7 +123,9 @@ struct SettingsView: View {
                     // 内容管理
                     settingsSection(title: NSLocalizedString("内容管理", comment: "Content management section title")) {
                         // 箴言管理
-                        NavigationLink(destination: QuoteListView()) {
+                        NavigationLink(destination: QuoteListView()
+                            .environmentObject(quoteManager)
+                            .environmentObject(appSettings)) {
                             settingsRow(
                                 icon: "text.quote",
                                 iconBackground: Color.purple.opacity(0.2),

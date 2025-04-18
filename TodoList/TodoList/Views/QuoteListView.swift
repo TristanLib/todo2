@@ -5,8 +5,6 @@ struct QuoteListView: View {
     @EnvironmentObject var quoteManager: QuoteManager
     @EnvironmentObject var appSettings: AppSettings
     @State private var showAddQuoteSheet = false
-    @State private var showEditQuoteSheet = false
-    @State private var selectedQuote: BilingualQuote?
     @State private var showingDefaultQuotes = false
     @State private var searchText = ""
     
@@ -87,12 +85,16 @@ struct QuoteListView: View {
                     ForEach(filteredQuotes) { quote in
                         QuoteRow(quote: quote)
                             .contentShape(Rectangle())
-                            .onTapGesture {
-                                if !showingDefaultQuotes {
-                                    selectedQuote = quote
-                                    showEditQuoteSheet = true
+                            .background(NavigationLink("", destination: {
+                                if showingDefaultQuotes {
+                                    QuoteDetailView(quote: quote)
+                                        .environmentObject(appSettings)
+                                } else {
+                                    QuoteEditView(mode: .edit, quote: quote)
+                                        .environmentObject(quoteManager)
+                                        .environmentObject(appSettings)
                                 }
-                            }
+                            }).opacity(0))
                     }
                     .onDelete { indexSet in
                         if !showingDefaultQuotes {
@@ -116,11 +118,9 @@ struct QuoteListView: View {
                 .environmentObject(quoteManager)
                 .environmentObject(appSettings)
         }
-        .sheet(isPresented: $showEditQuoteSheet, onDismiss: {
-            selectedQuote = nil
-        }) {
-            if let quote = selectedQuote {
-                QuoteEditView(mode: .edit, quote: quote)
+        .sheet(isPresented: $showAddQuoteSheet) {
+            NavigationView {
+                QuoteEditView(mode: .add)
                     .environmentObject(quoteManager)
                     .environmentObject(appSettings)
             }
@@ -310,6 +310,59 @@ struct QuoteEditView: View {
                 englishAuthor = quote.englishAuthor
             }
         }
+    }
+}
+
+// 箴言详情视图
+struct QuoteDetailView: View {
+    @Environment(\.presentationMode) var presentationMode
+    @EnvironmentObject var appSettings: AppSettings
+    let quote: BilingualQuote
+    
+    // 当前是否为中文环境
+    private var isChinese: Bool {
+        if appSettings.language == .chineseSimplified {
+            return true
+        } else if appSettings.language == .system {
+            // 获取系统语言
+            let preferredLanguages = Locale.preferredLanguages
+            return preferredLanguages.first?.starts(with: "zh") ?? false
+        }
+        return false
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            Group {
+                if isChinese {
+                    Text(quote.chineseText)
+                        .font(.title2)
+                        .fontWeight(.medium)
+                        .padding(.bottom, 5)
+                    
+                    Text("— \(quote.chineseAuthor)")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                } else {
+                    Text(quote.englishText)
+                        .font(.title2)
+                        .fontWeight(.medium)
+                        .padding(.bottom, 5)
+                    
+                    Text("— \(quote.englishAuthor)")
+                        .font(.headline)
+                        .foregroundColor(.secondary)
+                }
+            }
+            .padding(.horizontal)
+            
+            Spacer()
+        }
+        .padding(.top, 20)
+        .navigationTitle(NSLocalizedString("箴言详情", comment: "Quote detail title"))
+        .navigationBarItems(leading: Button(NSLocalizedString("关闭", comment: "Close button")) {
+            presentationMode.wrappedValue.dismiss()
+        })
     }
 }
 
