@@ -410,8 +410,8 @@ struct AddTaskView: View {
             customCategory: selectedCategory,
             dueDate: hasDueDate ? dueDate : nil,
             priority: selectedPriority,
-            enableReminder: hasDueDate ? enableReminder : false,
-            subtasks: [] // Empty subtasks array
+            subtasks: [], // Empty subtasks array
+            enableReminder: hasDueDate ? enableReminder : false
         )
 
         taskStore.addTask(newTask)
