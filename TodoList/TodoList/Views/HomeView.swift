@@ -11,8 +11,8 @@ struct HomeView: View {
     @State private var showCategorySection = false
     @State private var showTasksSection = false
     
-    // 天气服务
-    @ObservedObject private var weatherService = WeatherService.shared
+    // 每日箴言
+    @State private var dailyQuote = QuoteManager.shared.getRandomQuote()
     
     // Helper for localized date formatting
     private var dateFormatter: DateFormatter {
@@ -34,7 +34,7 @@ struct HomeView: View {
         NavigationView {
             ScrollView {
                 VStack(alignment: .leading, spacing: 30) {
-                    // 欢迎卡片
+                    // 每日箴言卡片
                     welcomeCard
                         .fadeIn(isPresented: isLoadingComplete)
                     
@@ -78,28 +78,56 @@ struct HomeView: View {
             .onAppear {
                 DispatchQueue.main.async {
                     animateContentOnAppear()
-                    weatherService.fetchCurrentWeather() // 获取天气数据
+                    // 获取随机名言
+                    dailyQuote = QuoteManager.shared.getRandomQuote()
                 }
             }
         }
     }
     
     private var welcomeCard: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 8) {
-                Text(greeting)
-                    .font(.title2)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack {
+                Text(NSLocalizedString("每日箴言", comment: "Daily quote title"))
+                    .font(.headline)
                     .fontWeight(.semibold)
+                    .foregroundColor(appSettings.accentColor.color)
+                
+                Spacer()
                 
                 Text("\(dateFormatter.string(from: Date())), \(weekdayFormatter.string(from: Date()))")
                     .font(.subheadline)
                     .foregroundColor(.secondary)
             }
             
-            Spacer()
+            Text(dailyQuote.localizedText)
+                .font(.system(.body, design: .serif))
+                .fontWeight(.medium)
+                .foregroundColor(.primary)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.vertical, 8)
             
-            // 天气信息显示
-            weatherInfoView
+            HStack {
+                Spacer()
+                Text("— \(dailyQuote.localizedAuthor)")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                    .italic()
+            }
+            
+            // 刷新按钮
+            Button(action: {
+                withAnimation(.spring()) {
+                    dailyQuote = QuoteManager.shared.getRandomQuote()
+                }
+            }) {
+                Label(NSLocalizedString("换一条", comment: "Refresh quote button"), systemImage: "arrow.triangle.2.circlepath")
+                    .font(.caption)
+                    .foregroundColor(appSettings.accentColor.color)
+            }
+            .padding(.top, 4)
         }
         .padding()
         .background(
@@ -598,48 +626,12 @@ struct HomeView: View {
         }
     }
     
-    // 天气信息视图
-    private var weatherInfoView: some View {
-        Group {
-            if let weather = weatherService.currentWeather {
-                VStack(alignment: .center, spacing: 4) {
-                    // 天气图标
-                    Image(systemName: weather.systemIconName)
-                        .font(.system(size: 40))
-                        .foregroundColor(appSettings.accentColor.color)
-                    
-                    // 地点
-                    Text(weather.location)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                    
-                    // 温度
-                    Text("\(Int(weather.temperature))°C")
-                        .font(.caption)
-                        .fontWeight(.bold)
-                }
-                .frame(width: 75, height: 75)
-                .padding(8)
-                .background(appSettings.accentColor.color.opacity(0.1))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            } else if weatherService.isLoading {
-                // 加载中状态
-                ProgressView()
-                    .frame(width: 75, height: 75)
-                    .background(appSettings.accentColor.color.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-            } else {
-                // 默认或错误状态
-                Image(systemName: "cloud.fill")
-                    .font(.system(size: 44))
-                    .foregroundColor(appSettings.accentColor.color)
-                    .frame(width: 75, height: 75)
-                    .background(appSettings.accentColor.color.opacity(0.1))
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .onTapGesture {
-                        weatherService.fetchCurrentWeather()
-                    }
-            }
+    // MARK: - 名言相关方法
+    
+    // 刷新名言
+    private func refreshQuote() {
+        withAnimation(.spring()) {
+            dailyQuote = QuoteManager.shared.getRandomQuote()
         }
     }
     

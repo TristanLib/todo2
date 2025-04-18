@@ -2,6 +2,7 @@
 
 ## Project Overview
 This is an iOS todo list application built with SwiftUI. The app allows users to create, manage, and organize tasks with features like categories, priorities, due dates, and more.
+This application support multiple languages, including English and Chinese (Simplified).
 
 ## Development Requirements
 
