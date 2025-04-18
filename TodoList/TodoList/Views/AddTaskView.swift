@@ -134,7 +134,6 @@ struct AddTaskView: View {
                             .cornerRadius(10)
                             .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
                         }
-                        .padding(.horizontal)
                         
                         // 截止日期部分
                         VStack(alignment: .leading, spacing: 12) {
@@ -170,7 +169,6 @@ struct AddTaskView: View {
                                 .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
                             }
                         }
-                        .padding(.horizontal)
                         
                         // 优先级部分
                         VStack(alignment: .leading, spacing: 12) {
@@ -207,37 +205,39 @@ struct AddTaskView: View {
                                 RoundedRectangle(cornerRadius: 10)
                                     .stroke(Color(.systemGray4), lineWidth: 0.5)
                             )
-                            .padding(.horizontal, 16)
                             .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
                         }
-                        .padding(.horizontal)
                         
                         // 分类部分
                         VStack(alignment: .leading, spacing: 12) {
-                            Text(NSLocalizedString("分类", comment: "Category section header"))
+                            Text(NSLocalizedString("分类", comment: "Categories section header"))
                                 .font(.subheadline.weight(.medium))
                                 .foregroundColor(.primary)
                                 .padding(.horizontal, 16)
                             
+                            // 分类选择区域
                             ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 10) {
-                                    // 显示现有分类
+                                HStack(spacing: 8) {
                                     ForEach(categoryManager.categories) { category in
                                         categoryChipButton(category: category)
                                     }
                                     
                                     // 添加新分类按钮
-                                    Button {
+                                    Button(action: {
+                                        newCategoryName = ""
                                         showingAddCategorySheet = true
-                                    } label: {
-                                        Label(NSLocalizedString("新分类", comment: "New category button"), systemImage: "plus.circle.fill")
-                                            .font(.system(size: 14))
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 6)
-                                            .foregroundColor(appSettings.accentColor.color)
-                                            .background(
-                                                Capsule().fill(appSettings.accentColor.color.opacity(0.1))
-                                            )
+                                    }) {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "plus")
+                                                .font(.system(size: 12, weight: .bold))
+                                            Text(NSLocalizedString("添加", comment: "Add category button"))
+                                                .font(.system(size: 14))
+                                        }
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 12)
+                                        .background(Color(.systemGray5))
+                                        .foregroundColor(.primary)
+                                        .cornerRadius(16)
                                     }
                                 }
                                 .padding(.horizontal, 16)
@@ -247,7 +247,6 @@ struct AddTaskView: View {
                             .cornerRadius(10)
                             .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
                         }
-                        .padding(.horizontal)
                         
                         // 快捷任务部分
                         VStack(alignment: .leading, spacing: 12) {
