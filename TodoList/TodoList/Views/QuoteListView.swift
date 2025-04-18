@@ -243,16 +243,10 @@ struct QuoteEditView: View {
             Form {
                 if isChinese {
                     Section(header: Text(NSLocalizedString("中文", comment: "Chinese section header"))) {
-                        TextEditor(text: $chineseText)
+                        // 使用 UITextView 包装器解决中文输入问题
+                        UITextViewWrapper(text: $chineseText, placeholder: NSLocalizedString("中文箴言", comment: "Chinese quote placeholder"))
                             .frame(minHeight: 60)
-                            .overlay(
-                                Text(chineseText.isEmpty ? NSLocalizedString("中文箴言", comment: "Chinese quote placeholder") : "")
-                                    .foregroundColor(Color(.placeholderText))
-                                    .padding(.leading, 4)
-                                    .padding(.top, 8)
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading),
-                                alignment: .topLeading
-                            )
+                        
                         TextField(NSLocalizedString("中文作者", comment: "Chinese author placeholder"), text: $chineseAuthor)
                     }
                 } else {
@@ -299,7 +293,7 @@ struct QuoteEditView: View {
                     }
                     presentationMode.wrappedValue.dismiss()
                 }
-                .disabled(chineseText.isEmpty || englishText.isEmpty)
+                .disabled(isChinese ? chineseText.isEmpty : englishText.isEmpty)
             )
         }
         .onAppear {
@@ -363,6 +357,65 @@ struct QuoteDetailView: View {
         .navigationBarItems(leading: Button(NSLocalizedString("关闭", comment: "Close button")) {
             presentationMode.wrappedValue.dismiss()
         })
+    }
+}
+
+// UITextView 包装器，解决中文输入法问题
+struct UITextViewWrapper: UIViewRepresentable {
+    @Binding var text: String
+    var placeholder: String
+    
+    func makeUIView(context: Context) -> UITextView {
+        let textView = UITextView()
+        textView.delegate = context.coordinator
+        textView.font = UIFont.preferredFont(forTextStyle: .body)
+        textView.backgroundColor = .clear
+        textView.text = text.isEmpty ? placeholder : text
+        textView.textColor = text.isEmpty ? UIColor.placeholderText : UIColor.label
+        return textView
+    }
+    
+    func updateUIView(_ uiView: UITextView, context: Context) {
+        if text.isEmpty && uiView.text != placeholder {
+            uiView.text = placeholder
+            uiView.textColor = UIColor.placeholderText
+        } else if uiView.text == placeholder && !text.isEmpty {
+            uiView.text = text
+            uiView.textColor = UIColor.label
+        } else if uiView.text != placeholder && uiView.text != text {
+            uiView.text = text
+            uiView.textColor = UIColor.label
+        }
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UITextViewDelegate {
+        var parent: UITextViewWrapper
+        
+        init(_ parent: UITextViewWrapper) {
+            self.parent = parent
+        }
+        
+        func textViewDidBeginEditing(_ textView: UITextView) {
+            if textView.text == parent.placeholder {
+                textView.text = ""
+                textView.textColor = UIColor.label
+            }
+        }
+        
+        func textViewDidEndEditing(_ textView: UITextView) {
+            if textView.text.isEmpty {
+                textView.text = parent.placeholder
+                textView.textColor = UIColor.placeholderText
+            }
+        }
+        
+        func textViewDidChange(_ textView: UITextView) {
+            parent.text = textView.text
+        }
     }
 }
 
