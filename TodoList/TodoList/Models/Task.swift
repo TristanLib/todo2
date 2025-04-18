@@ -177,6 +177,7 @@ struct Task: Identifiable, Codable {
     var isCompleted: Bool
     var subtasks: [Subtask]
     var createdAt: Date
+    var enableReminder: Bool // 是否启用提醒功能
     
     init(
         id: UUID = UUID(),
@@ -188,7 +189,8 @@ struct Task: Identifiable, Codable {
         priority: TaskPriority = .medium,
         isCompleted: Bool = false,
         subtasks: [Subtask] = [],
-        createdAt: Date = Date()
+        createdAt: Date = Date(),
+        enableReminder: Bool = false // 默认不启用提醒
     ) {
         self.id = id
         self.title = title
@@ -199,6 +201,7 @@ struct Task: Identifiable, Codable {
         self.priority = priority
         self.isCompleted = isCompleted
         self.subtasks = subtasks
+        self.enableReminder = enableReminder
         self.createdAt = createdAt
     }
     

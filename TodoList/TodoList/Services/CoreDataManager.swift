@@ -43,6 +43,7 @@ class CoreDataManager {
         cdTask.isCompleted = task.isCompleted
         cdTask.createdAt = task.createdAt
         cdTask.customCategoryID = task.customCategory?.id
+        cdTask.enableReminder = task.enableReminder
         
         // 删除所有现有的子任务
         if let existingSubtasks = cdTask.subtasks as? Set<CDSubtask> {
@@ -169,7 +170,8 @@ class CoreDataManager {
             priority: priority,
             isCompleted: cdTask.isCompleted,
             subtasks: subtasks,
-            createdAt: cdTask.createdAt ?? Date()
+            createdAt: cdTask.createdAt ?? Date(),
+            enableReminder: cdTask.enableReminder
         )
     }
     

@@ -14,6 +14,7 @@ struct AddTaskView: View {
     @State private var selectedPriority: TaskPriority = .medium
     @State private var hasDueDate = true
     @State private var dueDate = defaultDueDate()
+    @State private var enableReminder = false // 是否启用截止时间前10分钟提醒
     
     // 新分类相关状态
     @State private var showingAddCategorySheet = false
@@ -138,6 +139,13 @@ struct AddTaskView: View {
                                         .padding(.leading, 16)
                                     
                                     DatePicker(NSLocalizedString("时间", comment: "Time picker label"), selection: $dueDate, displayedComponents: [.hourAndMinute])
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 12)
+                                    
+                                    Divider()
+                                        .padding(.leading, 16)
+                                    
+                                    Toggle(NSLocalizedString("截止前10分钟提醒", comment: "Enable reminder toggle"), isOn: $enableReminder)
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 12)
                                 }
@@ -277,45 +285,45 @@ struct AddTaskView: View {
                                             }
                                         }
                                     }
-                                    
-                                    // 添加新快捷任务按钮
-                                    Button {
-                                        showingAddQuickTaskSheet = true
-                                    } label: {
-                                        VStack(spacing: 6) {
-                                            Image(systemName: "plus")
-                                                .font(.system(size: 24))
-                                                .foregroundColor(.white)
-                                                .frame(width: 50, height: 50)
-                                                .background(
-                                                    Circle()
-                                                        .fill(appSettings.accentColor.color)
-                                                )
-                                            
-                                            Text(NSLocalizedString("添加", comment: "Add quick task button"))
-                                                .font(.system(size: 12))
-                                                .foregroundColor(.primary)
-                                        }
-                                        .frame(width: 70)
-                                    }
                                 }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
+                                
+                                // 添加新快捷任务按钮
+                                Button {
+                                    showingAddQuickTaskSheet = true
+                                } label: {
+                                    VStack(spacing: 6) {
+                                        Image(systemName: "plus")
+                                            .font(.system(size: 24))
+                                            .foregroundColor(.white)
+                                            .frame(width: 50, height: 50)
+                                            .background(
+                                                Circle()
+                                                    .fill(appSettings.accentColor.color)
+                                            )
+                                        
+                                        Text(NSLocalizedString("添加", comment: "Add quick task button"))
+                                            .font(.system(size: 12))
+                                            .foregroundColor(.primary)
+                                    }
+                                    .frame(width: 70)
+                                }
                             }
-                            .background(Color.white)
-                            .cornerRadius(10)
-                            .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
                         }
-                        .padding(.horizontal)
-                        
-                        // 估计时间部分已移除
-                        
-                        // 底部间距
-                        Spacer()
-                            .frame(height: 20)
+                        .background(Color.white)
+                        .cornerRadius(10)
+                        .shadow(color: Color.black.opacity(0.03), radius: 2, x: 0, y: 1)
                     }
-                    .padding(.top, 8)
+                    .padding(.horizontal)
+                    
+                    // 估计时间部分已移除
+                    
+                    // 底部间距
+                    Spacer()
+                        .frame(height: 20)
                 }
+                .padding(.top, 8)
             }
         }
         .sheet(isPresented: $showingAddCategorySheet) {
@@ -402,11 +410,42 @@ struct AddTaskView: View {
             customCategory: selectedCategory,
             dueDate: hasDueDate ? dueDate : nil,
             priority: selectedPriority,
+            enableReminder: hasDueDate ? enableReminder : false,
             subtasks: [] // Empty subtasks array
         )
 
         taskStore.addTask(newTask)
+        
+        // 如果启用了提醒，设置通知
+        if hasDueDate && enableReminder && newTask.dueDate != nil {
+            scheduleTaskReminder(for: newTask)
+        }
+        
+        // 关闭视图
         presentationMode.wrappedValue.dismiss()
+    }
+    
+    private func scheduleTaskReminder(for task: Task) {
+        guard let dueDate = task.dueDate else { return }
+        
+        // 计算提醒时间（截止时间前10分钟）
+        let reminderDate = Calendar.current.date(byAdding: .minute, value: -10, to: dueDate)
+        
+        guard let reminderDate = reminderDate else { return }
+        
+        // 如果提醒时间已经过去，则不设置提醒
+        if reminderDate.compare(Date()) == .orderedAscending {
+            return
+        }
+        
+        // 计算从现在到提醒时间的时间间隔
+        let timeInterval = reminderDate.timeIntervalSince(Date())
+        
+        // 使用 NotificationManager 设置任务提醒
+        NotificationManager.shared.scheduleNotification(
+            for: .taskReminder(taskId: task.id, taskTitle: task.title),
+            timeInterval: timeInterval
+        )
     }
 }
 
