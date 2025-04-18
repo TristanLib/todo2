@@ -131,6 +131,29 @@
 "每日箴言" = "Daily Quote";
 "换一条" = "Change";
 
+// Quote Management
+"内容管理" = "Content Management";
+"箴言管理" = "Quote Management";
+"查看和编辑每日箴言" = "View and edit daily quotes";
+"自定义箴言" = "Custom Quotes";
+"默认箴言" = "Default Quotes";
+"搜索箴言..." = "Search quotes...";
+"没有找到匹配的默认箴言" = "No matching default quotes found";
+"没有找到匹配的自定义箴言" = "No matching custom quotes found";
+"添加第一条箴言" = "Add Your First Quote";
+"添加箴言" = "Add Quote";
+"编辑箴言" = "Edit Quote";
+"中文" = "Chinese";
+"英文" = "English";
+"中文箴言" = "Chinese Quote";
+"英文箴言" = "English Quote";
+"中文作者" = "Chinese Author";
+"英文作者" = "English Author";
+"添加" = "Add";
+"确认删除" = "Confirm Delete";
+"确定要删除这条箴言吗？" = "Are you sure you want to delete this quote?";
+"删除后将无法恢复" = "This action cannot be undone.";
+
 // Edit Task View
 "编辑任务" = "Edit Task";
 "返回" = "Back";

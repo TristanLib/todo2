@@ -3,6 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var appSettings: AppSettings
     @EnvironmentObject var taskStore: TaskStore
+    @EnvironmentObject var quoteManager: QuoteManager
     @State private var showClearConfirmation = false
     @State private var showBackupView = false
     @State private var showAppColorPicker = false
@@ -117,6 +118,26 @@ struct SettingsView: View {
                                 }
                             )
                         }
+                    }
+                    
+                    // 内容管理
+                    settingsSection(title: NSLocalizedString("内容管理", comment: "Content management section title")) {
+                        // 箴言管理
+                        NavigationLink(destination: QuoteListView()) {
+                            settingsRow(
+                                icon: "text.quote",
+                                iconBackground: Color.purple.opacity(0.2),
+                                iconColor: .purple,
+                                title: NSLocalizedString("箴言管理", comment: "Quote management"),
+                                subtitle: NSLocalizedString("查看和编辑每日箴言", comment: "View and edit daily quotes"),
+                                trailingView: {
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.gray)
+                                }
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                     
                     // 数据管理

@@ -1,11 +1,14 @@
 import Foundation
 
 // 名言管理器
-class QuoteManager {
+class QuoteManager: ObservableObject {
     static let shared = QuoteManager()
     
-    // 双语名言集合
-    private let quotes: [BilingualQuote] = [
+    // UserDefaults 键
+    private let customQuotesKey = "customQuotes"
+    
+    // 默认双语名言集合
+    private let defaultQuotes: [BilingualQuote] = [
         BilingualQuote(
             chineseText: "生活不是等待风暴过去，而是学会在雨中跳舞。", 
             englishText: "Life isn't about waiting for the storm to pass, it's about learning to dance in the rain.",
@@ -392,9 +395,36 @@ class QuoteManager {
         )
     ]
     
+    // 用户自定义箴言
+    @Published private var customQuotes: [BilingualQuote] = []
+    
+    // 所有箴言（默认 + 自定义）
+    var allQuotes: [BilingualQuote] {
+        return defaultQuotes + customQuotes
+    }
+    
+    init() {
+        loadCustomQuotes()
+    }
+    
+    // 加载自定义箴言
+    private func loadCustomQuotes() {
+        if let data = UserDefaults.standard.data(forKey: customQuotesKey),
+           let quotes = try? JSONDecoder().decode([BilingualQuote].self, from: data) {
+            self.customQuotes = quotes
+        }
+    }
+    
+    // 保存自定义箴言
+    private func saveCustomQuotes() {
+        if let data = try? JSONEncoder().encode(customQuotes) {
+            UserDefaults.standard.set(data, forKey: customQuotesKey)
+        }
+    }
+    
     // 获取随机名言
     func getRandomQuote() -> Quote {
-        let bilingualQuote = quotes.randomElement() ?? BilingualQuote(
+        let bilingualQuote = allQuotes.randomElement() ?? BilingualQuote(
             chineseText: "每一天都是新的开始", 
             englishText: "Every day is a new beginning",
             chineseAuthor: "佚名", 
@@ -414,11 +444,55 @@ class QuoteManager {
 }
 
 // 双语名言模型
-struct BilingualQuote {
-    let chineseText: String
-    let englishText: String
-    let chineseAuthor: String
-    let englishAuthor: String
+struct BilingualQuote: Codable, Identifiable {
+    var id = UUID()
+    var chineseText: String
+    var englishText: String
+    var chineseAuthor: String
+    var englishAuthor: String
+}
+
+// MARK: - 箴言管理方法
+
+extension QuoteManager {
+    // 获取所有默认箴言
+    func getDefaultQuotes() -> [BilingualQuote] {
+        return defaultQuotes
+    }
+    
+    // 获取所有自定义箴言
+    func getCustomQuotes() -> [BilingualQuote] {
+        return customQuotes
+    }
+    
+    // 添加新箴言
+    func addQuote(chineseText: String, englishText: String, chineseAuthor: String, englishAuthor: String) {
+        let newQuote = BilingualQuote(
+            chineseText: chineseText,
+            englishText: englishText,
+            chineseAuthor: chineseAuthor,
+            englishAuthor: englishAuthor
+        )
+        customQuotes.append(newQuote)
+        saveCustomQuotes()
+    }
+    
+    // 更新箴言
+    func updateQuote(id: UUID, chineseText: String, englishText: String, chineseAuthor: String, englishAuthor: String) {
+        if let index = customQuotes.firstIndex(where: { $0.id == id }) {
+            customQuotes[index].chineseText = chineseText
+            customQuotes[index].englishText = englishText
+            customQuotes[index].chineseAuthor = chineseAuthor
+            customQuotes[index].englishAuthor = englishAuthor
+            saveCustomQuotes()
+        }
+    }
+    
+    // 删除箴言
+    func deleteQuote(id: UUID) {
+        customQuotes.removeAll { $0.id == id }
+        saveCustomQuotes()
+    }
 }
 
 // 名言模型

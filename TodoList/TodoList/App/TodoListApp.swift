@@ -15,6 +15,7 @@ struct TodoListApp: App {
     @StateObject private var taskStore = TaskStore()
     @StateObject private var appSettings = AppSettings()
     @StateObject private var categoryManager = CategoryManager()
+    @StateObject private var quoteManager = QuoteManager.shared
     private let coreDataManager = CoreDataManager.shared
     
     // 系统管理器
@@ -45,6 +46,7 @@ struct TodoListApp: App {
                 .environmentObject(taskStore)
                 .environmentObject(appSettings)
                 .environmentObject(categoryManager)
+                .environmentObject(quoteManager)
                 .preferredColorScheme(colorScheme)
                 .accentColor(appSettings.accentColor.color)
                 .onAppear {
