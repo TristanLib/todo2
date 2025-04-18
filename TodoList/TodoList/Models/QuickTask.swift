@@ -33,8 +33,11 @@ struct QuickTask: Identifiable, Codable, Equatable {
             }
         }
         
+        // 使用本地化的标题
+        let localizedTitle = NSLocalizedString(title, comment: "")
+        
         return Task(
-            title: title,
+            title: localizedTitle,
             description: "",
             category: presetCategory,
             customCategory: category,
@@ -47,10 +50,10 @@ struct QuickTask: Identifiable, Codable, Equatable {
     
     // 预设的快捷任务
     static let defaultQuickTasks: [QuickTask] = [
-        QuickTask(title: NSLocalizedString("冥想", comment: "Quick task meditation"), iconName: "brain.head.profile", colorName: "purple"),
-        QuickTask(title: NSLocalizedString("健身", comment: "Quick task workout"), iconName: "figure.strengthtraining.traditional", colorName: "green"),
-        QuickTask(title: NSLocalizedString("学习", comment: "Quick task study"), iconName: "book.fill", colorName: "blue"),
-        QuickTask(title: NSLocalizedString("跑步", comment: "Quick task running"), iconName: "figure.run", colorName: "orange")
+        QuickTask(title: NSLocalizedString("冥想", comment: ""), iconName: "brain.head.profile", colorName: "purple"),
+        QuickTask(title: NSLocalizedString("健身", comment: ""), iconName: "figure.strengthtraining.traditional", colorName: "green"),
+        QuickTask(title: NSLocalizedString("学习", comment: ""), iconName: "book.fill", colorName: "blue"),
+        QuickTask(title: NSLocalizedString("跑步", comment: ""), iconName: "figure.run", colorName: "orange")
     ]
 }
 

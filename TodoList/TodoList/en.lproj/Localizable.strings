@@ -127,6 +127,27 @@
 "好的" = "OK";
 "确定" = "OK";
 
+// Daily Quote
+"每日箴言" = "Daily Quote";
+"换一条" = "Change";
+
+// Edit Task View
+"编辑任务" = "Edit Task";
+"返回" = "Back";
+"保存更改" = "Save Changes";
+"任务标题" = "Task Title";
+"描述" = "Description";
+"截止日期" = "Due Date";
+"截止前10分钟提醒" = "Remind 10 minutes before due";
+
+// Quick Tasks
+"快捷任务" = "Quick Tasks";
+"冥想" = "Meditation";
+"健身" = "Workout";
+"学习" = "Study";
+"跑步" = "Running";
+"添加" = "Add";
+
 // ContentView Tab Bar
 "任务" = "Tasks";
 "新建" = "New";

@@ -276,7 +276,7 @@ struct AddTaskView: View {
                                                             .fill(CategoryManager.color(for: quickTask.colorName))
                                                     )
                                                 
-                                                Text(quickTask.title)
+                                                Text(NSLocalizedString(quickTask.title, comment: ""))
                                                     .font(.system(size: 12))
                                                     .foregroundColor(.primary)
                                                     .lineLimit(1)
