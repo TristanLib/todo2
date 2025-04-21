@@ -42,149 +42,179 @@ struct AddQuickTaskView: View {
     }
     
     var body: some View {
-        NavigationView {
-            Form {
-                // 基本信息部分
-                Section(header: Text(NSLocalizedString("基本信息", comment: "Basic info section"))) {
-                    TextField(NSLocalizedString("任务名称", comment: "Task name field"), text: $title)
-                        .padding(.vertical, 8)
-                    
-                    // 优先级选择
+        ZStack {
+            // 背景颜色
+            Color(UIColor.systemGroupedBackground)
+                .edgesIgnoringSafeArea(.all)
+            
+            VStack(spacing: 0) {
+                // 自定义导航栏
+                ZStack {
+                    // 左侧取消按钮
                     HStack {
-                        Text(NSLocalizedString("优先级", comment: "Priority label"))
-                        Spacer()
-                        Picker("", selection: $selectedPriority) {
-                            ForEach(TaskPriority.allCases, id: \.self) { priority in
-                                Text(priority.localizedString)
-                                    .foregroundColor(priority.color)
-                                    .tag(priority)
-                            }
+                        Button(action: {
+                            presentationMode.wrappedValue.dismiss()
+                        }) {
+                            Text(NSLocalizedString("取消", comment: "Cancel button"))
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(appSettings.accentColor.color)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
                         }
-                        .pickerStyle(SegmentedPickerStyle())
-                        .frame(width: 200)
+                        Spacer()
                     }
-                    .padding(.vertical, 8)
+                    
+                    // 中间标题
+                    Text(editingTask == nil ? 
+                        NSLocalizedString("添加快捷任务", comment: "Add quick task title") : 
+                        NSLocalizedString("编辑快捷任务", comment: "Edit quick task title"))
+                        .font(.headline)
+                        .fontWeight(.bold)
+                    
+                    // 右侧保存按钮
+                    HStack {
+                        Spacer()
+                        Button(action: saveQuickTask) {
+                            Text(NSLocalizedString("保存", comment: "Save button"))
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(title.isEmpty ? .gray : .white)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 16)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 10)
+                                        .fill(title.isEmpty ? Color.gray.opacity(0.3) : appSettings.accentColor.color)
+                                )
+                        }
+                        .disabled(title.isEmpty)
+                    }
                 }
+                .padding(.horizontal)
+                .padding(.top, 8)
+                .padding(.bottom, 8)
                 
-                // 分类选择部分
-                Section(header: Text(NSLocalizedString("分类", comment: "Category section"))) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 10) {
-                            // 无分类选项
-                            Button {
-                                selectedCategory = nil
-                            } label: {
-                                Text(NSLocalizedString("无分类", comment: "No category option"))
-                                    .font(.system(size: 14, weight: selectedCategory == nil ? .semibold : .regular))
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 6)
-                                    .foregroundColor(selectedCategory == nil ? .white : .gray)
-                                    .background(
-                                        Capsule().fill(selectedCategory == nil ? Color.gray : Color.gray.opacity(0.15))
-                                    )
-                            }
-                            
-                            // 显示现有分类
-                            ForEach(categoryManager.categories) { category in
-                                Button {
-                                    if selectedCategory?.id == category.id {
-                                        selectedCategory = nil // 再次点击取消选择
-                                    } else {
-                                        selectedCategory = category
-                                    }
-                                } label: {
-                                    let isSelected = selectedCategory?.id == category.id
-                                    let chipColor = CategoryManager.color(for: category.colorName)
-                                    
-                                    Text(category.localizedName)
-                                        .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 6)
-                                        .foregroundColor(isSelected ? .white : chipColor)
-                                        .background(
-                                            Capsule().fill(isSelected ? chipColor : chipColor.opacity(0.15))
-                                        )
+                // 表单区域
+                Form {
+                    // 基本信息部分
+                    Section(header: Text(NSLocalizedString("基本信息", comment: "Basic info section"))) {
+                        TextField(NSLocalizedString("任务名称", comment: "Task name field"), text: $title)
+                            .padding(.vertical, 8)
+                        
+                        // 优先级选择
+                        HStack {
+                            Text(NSLocalizedString("优先级", comment: "Priority label"))
+                            Spacer()
+                            Picker("", selection: $selectedPriority) {
+                                ForEach(TaskPriority.allCases, id: \.self) { priority in
+                                    Text(priority.localizedString)
+                                        .foregroundColor(priority.color)
+                                        .tag(priority)
                                 }
                             }
+                            .pickerStyle(SegmentedPickerStyle())
+                            .frame(width: 200)
                         }
                         .padding(.vertical, 8)
                     }
-                }
-                
-                // 图标选择部分
-                Section(header: Text(NSLocalizedString("选择图标", comment: "Icon selection section"))) {
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 15), count: 5), spacing: 15) {
-                        ForEach(availableIcons, id: \.self) { iconName in
-                            Button {
-                                selectedIcon = iconName
-                            } label: {
-                                Image(systemName: iconName)
-                                    .font(.system(size: 24))
-                                    .frame(width: 50, height: 50)
-                                    .foregroundColor(selectedIcon == iconName ? .white : CategoryManager.color(for: selectedColor))
-                                    .background(
-                                        Circle()
-                                            .fill(selectedIcon == iconName ? CategoryManager.color(for: selectedColor) : CategoryManager.color(for: selectedColor).opacity(0.1))
-                                    )
+                    
+                    // 分类选择部分
+                    Section(header: Text(NSLocalizedString("分类", comment: "Category section"))) {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                // 无分类选项
+                                Button {
+                                    selectedCategory = nil
+                                } label: {
+                                    Text(NSLocalizedString("无分类", comment: "No category option"))
+                                        .font(.system(size: 14, weight: selectedCategory == nil ? .semibold : .regular))
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 6)
+                                        .foregroundColor(selectedCategory == nil ? .white : .gray)
+                                        .background(
+                                            Capsule().fill(selectedCategory == nil ? Color.gray : Color.gray.opacity(0.15))
+                                        )
+                                }
+                                
+                                // 显示现有分类
+                                ForEach(categoryManager.categories) { category in
+                                    Button {
+                                        if selectedCategory?.id == category.id {
+                                            selectedCategory = nil // 再次点击取消选择
+                                        } else {
+                                            selectedCategory = category
+                                        }
+                                    } label: {
+                                        let isSelected = selectedCategory?.id == category.id
+                                        let chipColor = CategoryManager.color(for: category.colorName)
+                                        
+                                        Text(category.localizedName)
+                                            .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                                            .padding(.horizontal, 16)
+                                            .padding(.vertical, 6)
+                                            .foregroundColor(isSelected ? .white : chipColor)
+                                            .background(
+                                                Capsule().fill(isSelected ? chipColor : chipColor.opacity(0.15))
+                                            )
+                                    }
+                                }
                             }
-                            .buttonStyle(PlainButtonStyle()) // 添加这一行以确保按钮可以正常响应点击
+                            .padding(.vertical, 8)
                         }
                     }
-                    .padding(.vertical, 8)
-                }
-                
-                // 颜色选择部分
-                Section(header: Text(NSLocalizedString("选择颜色", comment: "Color selection section"))) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 12) {
-                            ForEach(availableColors, id: \.self) { colorName in
+                    
+                    // 图标选择部分
+                    Section(header: Text(NSLocalizedString("选择图标", comment: "Icon selection section"))) {
+                        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 15), count: 5), spacing: 15) {
+                            ForEach(availableIcons, id: \.self) { iconName in
                                 Button {
-                                    selectedColor = colorName
+                                    selectedIcon = iconName
                                 } label: {
-                                    Circle()
-                                        .fill(CategoryManager.color(for: colorName))
-                                        .frame(width: 40, height: 40)
-                                        .overlay(
+                                    Image(systemName: iconName)
+                                        .font(.system(size: 24))
+                                        .frame(width: 50, height: 50)
+                                        .foregroundColor(selectedIcon == iconName ? .white : CategoryManager.color(for: selectedColor))
+                                        .background(
                                             Circle()
-                                                .stroke(selectedColor == colorName ? Color.white : Color.clear, lineWidth: 2)
+                                                .fill(selectedIcon == iconName ? CategoryManager.color(for: selectedColor) : CategoryManager.color(for: selectedColor).opacity(0.1))
                                         )
-                                        .overlay(
-                                            selectedColor == colorName ?
-                                            Image(systemName: "checkmark")
-                                                .foregroundColor(.white)
-                                                .font(.system(size: 14, weight: .bold))
-                                            : nil
-                                        )
-                                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
                                 }
                                 .buttonStyle(PlainButtonStyle()) // 添加这一行以确保按钮可以正常响应点击
                             }
                         }
                         .padding(.vertical, 8)
                     }
+                    
+                    // 颜色选择部分
+                    Section(header: Text(NSLocalizedString("选择颜色", comment: "Color selection section"))) {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 12) {
+                                ForEach(availableColors, id: \.self) { colorName in
+                                    Button {
+                                        selectedColor = colorName
+                                    } label: {
+                                        Circle()
+                                            .fill(CategoryManager.color(for: colorName))
+                                            .frame(width: 40, height: 40)
+                                            .overlay(
+                                                Circle()
+                                                    .stroke(selectedColor == colorName ? Color.white : Color.clear, lineWidth: 2)
+                                            )
+                                            .overlay(
+                                                selectedColor == colorName ?
+                                                Image(systemName: "checkmark")
+                                                    .foregroundColor(.white)
+                                                    .font(.system(size: 14, weight: .bold))
+                                                : nil
+                                            )
+                                            .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                                    }
+                                    .buttonStyle(PlainButtonStyle()) // 添加这一行以确保按钮可以正常响应点击
+                                }
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
                 }
             }
-            .navigationTitle(editingTask == nil ? 
-                            NSLocalizedString("添加快捷任务", comment: "Add quick task title") : 
-                            NSLocalizedString("编辑快捷任务", comment: "Edit quick task title"))
-            .navigationBarItems(
-                leading: Button(NSLocalizedString("取消", comment: "Cancel button")) {
-                    presentationMode.wrappedValue.dismiss()
-                }
-                .foregroundColor(appSettings.accentColor.color),
-                
-                trailing: Button(NSLocalizedString("保存", comment: "Save button")) {
-                    saveQuickTask()
-                }
-                .disabled(title.isEmpty)
-                .foregroundColor(title.isEmpty ? .gray : .white)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 16)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(title.isEmpty ? Color.gray.opacity(0.3) : appSettings.accentColor.color)
-                )
-            )
         }
     }
     
