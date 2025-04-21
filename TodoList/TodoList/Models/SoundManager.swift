@@ -428,146 +428,43 @@ class SoundManager: ObservableObject {
         // 重新激活音频会话
         do {
             try AVAudioSession.sharedInstance().setActive(true)
-            }
-        } else {
-            print("在文件系统中未找到\(type.displayName)文件")
+        } catch {
+            print("重新激活音频会话失败: \(error.localizedDescription)")
         }
     }
-
-    // 如果从资源和文件系统都加载失败，使用模拟文件
-    if !foundAndPlayed {
-        guard let soundUrl = createTemporarySoundFile(named: filename, withExtension: ext) else {
-            print("无法创建临时白噪音文件: \(filename).\(ext)")
+    
+    // 处理音频会话中断
+    @objc private func handleAudioSessionInterruption(notification: Notification) {
+        guard let userInfo = notification.userInfo,
+              let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
             return
         }
-
-        do {
-            // 创建新的播放器
-            let player = try AVAudioPlayer(contentsOf: soundUrl)
-            player.numberOfLoops = -1  // 无限循环播放
-            player.volume = whiteNoiseVolume
-            player.prepareToPlay()
-            player.play()
-
-            whiteNoisePlayer = player
-            print("播放模拟白噪音: \(type.rawValue)")
-        } catch {
-            print("播放白噪音失败 \(filename).\(ext): \(error.localizedDescription)")
-        }
-    }
-}
-
-// 停止白噪音
-func stopWhiteNoise() {
-    // 停止播放器
-    whiteNoisePlayer?.stop()
-    whiteNoisePlayer = nil
-
-    // 注意：不再清除currentWhiteNoise设置
-    // 这样可以保留用户选择的白噪音类型，下次专注时可以继续使用
-    print("停止白噪音播放，保留设置: \(currentWhiteNoise.displayName)")
-}
-
-// 设置白噪音音量
-func setWhiteNoiseVolume(_ volume: Float) {
-    whiteNoiseVolume = volume
-    whiteNoisePlayer?.volume = volume
-    UserDefaults.standard.set(volume, forKey: "whiteNoiseVolume")
-}
-    
-// MARK: - 后台播放支持
-    
-// 配置音频会话以支持后台播放
-private func setupAudioSession() {
-    do {
-        // 设置音频会话类别为播放，并允许混音和后台播放
-        try AVAudioSession.sharedInstance().setCategory(
-            .playback,
-            mode: .default,
-            options: [.mixWithOthers, .duckOthers]
-        )
-        try AVAudioSession.sharedInstance().setActive(true)
-        print("音频会话配置成功，支持后台播放")
-    } catch {
-        print("配置音频会话失败: \(error.localizedDescription)")
-    }
-}
-    
-// 注册应用生命周期通知
-private func registerForNotifications() {
-    // 监听应用进入后台通知
-    NotificationCenter.default.addObserver(
-        self,
-        selector: #selector(handleAppDidEnterBackground),
-        name: UIApplication.didEnterBackgroundNotification,
-        object: nil
-    )
-    
-    // 监听应用进入前台通知
-    NotificationCenter.default.addObserver(
-        self,
-        selector: #selector(handleAppWillEnterForeground),
-        name: UIApplication.willEnterForegroundNotification,
-        object: nil
-    )
-    
-    // 监听音频会话中断通知
-    NotificationCenter.default.addObserver(
-        self,
-        selector: #selector(handleAudioSessionInterruption),
-        name: AVAudioSession.interruptionNotification,
-        object: nil
-    )
-}
-    
-// 处理应用进入后台
-@objc private func handleAppDidEnterBackground() {
-    print("应用进入后台，确保音频继续播放")
-    // 如果需要，可以在这里添加额外的后台播放逻辑
-}
-    
-// 处理应用进入前台
-@objc private func handleAppWillEnterForeground() {
-    print("应用进入前台")
-    // 重新激活音频会话
-    do {
-        try AVAudioSession.sharedInstance().setActive(true)
-    } catch {
-        print("重新激活音频会话失败: \(error.localizedDescription)")
-    }
-}
-    
-// 处理音频会话中断
-@objc private func handleAudioSessionInterruption(notification: Notification) {
-    guard let userInfo = notification.userInfo,
-          let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
-          let type = AVAudioSession.InterruptionType(rawValue: typeValue) else {
-        return
-    }
-    
-    switch type {
-    case .began:
-        // 音频被中断（例如来电）
-        print("音频播放被中断")
         
-    case .ended:
-        // 中断结束，检查是否应该恢复播放
-        if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt,
-           AVAudioSession.InterruptionOptions(rawValue: optionsValue).contains(.shouldResume) {
-            print("中断结束，检查是否应该恢复音频播放")
+        switch type {
+        case .began:
+            // 音频被中断（例如来电）
+            print("音频播放被中断")
             
-            // 只有在专注状态下才恢复白噪音播放
-            let focusTimer = FocusTimerManager.shared
-            if currentWhiteNoise != .none && isEnabled && whiteNoisePlayer == nil && 
-               focusTimer.currentState == .focusing {
-                print("中断结束，当前处于专注状态，恢复白噪音播放")
-                playWhiteNoise(currentWhiteNoise)
-            } else {
-                print("中断结束，但不恢复白噪音播放，当前状态：\(focusTimer.currentState.rawValue)")
+        case .ended:
+            // 中断结束，检查是否应该恢复播放
+            if let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt,
+               AVAudioSession.InterruptionOptions(rawValue: optionsValue).contains(.shouldResume) {
+                print("中断结束，检查是否应该恢复音频播放")
+                
+                // 只有在专注状态下才恢复白噪音播放
+                let focusTimer = FocusTimerManager.shared
+                if currentWhiteNoise != .none && isEnabled && whiteNoisePlayer == nil && 
+                   focusTimer.currentState == .focusing {
+                    print("中断结束，当前处于专注状态，恢复白噪音播放")
+                    playWhiteNoise(currentWhiteNoise)
+                } else {
+                    print("中断结束，但不恢复白噪音播放，当前状态：\(focusTimer.currentState.rawValue)")
+                }
             }
+            
+        @unknown default:
+            break
         }
-        
-    @unknown default:
-        break
     }
 }

@@ -177,7 +177,13 @@ struct AddQuickTaskView: View {
                     saveQuickTask()
                 }
                 .disabled(title.isEmpty)
-                .foregroundColor(title.isEmpty ? .gray : appSettings.accentColor.color)
+                .foregroundColor(title.isEmpty ? .gray : .white)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 16)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(title.isEmpty ? Color.gray.opacity(0.3) : appSettings.accentColor.color)
+                )
             )
         }
     }
