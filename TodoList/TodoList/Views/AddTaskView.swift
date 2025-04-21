@@ -63,8 +63,10 @@ struct AddTaskView: View {
                             presentationMode.wrappedValue.dismiss()
                         }) {
                             Text(NSLocalizedString("取消", comment: "Cancel button"))
-                                .font(.system(size: 14))
+                                .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(appSettings.accentColor.color)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 12)
                         }
                         Spacer()
                     }
@@ -79,12 +81,12 @@ struct AddTaskView: View {
                         Spacer()
                         Button(action: saveTask) {
                             Text(NSLocalizedString("保存", comment: "Save button"))
-                                .font(.system(size: 14))
+                                .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(title.isEmpty ? .gray : .white)
-                                .padding(.vertical, 6)
-                                .padding(.horizontal, 10)
+                                .padding(.vertical, 8)
+                                .padding(.horizontal, 16)
                                 .background(
-                                    RoundedRectangle(cornerRadius: 8)
+                                    RoundedRectangle(cornerRadius: 10)
                                         .fill(title.isEmpty ? Color.gray.opacity(0.3) : appSettings.accentColor.color)
                                 )
                         }
@@ -255,73 +257,95 @@ struct AddTaskView: View {
                                 .foregroundColor(.primary)
                                 .padding(.horizontal, 16)
                             
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: 12) {
-                                    // 显示快捷任务
-                                    ForEach(quickTaskManager.quickTasks) { quickTask in
-                                        Button {
-                                            // 创建并添加任务
-                                            let task = quickTask.createTask()
-                                            taskStore.addTask(task)
-                                            presentationMode.wrappedValue.dismiss()
-                                        } label: {
-                                            VStack(spacing: 6) {
-                                                Image(systemName: quickTask.iconName)
-                                                    .font(.system(size: 24))
-                                                    .foregroundColor(.white)
-                                                    .frame(width: 50, height: 50)
-                                                    .background(
-                                                        Circle()
-                                                            .fill(CategoryManager.color(for: quickTask.colorName))
-                                                    )
+                            VStack(spacing: 12) {
+                                // 快捷任务滚动视图
+                                ScrollView(.horizontal, showsIndicators: true) {
+                                    HStack(spacing: 16) {
+                                        // 显示快捷任务
+                                        ForEach(quickTaskManager.quickTasks) { quickTask in
+                                            Button {
+                                                // 创建并添加任务
+                                                let task = quickTask.createTask()
+                                                taskStore.addTask(task)
+                                                presentationMode.wrappedValue.dismiss()
+                                            } label: {
+                                                VStack(spacing: 8) {
+                                                    Image(systemName: quickTask.iconName)
+                                                        .font(.system(size: 24))
+                                                        .foregroundColor(.white)
+                                                        .frame(width: 50, height: 50)
+                                                        .background(
+                                                            Circle()
+                                                                .fill(CategoryManager.color(for: quickTask.colorName))
+                                                        )
+                                                    
+                                                    Text(NSLocalizedString(quickTask.title, comment: ""))
+                                                        .font(.system(size: 12))
+                                                        .foregroundColor(.primary)
+                                                        .lineLimit(1)
+                                                }
+                                                .frame(width: 70)
+                                            }
+                                            .contextMenu {
+                                                Button(action: {
+                                                    // 编辑快捷任务
+                                                    editingQuickTask = quickTask
+                                                    showingAddQuickTaskSheet = true
+                                                }) {
+                                                    Label(NSLocalizedString("编辑", comment: "Edit quick task"), systemImage: "pencil")
+                                                }
                                                 
-                                                Text(NSLocalizedString(quickTask.title, comment: ""))
-                                                    .font(.system(size: 12))
-                                                    .foregroundColor(.primary)
-                                                    .lineLimit(1)
-                                            }
-                                            .frame(width: 70)
-                                        }
-                                        .contextMenu {
-                                            Button(action: {
-                                                // 编辑快捷任务
-                                                editingQuickTask = quickTask
-                                                showingAddQuickTaskSheet = true
-                                            }) {
-                                                Label(NSLocalizedString("编辑", comment: "Edit quick task"), systemImage: "pencil")
-                                            }
-                                            
-                                            Button(action: {
-                                                // 删除快捷任务
-                                                quickTaskManager.deleteQuickTask(quickTask)
-                                            }) {
-                                                Label(NSLocalizedString("删除", comment: "Delete quick task"), systemImage: "trash")
-                                                    .foregroundColor(.red)
+                                                Button(action: {
+                                                    // 删除快捷任务
+                                                    quickTaskManager.deleteQuickTask(quickTask)
+                                                }) {
+                                                    Label(NSLocalizedString("删除", comment: "Delete quick task"), systemImage: "trash")
+                                                        .foregroundColor(.red)
+                                                }
                                             }
                                         }
                                     }
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
                                 }
+                                // 滑动指示器
+                                .overlay(
+                                    HStack {
+                                        Image(systemName: "chevron.left")
+                                            .foregroundColor(.gray.opacity(0.6))
+                                        Spacer()
+                                        Image(systemName: "chevron.right")
+                                            .foregroundColor(.gray.opacity(0.6))
+                                    }
+                                    .font(.system(size: 16, weight: .bold))
+                                    .padding(.horizontal, 8),
+                                    alignment: .center
+                                )
                                 
-                                // 添加新快捷任务按钮
-                                Button {
-                                    showingAddQuickTaskSheet = true
-                                } label: {
-                                    VStack(spacing: 6) {
-                                        Image(systemName: "plus")
-                                            .font(.system(size: 24))
-                                            .foregroundColor(.white)
-                                            .frame(width: 50, height: 50)
-                                            .background(
-                                                Circle()
-                                                    .fill(appSettings.accentColor.color)
-                                            )
-                                        
-                                        Text(NSLocalizedString("添加", comment: "Add quick task button"))
-                                            .font(.system(size: 12))
-                                            .foregroundColor(.primary)
+                                // 添加新快捷任务按钮 - 移至底部中央
+                                HStack {
+                                    Spacer()
+                                    Button {
+                                        showingAddQuickTaskSheet = true
+                                    } label: {
+                                        HStack(spacing: 8) {
+                                            Image(systemName: "plus.circle.fill")
+                                                .font(.system(size: 20))
+                                            Text(NSLocalizedString("添加快捷任务", comment: "Add quick task button"))
+                                                .font(.system(size: 14, weight: .medium))
+                                        }
+                                        .foregroundColor(appSettings.accentColor.color)
+                                        .padding(.vertical, 8)
+                                        .padding(.horizontal, 16)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 18)
+                                                .stroke(appSettings.accentColor.color, lineWidth: 1)
+                                                .background(RoundedRectangle(cornerRadius: 18).fill(appSettings.accentColor.color.opacity(0.1)))
+                                        )
                                     }
-                                    .frame(width: 70)
+                                    Spacer()
                                 }
+                                .padding(.bottom, 4)
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
