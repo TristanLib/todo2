@@ -15,14 +15,15 @@ enum SoundType: String {
 // 白噪音类型枚举
 enum WhiteNoiseType: String, CaseIterable, Identifiable {
     case none = "none"        // 无白噪音
-    case rain = "rain"        // 雨声
-    case ocean = "ocean"      // 海浪声
-    case fire = "fire"        // 篝火声
-    case forest = "forest"    // 森林声
-    case cafe = "cafe"        // 咖啡厅
+    // 暂时只保留雷声音频，其他音频注释掉
+    // case rain = "rain"        // 雨声
+    // case ocean = "ocean"      // 海浪声
+    // case fire = "fire"        // 篝火声
+    // case forest = "forest"    // 森林声
+    // case cafe = "cafe"        // 咖啡厅
     case thunder = "thunder"  // 雷声
-    case wind = "wind"        // 风声
-    case river = "river"      // 河流声
+    // case wind = "wind"        // 风声
+    // case river = "river"      // 河流声
 
     var id: String { self.rawValue }
 
@@ -30,22 +31,22 @@ enum WhiteNoiseType: String, CaseIterable, Identifiable {
         switch self {
         case .none:
             return NSLocalizedString("无白噪音", comment: "No white noise")
-        case .rain:
-            return NSLocalizedString("雨声", comment: "Rain sound")
-        case .ocean:
-            return NSLocalizedString("海浪", comment: "Ocean waves sound")
-        case .fire:
-            return NSLocalizedString("篝火", comment: "Fire crackling sound")
-        case .forest:
-            return NSLocalizedString("森林", comment: "Forest ambience sound")
-        case .cafe:
-            return NSLocalizedString("咖啡厅", comment: "Cafe ambience sound")
+        // case .rain:
+        //     return NSLocalizedString("雨声", comment: "Rain sound")
+        // case .ocean:
+        //     return NSLocalizedString("海浪", comment: "Ocean waves sound")
+        // case .fire:
+        //     return NSLocalizedString("篝火", comment: "Fire crackling sound")
+        // case .forest:
+        //     return NSLocalizedString("森林", comment: "Forest ambience sound")
+        // case .cafe:
+        //     return NSLocalizedString("咖啡厅", comment: "Cafe ambience sound")
         case .thunder:
             return NSLocalizedString("雷声", comment: "Thunder sound")
-        case .wind:
-            return NSLocalizedString("风声", comment: "Wind sound")
-        case .river:
-            return NSLocalizedString("河流", comment: "River sound")
+        // case .wind:
+        //     return NSLocalizedString("风声", comment: "Wind sound")
+        // case .river:
+        //     return NSLocalizedString("河流", comment: "River sound")
         }
     }
 
@@ -53,22 +54,22 @@ enum WhiteNoiseType: String, CaseIterable, Identifiable {
         switch self {
         case .none:
             return "speaker.slash"
-        case .rain:
-            return "cloud.rain"
-        case .ocean:
-            return "water.waves"
-        case .fire:
-            return "flame"
-        case .forest:
-            return "leaf"
-        case .cafe:
-            return "cup.and.saucer"
+        // case .rain:
+        //     return "cloud.rain"
+        // case .ocean:
+        //     return "water.waves"
+        // case .fire:
+        //     return "flame"
+        // case .forest:
+        //     return "leaf"
+        // case .cafe:
+        //     return "cup.and.saucer"
         case .thunder:
             return "cloud.bolt"
-        case .wind:
-            return "wind"
-        case .river:
-            return "water"
+        // case .wind:
+        //     return "wind"
+        // case .river:
+        //     return "water"
         }
     }
 }

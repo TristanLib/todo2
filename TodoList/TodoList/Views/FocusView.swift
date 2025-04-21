@@ -33,7 +33,7 @@ struct FocusView: View {
                             Image("TomatoCompleted")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 22, height: 22)
+                                .frame(width: 26, height: 26)
                                 .shadow(color: Color.orange.opacity(0.3), radius: 2, x: 0, y: 1)
                             
                             Text(String.localizedStringWithFormat(
@@ -47,7 +47,7 @@ struct FocusView: View {
 
                         // 目标时间和已累计时间
                         Text(String.localizedStringWithFormat(
-                            NSLocalizedString("目标时间: %d分钟 (已累计: %@)", comment: "Target time: X min (Accumulated: Y)"),
+                            NSLocalizedString("时间: %d分钟 (已累计: %@)", comment: "Target time: X min (Accumulated: Y)"),
                             appSettings.focusSettings.dailyFocusTimeTarget,
                             focusTimer.formattedTodayTotalFocusTime()
                         ))

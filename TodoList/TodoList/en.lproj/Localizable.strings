@@ -257,7 +257,7 @@
 "目标: %d" = "Target: %d";
 "(已完成: %d)" = "(Done: %d)";
 "目标: %d个番茄 (已完成: %d)" = "Target: %d tomatoes (Done: %d)";
-"目标时间: %d分钟 (已累计: %@)" = "Time: %d min (Done: %@)";
+"时间: %d分钟 (已累计: %@)" = "Time: %d min (Done: %@)";
 "跳过当前阶段" = "Skip Current Phase";
 "跳过" = "Skip";
 "提前结束专注将不会计入统计。确定要跳过当前专注吗？" = "Ending focus early won't count towards stats. Skip current focus session?";
