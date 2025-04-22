@@ -415,6 +415,14 @@ class SoundManager: ObservableObject {
             name: AVAudioSession.interruptionNotification,
             object: nil
         )
+        
+        // 监听专注结束通知
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(handleFocusEnded),
+            name: NSNotification.Name("FocusTimerEndedNotification"),
+            object: nil
+        )
     }
     
     // 处理应用进入后台
@@ -432,6 +440,12 @@ class SoundManager: ObservableObject {
         } catch {
             print("重新激活音频会话失败: \(error.localizedDescription)")
         }
+    }
+    
+    // 处理专注结束通知
+    @objc private func handleFocusEnded(notification: Notification) {
+        print("收到专注结束通知，停止白噪音播放")
+        stopWhiteNoise()
     }
     
     // 处理音频会话中断

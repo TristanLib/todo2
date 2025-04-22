@@ -498,6 +498,9 @@ class FocusTimerManager: ObservableObject {
 
             // 发送通知
             notificationManager.scheduleNotification(for: .focusEnd)
+            
+            // 发送专注结束通知，确保即使在后台也能停止白噪音
+            NotificationCenter.default.post(name: NSNotification.Name("FocusTimerEndedNotification"), object: nil)
 
             // 清除应用图标标记
             notificationManager.clearApplicationBadge()
@@ -517,6 +520,9 @@ class FocusTimerManager: ObservableObject {
 
             // 发送通知
             notificationManager.scheduleNotification(for: .breakEnd)
+            
+            // 发送休息结束通知，确保即使在后台也能停止白噪音
+            NotificationCenter.default.post(name: NSNotification.Name("FocusTimerEndedNotification"), object: nil)
 
             // 清除应用图标标记
             notificationManager.clearApplicationBadge()
