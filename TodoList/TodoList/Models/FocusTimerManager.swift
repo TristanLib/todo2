@@ -168,6 +168,35 @@ class FocusTimerManager: ObservableObject {
             if backgroundTime == nil {
                 backgroundTime = Date()
             }
+            
+            // 计算当前计时器应该结束的时间
+            if let endTime = endTime {
+                // 计算剩余时间（秒）
+                let remainingSeconds = Int(endTime.timeIntervalSinceNow)
+                
+                if remainingSeconds > 0 {
+                    print("应用进入后台，计时器还有 \(remainingSeconds) 秒")
+                    
+                    // 设置后台任务来处理计时结束
+                    let taskID = UIApplication.shared.beginBackgroundTask { [weak self] in
+                        // 后台时间即将结束，确保清理
+                        self?.stopWhiteNoiseInBackground()
+                        UIApplication.shared.endBackgroundTask(taskID)
+                    }
+                    
+                    // 设置本地通知，在计时结束时触发
+                    scheduleBackgroundTimerEndNotification(after: TimeInterval(remainingSeconds))
+                    
+                    // 在后台开启一个定时器来处理计时结束
+                    DispatchQueue.global().asyncAfter(deadline: .now() + TimeInterval(remainingSeconds)) { [weak self] in
+                        self?.stopWhiteNoiseInBackground()
+                        UIApplication.shared.endBackgroundTask(taskID)
+                    }
+                } else {
+                    // 如果时间已经结束，直接停止白噪音
+                    stopWhiteNoiseInBackground()
+                }
+            }
         }
     }
 
@@ -183,8 +212,17 @@ class FocusTimerManager: ObservableObject {
         // 检查日期是否变更，如果变更则重新加载今日数据（会自动清零）
         loadTodayData()
         
+        // 取消之前计划的本地通知
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        
         if currentState != .idle && currentState != .paused && backgroundTime != nil {
             handleBackgroundToForeground()
+        }
+        
+        // 检查如果应用在后台时计时器已经结束
+        if let endTime = endTime, endTime.timeIntervalSinceNow <= 0 && currentState != .idle && currentState != .paused {
+            print("应用返回前台，发现计时器已经结束")
+            handleTimerCompletion()
         }
     }
 
@@ -198,6 +236,9 @@ class FocusTimerManager: ObservableObject {
 
         // 更新剩余时间
         let newRemainingTime = max(0, Int(endTime.timeIntervalSince(now)))
+        
+        // 取消之前计划的本地通知
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
 
         // 如果计时器结束
         if newRemainingTime <= 0 {
@@ -621,6 +662,76 @@ class FocusTimerManager: ObservableObject {
             return String(format: NSLocalizedString("%d小时%02d分钟", comment: "Hours and minutes format"), hours, minutes)
         } else {
             return String(format: NSLocalizedString("%d分钟", comment: "Minutes only format"), minutes)
+        }
+    }
+    
+    // 在后台停止白噪音
+    private func stopWhiteNoiseInBackground() {
+        // 发送通知来停止白噪音
+        print("在后台停止白噪音")
+        NotificationCenter.default.post(name: NSNotification.Name("FocusTimerEndedNotification"), object: nil)
+        
+        // 如果当前状态是专注，更新完成的专注会话数
+        if currentState == .focusing {
+            // 在主线程更新数据
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                
+                // 完成一个专注会话
+                self.completedFocusSessions += 1
+                self.totalFocusSessions = max(self.totalFocusSessions, self.completedFocusSessions)
+                
+                // 保存到UserDefaults
+                UserDefaults.standard.set(self.completedFocusSessions, forKey: "completedFocusSessions")
+                UserDefaults.standard.synchronize()
+                
+                // 更新今日结果
+                self.updateTodayData()
+                
+                // 更新状态为空闲
+                self.currentState = .idle
+                self.timeRemaining = self.focusDuration
+                self.progress = 0
+                self.backgroundTime = nil
+            }
+        }
+    }
+    
+    // 在后台计时器结束时计划本地通知
+    private func scheduleBackgroundTimerEndNotification(after seconds: TimeInterval) {
+        // 创建通知内容
+        let content = UNMutableNotificationContent()
+        
+        // 根据当前状态设置标题和消息
+        switch currentState {
+        case .focusing:
+            content.title = NSLocalizedString("专注完成", comment: "Focus completed notification title")
+            content.body = NSLocalizedString("您的专注时间已经结束，请休息一下吧", comment: "Focus completed notification body")
+        case .shortBreak, .longBreak:
+            content.title = NSLocalizedString("休息结束", comment: "Break completed notification title")
+            content.body = NSLocalizedString("您的休息时间已经结束，准备好开始新的专注了吗？", comment: "Break completed notification body")
+        default:
+            content.title = NSLocalizedString("计时器结束", comment: "Timer completed notification title")
+            content.body = NSLocalizedString("您的计时器已经结束", comment: "Timer completed notification body")
+        }
+        
+        content.sound = UNNotificationSound.default
+        content.badge = 1
+        
+        // 创建触发器
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: seconds, repeats: false)
+        
+        // 创建请求
+        let identifier = "com.todolist.timer.end.\(UUID().uuidString)"
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: trigger)
+        
+        // 添加通知请求
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("计划本地通知失败: \(error.localizedDescription)")
+            } else {
+                print("已计划在 \(seconds) 秒后显示计时器结束通知")
+            }
         }
     }
 
