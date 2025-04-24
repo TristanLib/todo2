@@ -63,19 +63,22 @@ struct FocusView: View {
                     let lineWidth: CGFloat = max(timerSize * 0.05, 12)
 
                     ZStack {
-                        // 背景圆环
+                        // 背景圆环 - 使用橙色渐变
                         Circle()
-                            .stroke(Color(.systemGray5), lineWidth: lineWidth)
-
-                        // 进度圆环 - 使用橙色渐变
-                        Circle()
-                            .trim(from: 0, to: CGFloat(focusTimer.progress))
                             .stroke(
                                 LinearGradient(
                                     gradient: Gradient(colors: [Color.orange, Color.orange.opacity(0.7)]),
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
                                 ),
+                                lineWidth: lineWidth
+                            )
+
+                        // 进度圆环 - 使用灰色
+                        Circle()
+                            .trim(from: 0, to: CGFloat(focusTimer.progress))
+                            .stroke(
+                                Color(.systemGray5),
                                 style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
                             )
                             .rotationEffect(.degrees(-90))
