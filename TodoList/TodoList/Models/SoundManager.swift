@@ -19,11 +19,13 @@ enum WhiteNoiseType: String, CaseIterable, Identifiable {
     // case rain = "rain"        // 雨声
     // case ocean = "ocean"      // 海浪声
     // case fire = "fire"        // 篝火声
-    // case forest = "forest"    // 森林声
+    case forest = "forest"    // 森林声
     // case cafe = "cafe"        // 咖啡厅
     case thunder = "thunder"  // 雷声
     // case wind = "wind"        // 风声
     // case river = "river"      // 河流声
+    case bird = "bird"        // 鸟叫声
+    case creek = "creek"      // 小溪声
 
     var id: String { self.rawValue }
 
@@ -37,8 +39,8 @@ enum WhiteNoiseType: String, CaseIterable, Identifiable {
         //     return NSLocalizedString("海浪", comment: "Ocean waves sound")
         // case .fire:
         //     return NSLocalizedString("篝火", comment: "Fire crackling sound")
-        // case .forest:
-        //     return NSLocalizedString("森林", comment: "Forest ambience sound")
+        case .forest:
+            return NSLocalizedString("森林", comment: "Forest ambience sound")
         // case .cafe:
         //     return NSLocalizedString("咖啡厅", comment: "Cafe ambience sound")
         case .thunder:
@@ -47,6 +49,10 @@ enum WhiteNoiseType: String, CaseIterable, Identifiable {
         //     return NSLocalizedString("风声", comment: "Wind sound")
         // case .river:
         //     return NSLocalizedString("河流", comment: "River sound")
+        case .bird:
+            return NSLocalizedString("鸟叫声", comment: "Bird sound")
+        case .creek:
+            return NSLocalizedString("小溪声", comment: "Creek sound")
         }
     }
 
@@ -60,8 +66,8 @@ enum WhiteNoiseType: String, CaseIterable, Identifiable {
         //     return "water.waves"
         // case .fire:
         //     return "flame"
-        // case .forest:
-        //     return "leaf"
+        case .forest:
+            return "leaf"
         // case .cafe:
         //     return "cup.and.saucer"
         case .thunder:
@@ -70,6 +76,10 @@ enum WhiteNoiseType: String, CaseIterable, Identifiable {
         //     return "wind"
         // case .river:
         //     return "water"
+        case .bird:
+            return "bird"
+        case .creek:
+            return "water.waves"
         }
     }
 }

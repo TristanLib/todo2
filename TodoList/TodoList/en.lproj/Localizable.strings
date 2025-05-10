@@ -244,6 +244,8 @@
 "雷声" = "Thunder";
 "风声" = "Wind";
 "河流" = "River";
+"鸟叫声" = "Bird";
+"小溪声" = "Creek";
 
 /* 专注目标相关 */
 "今日目标: %d个专注，%d分钟" = "Today's Goal: %d sessions, %d minutes";

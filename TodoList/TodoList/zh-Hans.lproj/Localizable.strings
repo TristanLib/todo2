@@ -28,3 +28,21 @@
 "确定要跳过当前休息吗？" = "确定要跳过当前休息吗？";
 "完成" = "完成";
 "今日进度" = "今日进度";
+
+/* 白噪音相关 */
+"White Noise" = "白噪音";
+"Select White Noise" = "选择白噪音";
+"Volume" = "音量";
+"Preview Volume" = "预览音量";
+"Confirm" = "确认";
+"No White Noise" = "无白噪音";
+"Rain" = "雨声";
+"Ocean Waves" = "海浪";
+"Fire" = "篝火";
+"Forest" = "森林";
+"Cafe" = "咖啡厅";
+"Thunder" = "雷声";
+"Wind" = "风声";
+"River" = "河流";
+"Bird" = "鸟叫声";
+"Creek" = "小溪声";

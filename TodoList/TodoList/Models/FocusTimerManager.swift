@@ -178,7 +178,8 @@ class FocusTimerManager: ObservableObject {
                     print("应用进入后台，计时器还有 \(remainingSeconds) 秒")
                     
                     // 设置后台任务来处理计时结束
-                    let taskID = UIApplication.shared.beginBackgroundTask { [weak self] in
+                    var taskID: UIBackgroundTaskIdentifier = .invalid
+                    taskID = UIApplication.shared.beginBackgroundTask { [weak self] in
                         // 后台时间即将结束，确保清理
                         self?.stopWhiteNoiseInBackground()
                         UIApplication.shared.endBackgroundTask(taskID)
