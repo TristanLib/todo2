@@ -22,9 +22,11 @@ struct TodoListApp: App {
     private let notificationManager = NotificationManager.shared
     private let soundManager = SoundManager.shared
     private let focusTimerManager = FocusTimerManager.shared
+    private let streakManager = StreakManager.shared
     
     init() {
         // 应用程序启动时初始化
+        print("🚀 TodoListApp: 应用启动，初始化各个管理器")
         
         // 如果启用了通知，请求权限
         if appSettings.notificationSettings.enableNotifications {
@@ -34,6 +36,10 @@ struct TodoListApp: App {
         // 初始化所有管理器
         soundManager.setEnabled(appSettings.focusSettings.enableSound)
         focusTimerManager.updateSettings(from: appSettings.focusSettings)
+        
+        // 初始化StreakManager（这会触发状态检查和数据加载）
+        _ = streakManager
+        print("🚀 TodoListApp: StreakManager 已初始化")
         
         // 配置后台运行支持
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared

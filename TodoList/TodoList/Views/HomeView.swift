@@ -38,6 +38,10 @@ struct HomeView: View {
                     welcomeCard
                         .fadeIn(isPresented: isLoadingComplete)
                     
+                    // 连续使用天数卡片
+                    StreakCardView()
+                        .fadeIn(isPresented: isLoadingComplete)
+                    
                     // 今日概览
                     progressSection
                         .fadeIn(isPresented: isLoadingComplete)

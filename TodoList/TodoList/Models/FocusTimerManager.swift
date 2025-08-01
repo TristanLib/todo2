@@ -552,6 +552,10 @@ class FocusTimerManager: ObservableObject {
                 self?.taskStore?.updateApplicationBadge()
             }
             
+            // 标记用户今日活跃 - 完成专注会话
+            StreakManager.shared.markTodayAsActive()
+            print("🍅 FocusTimerManager: 专注会话完成，标记今日活跃")
+            
             // 修改：专注结束后回到空闲状态，等待用户手动开始休息
             // 不再自动启动休息模式
             stopTimer()

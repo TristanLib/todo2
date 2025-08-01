@@ -142,6 +142,27 @@ struct SettingsView: View {
                         .buttonStyle(PlainButtonStyle())
                     }
                     
+                    #if DEBUG
+                    // 调试功能
+                    settingsSection(title: "调试功能") {
+                        NavigationLink(destination: StreakDebugView()) {
+                            settingsRow(
+                                icon: "flame.fill",
+                                iconBackground: Color.orange.opacity(0.2),
+                                iconColor: .orange,
+                                title: "Streak调试",
+                                subtitle: "测试连续使用天数功能",
+                                trailingView: {
+                                    Image(systemName: "chevron.right")
+                                        .font(.footnote)
+                                        .foregroundColor(.secondary)
+                                }
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                    }
+                    #endif
+                    
                     // 数据管理
                     settingsSection(title: NSLocalizedString("数据管理", comment: "Data management section title")) {
                         // 备份与恢复

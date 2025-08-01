@@ -49,6 +49,9 @@ class TaskStore: ObservableObject {
         _ = coreDataManager.addTask(task: task)
         loadTasks()
         updateApplicationBadge()
+        
+        // 标记用户今日活跃 - 创建任务也算活跃行为
+        StreakManager.shared.markTodayAsActive()
     }
     
     func updateTask(_ task: Task) {
@@ -84,8 +87,15 @@ class TaskStore: ObservableObject {
     
     func toggleTaskCompletion(_ task: Task) {
         var updatedTask = task
+        let wasIncomplete = !updatedTask.isCompleted
         updatedTask.isCompleted.toggle()
         updateTask(updatedTask)
+        
+        // 如果任务从未完成变为完成，标记用户今日活跃
+        if wasIncomplete {
+            StreakManager.shared.markTodayAsActive()
+            print("📋 TaskStore: 任务完成，标记今日活跃")
+        }
     }
     
     // MARK: - Task Filtering
