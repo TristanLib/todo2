@@ -556,6 +556,9 @@ class FocusTimerManager: ObservableObject {
             StreakManager.shared.markTodayAsActive()
             print("🍅 FocusTimerManager: 专注会话完成，标记今日活跃")
             
+            // 检测专注相关成就
+            checkFocusAchievements()
+            
             // 修改：专注结束后回到空闲状态，等待用户手动开始休息
             // 不再自动启动休息模式
             stopTimer()
@@ -790,5 +793,44 @@ class FocusTimerManager: ObservableObject {
                 return NSLocalizedString("已暂停", comment: "Generic paused state")
             }
         }
+    }
+    
+    // MARK: - Achievement Integration
+    
+    /// 检测专注相关成就
+    private func checkFocusAchievements() {
+        let isFirstSession = completedFocusSessions == 1
+        let totalFocusMinutesEver = getTotalFocusMinutesEver()
+        let currentHour = Calendar.current.component(.hour, from: Date())
+        let sessionMinutes = focusDuration / 60
+        
+        print("🍅 FocusTimerManager: 成就检测 - 今日会话:\(todayCompletedFocusSessions), 今日分钟:\(todayTotalFocusTime/60), 首次:\(isFirstSession), 累计分钟:\(totalFocusMinutesEver), 当前时间:\(currentHour)")
+        
+        // 获得专注完成积分
+        let isLongSession = sessionMinutes >= 45 // 45分钟以上算长时间专注
+        let isEarlyBird = currentHour >= 5 && currentHour <= 7
+        let isNightOwl = currentHour >= 23 || currentHour <= 2
+        
+        UserLevelManager.shared.focusSessionCompleted(
+            minutes: sessionMinutes,
+            isLongSession: isLongSession,
+            isEarlyBird: isEarlyBird,
+            isNightOwl: isNightOwl
+        )
+        
+        AchievementManager.shared.checkFocusAchievements(
+            sessionsCompleted: todayCompletedFocusSessions,
+            totalFocusMinutes: todayTotalFocusTime / 60, // 转换为分钟
+            isFirstSession: isFirstSession,
+            totalFocusMinutesEver: totalFocusMinutesEver,
+            currentHour: currentHour
+        )
+    }
+    
+    /// 获取累计专注时间（分钟）
+    private func getTotalFocusMinutesEver() -> Int {
+        // 简单实现：基于完成的会话数估算
+        // 每个会话按照focusDuration计算（通常是25分钟）
+        return completedFocusSessions * (focusDuration / 60)
     }
 }

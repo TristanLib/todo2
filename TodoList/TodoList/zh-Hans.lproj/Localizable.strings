@@ -6,6 +6,14 @@
 
 */
 
+// Achievement System
+"我的成就" = "我的成就";
+"View unlocked achievement badges" = "查看解锁的成就徽章";
+"专注大师" = "专注大师";
+"任务管理" = "任务管理";
+"习惯养成" = "习惯养成";
+"特殊成就" = "特殊成就";
+
 // Task Priorities
 "Low" = "低";
 "Medium" = "中";

@@ -16,6 +16,14 @@ struct ContentView: View {
     @State private var showAddTask = false
     @State private var showTaskDetail: Task? = nil
     
+    // 成就解锁弹窗
+    @State private var showAchievementUnlock = false
+    @State private var unlockedAchievement: Achievement? = nil
+    
+    // 等级升级庆祝弹窗
+    @State private var showLevelUpCelebration = false
+    @State private var levelUpData: (oldLevel: Int, newLevel: Int)? = nil
+    
     var body: some View {
         TabView(selection: $selectedTab) {
             HomeView()
@@ -94,6 +102,49 @@ struct ContentView: View {
                 selectedTab = 1 // 如果找不到特定任务，则跳转到任务列表
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .achievementUnlocked)) { notification in
+            if let achievement = notification.object as? Achievement {
+                unlockedAchievement = achievement
+                showAchievementUnlock = true
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UserLevelManager.levelUpNotification)) { notification in
+            if let userInfo = notification.userInfo,
+               let oldLevel = userInfo["oldLevel"] as? Int,
+               let newLevel = userInfo["newLevel"] as? Int {
+                levelUpData = (oldLevel: oldLevel, newLevel: newLevel)
+                showLevelUpCelebration = true
+            }
+        }
+        .fullScreenCover(isPresented: $showAchievementUnlock) {
+            if let achievement = unlockedAchievement {
+                AchievementUnlockView(
+                    achievement: achievement,
+                    isPresented: $showAchievementUnlock,
+                    onViewAllAchievements: {
+                        // 跳转到设置中的成就页面
+                        selectedTab = 4
+                    }
+                )
+            }
+        }
+        .fullScreenCover(isPresented: $showLevelUpCelebration) {
+            if let data = levelUpData {
+                LevelUpCelebrationView(
+                    oldLevel: data.oldLevel,
+                    newLevel: data.newLevel,
+                    levelData: UserLevelManager.shared.levelData,
+                    isPresented: $showLevelUpCelebration,
+                    onContinue: {
+                        // 可以在这里添加升级后的逻辑
+                    }
+                )
+            }
+        }
+        .overlay(
+            // 积分动画管理器
+            PointsAnimationManager()
+        )
     }
 }
 

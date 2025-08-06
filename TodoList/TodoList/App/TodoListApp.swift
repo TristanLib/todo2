@@ -23,6 +23,8 @@ struct TodoListApp: App {
     private let soundManager = SoundManager.shared
     private let focusTimerManager = FocusTimerManager.shared
     private let streakManager = StreakManager.shared
+    private let achievementManager = AchievementManager.shared
+    private let userLevelManager = UserLevelManager.shared
     
     init() {
         // 应用程序启动时初始化
@@ -40,6 +42,17 @@ struct TodoListApp: App {
         // 初始化StreakManager（这会触发状态检查和数据加载）
         _ = streakManager
         print("🚀 TodoListApp: StreakManager 已初始化")
+        
+        // 初始化AchievementManager（这会设置通知监听器）
+        _ = achievementManager
+        print("🚀 TodoListApp: AchievementManager 已初始化")
+        
+        // 初始化UserLevelManager（这会设置积分系统）
+        _ = userLevelManager
+        print("🚀 TodoListApp: UserLevelManager 已初始化")
+        
+        // 检查是否是首次启动，解锁早期用户成就
+        checkFirstTimeUser()
         
         // 配置后台运行支持
         UNUserNotificationCenter.current().delegate = NotificationDelegate.shared
@@ -90,6 +103,23 @@ struct TodoListApp: App {
                 print("Notification permission granted")
             } else if let error = error {
                 print("Error requesting notification permission: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func checkFirstTimeUser() {
+        let firstLaunchKey = "hasLaunchedBefore"
+        let hasLaunchedBefore = UserDefaults.standard.bool(forKey: firstLaunchKey)
+        
+        if !hasLaunchedBefore {
+            print("🚀 TodoListApp: 首次启动，解锁早期用户成就")
+            
+            // 标记为已启动过
+            UserDefaults.standard.set(true, forKey: firstLaunchKey)
+            
+            // 延迟一秒后解锁成就，确保所有系统都已初始化
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                AchievementManager.shared.checkEarlyAdopterAchievement()
             }
         }
     }

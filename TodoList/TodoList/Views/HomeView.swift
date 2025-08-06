@@ -42,6 +42,10 @@ struct HomeView: View {
                     StreakCardView()
                         .fadeIn(isPresented: isLoadingComplete)
                     
+                    // 用户等级进度卡片
+                    LevelProgressView()
+                        .fadeIn(isPresented: isLoadingComplete)
+                    
                     // 今日概览
                     progressSection
                         .fadeIn(isPresented: isLoadingComplete)

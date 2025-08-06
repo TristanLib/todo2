@@ -103,6 +103,22 @@ struct SettingsView: View {
                     
                     // 账户设置
                     settingsSection(title: NSLocalizedString("账户", comment: "Account section title")) {
+                        // 我的成就
+                        NavigationLink(destination: AchievementGridView()) {
+                            settingsRow(
+                                icon: "trophy.fill",
+                                iconBackground: Color.orange.opacity(0.2),
+                                iconColor: .orange,
+                                title: NSLocalizedString("我的成就", comment: "My achievements setting"),
+                                subtitle: NSLocalizedString("查看解锁的成就徽章", comment: "View unlocked achievement badges"),
+                                trailingView: {
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.gray)
+                                }
+                            )
+                        }
+                        
                         // 偏好设置
                         NavigationLink(destination: PreferencesView()) {
                             settingsRow(

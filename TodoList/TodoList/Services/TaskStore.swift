@@ -46,12 +46,26 @@ class TaskStore: ObservableObject {
     // MARK: - Task Management
     
     func addTask(_ task: Task) {
+        let isFirstTask = tasks.isEmpty
         _ = coreDataManager.addTask(task: task)
         loadTasks()
         updateApplicationBadge()
         
         // 标记用户今日活跃 - 创建任务也算活跃行为
         StreakManager.shared.markTodayAsActive()
+        
+        // 获得创建任务积分
+        UserLevelManager.shared.taskCreated()
+        
+        // 检测是否是第一个任务
+        if isFirstTask {
+            AchievementManager.shared.checkTaskAchievements(
+                tasksCompleted: 0,
+                totalTasks: 1,
+                isFirstTask: true,
+                totalCompletedEver: getTotalCompletedTasksEver()
+            )
+        }
     }
     
     func updateTask(_ task: Task) {
@@ -91,10 +105,23 @@ class TaskStore: ObservableObject {
         updatedTask.isCompleted.toggle()
         updateTask(updatedTask)
         
-        // 如果任务从未完成变为完成，标记用户今日活跃
+        // 如果任务从未完成变为完成，标记用户今日活跃并检测成就
         if wasIncomplete {
             StreakManager.shared.markTodayAsActive()
             print("📋 TaskStore: 任务完成，标记今日活跃")
+            
+            // 检查是否是完美一天（所有任务都完成）
+            let todayTasks = getTasksDueToday()
+            let isPerfectDay = !todayTasks.isEmpty && todayTasks.allSatisfy { $0.isCompleted || $0.id == task.id }
+            
+            // 获得完成任务积分
+            UserLevelManager.shared.taskCompleted(
+                isFirstTask: getTotalCompletedTasksEver() == 0,
+                isPerfectDay: isPerfectDay
+            )
+            
+            // 检测任务相关成就
+            checkTaskAchievements()
         }
     }
     
@@ -230,5 +257,32 @@ class TaskStore: ObservableObject {
                 print("更新应用图标标记失败: \(error.localizedDescription)")
             }
         }
+    }
+    
+    // MARK: - Achievement Integration
+    
+    /// 检测任务相关成就
+    private func checkTaskAchievements() {
+        let today = Calendar.current.startOfDay(for: Date())
+        let todayTasks = tasks.filter { Calendar.current.isDate($0.createdAt, inSameDayAs: today) }
+        let todayCompletedTasks = todayTasks.filter { $0.isCompleted }
+        
+        let tasksCompletedToday = todayCompletedTasks.count
+        let totalTasksToday = todayTasks.count
+        let totalCompletedEver = getTotalCompletedTasksEver()
+        
+        print("📋 TaskStore: 成就检测 - 今日完成:\(tasksCompletedToday), 今日总数:\(totalTasksToday), 累计完成:\(totalCompletedEver)")
+        
+        AchievementManager.shared.checkTaskAchievements(
+            tasksCompleted: tasksCompletedToday,
+            totalTasks: totalTasksToday,
+            isFirstTask: false,
+            totalCompletedEver: totalCompletedEver
+        )
+    }
+    
+    /// 获取累计完成的任务总数
+    private func getTotalCompletedTasksEver() -> Int {
+        return tasks.filter { $0.isCompleted }.count
     }
 } 

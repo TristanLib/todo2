@@ -229,8 +229,8 @@ class StreakManager: ObservableObject {
                 object: milestone
             )
             
-            // 这里将来可以给用户奖励积分
-            // UserLevelManager.shared.addPoints(milestone.rewardPoints, for: .streakMilestone)
+            // 给用户奖励积分
+            UserLevelManager.shared.milestoneReached(days: milestone.days)
         }
     }
     
